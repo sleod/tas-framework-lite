@@ -1,0 +1,7 @@
+{
+  "platformName": "Android",
+  "browserName": "Chrome",
+  "realDeviceUuid": "7bcba981-96ca-36b3-bbb9-f4aebfe83cbc",
+  "hubURL": "http://192.168.206.22/selenium/wd/hub",
+  "chromeDriverExecutable": "/opt/chromedriver/chromedriver_85"
+}

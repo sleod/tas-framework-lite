@@ -1,0 +1,6 @@
+{
+  "platformName": "Android",
+  "browserName": "Chrome",
+  "realDeviceUuid": "662ae0d5-584e-332f-8379-cd15ef2cfc08",
+  "hubURL": "http://192.168.206.22/selenium/wd/hub"
+}

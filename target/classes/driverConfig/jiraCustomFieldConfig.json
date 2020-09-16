@@ -1,0 +1,13 @@
+{
+  "xray": {
+    "execution": {
+      "runList": "customfield_15613"
+    },
+    "test": {
+      "testType": "customfield_15600",
+      "contentType": "customfield_15601",
+      "definition": "customfield_15602",
+      "planList": "customfield_17800"
+    }
+  }
+}
