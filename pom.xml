@@ -223,7 +223,7 @@
                 <configuration>
                     <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
                     <testFailureIgnore>true</testFailureIgnore>
-                    <testSourceDirectory>${basedir}/src/test/java/testFramework/</testSourceDirectory>
+                    <testSourceDirectory>src/test/java/testFramework</testSourceDirectory>
                     <testClassesDirectory>${project.build.directory}/test-classes//</testClassesDirectory>
                 </configuration>
             </plugin>

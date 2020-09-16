@@ -374,11 +374,11 @@ public class QCConnector implements RestDriver {
      *
      * @param path     "api/authentication/sign-in"
      * @param username user name
-     * @param passw    password
+     * @param pass    password
      * @return response of query
      */
-    public Response basicAuthentication(String path, String username, String passw) {
-        String encoding = PropertyResolver.encodeBase64(username + ":" + passw);
+    public Response basicAuthentication(String path, String username, String pass) {
+        String encoding = PropertyResolver.encodeBase64(username + ":" + pass);
         return signIn(path, encoding);
     }
 
@@ -389,7 +389,7 @@ public class QCConnector implements RestDriver {
      */
     public String printResponse(boolean all) {
         SystemLogger.log("INFO", "\n============getResponse============");
-        log("INFO", String.valueOf(response.getStatus()));
+        SystemLogger.log("INFO", String.valueOf(response.getStatus()));
         String entry = "";
         if (all) {
             entry = response.readEntity(String.class);

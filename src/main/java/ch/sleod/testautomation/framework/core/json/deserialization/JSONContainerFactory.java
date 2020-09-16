@@ -4,7 +4,6 @@ import ch.sleod.testautomation.framework.common.IOUtils.FileLocator;
 import ch.sleod.testautomation.framework.common.IOUtils.FileOperation;
 import ch.sleod.testautomation.framework.configuration.PropertyResolver;
 import ch.sleod.testautomation.framework.core.controller.ExternAppController;
-import ch.raiffeisen.testautomation.framework.core.json.container.*;
 import ch.sleod.testautomation.framework.core.json.container.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.sf.json.JSONObject;
