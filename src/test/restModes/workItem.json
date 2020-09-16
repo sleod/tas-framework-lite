@@ -1,0 +1,97 @@
+{
+  "id": 554491,
+  "rev": 1,
+  "fields": {
+    "System.AreaPath": "AP.Testtools\\Test Automation",
+    "System.TeamProject": "AP.Testtools",
+    "System.IterationPath": "AP.Testtools",
+    "System.WorkItemType": "Test Case",
+    "System.State": "10 - Geplant",
+    "System.Reason": "Neuer Test Case",
+    "System.AssignedTo": {
+      "displayName": "Manuel Schäfler",
+      "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_apis/Identities/d825d537-0225-4c4f-8d6c-f1469dae86a3",
+      "_links": {
+        "avatar": {
+          "href": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTgxNTQ2MDI0Mi0xMjAzMzc0OTU3LTQyMzYyOTg2MzUtNTEyMzcy"
+        }
+      },
+      "id": "d825d537-0225-4c4f-8d6c-f1469dae86a3",
+      "uniqueName": "AD\\UEX13996",
+      "imageUrl": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_api/_common/identityImage?id=d825d537-0225-4c4f-8d6c-f1469dae86a3",
+      "descriptor": "win.Uy0xLTUtMjEtMTgxNTQ2MDI0Mi0xMjAzMzc0OTU3LTQyMzYyOTg2MzUtNTEyMzcy"
+    },
+    "System.CreatedDate": "2019-11-05T08:12:02.863Z",
+    "System.CreatedBy": {
+      "displayName": "Manuel Schäfler",
+      "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_apis/Identities/d825d537-0225-4c4f-8d6c-f1469dae86a3",
+      "_links": {
+        "avatar": {
+          "href": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTgxNTQ2MDI0Mi0xMjAzMzc0OTU3LTQyMzYyOTg2MzUtNTEyMzcy"
+        }
+      },
+      "id": "d825d537-0225-4c4f-8d6c-f1469dae86a3",
+      "uniqueName": "AD\\UEX13996",
+      "imageUrl": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_api/_common/identityImage?id=d825d537-0225-4c4f-8d6c-f1469dae86a3",
+      "descriptor": "win.Uy0xLTUtMjEtMTgxNTQ2MDI0Mi0xMjAzMzc0OTU3LTQyMzYyOTg2MzUtNTEyMzcy"
+    },
+    "System.ChangedDate": "2019-11-05T08:12:02.863Z",
+    "System.ChangedBy": {
+      "displayName": "Manuel Schäfler",
+      "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_apis/Identities/d825d537-0225-4c4f-8d6c-f1469dae86a3",
+      "_links": {
+        "avatar": {
+          "href": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTgxNTQ2MDI0Mi0xMjAzMzc0OTU3LTQyMzYyOTg2MzUtNTEyMzcy"
+        }
+      },
+      "id": "d825d537-0225-4c4f-8d6c-f1469dae86a3",
+      "uniqueName": "AD\\UEX13996",
+      "imageUrl": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_api/_common/identityImage?id=d825d537-0225-4c4f-8d6c-f1469dae86a3",
+      "descriptor": "win.Uy0xLTUtMjEtMTgxNTQ2MDI0Mi0xMjAzMzc0OTU3LTQyMzYyOTg2MzUtNTEyMzcy"
+    },
+    "System.CommentCount": 0,
+    "System.Title": "Test",
+    "Microsoft.VSTS.Common.StateChangeDate": "2019-11-05T08:12:02.863Z",
+    "Microsoft.VSTS.Common.ActivatedDate": "2019-11-05T08:12:02.863Z",
+    "Microsoft.VSTS.Common.ActivatedBy": {
+      "displayName": "Manuel Schäfler",
+      "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_apis/Identities/d825d537-0225-4c4f-8d6c-f1469dae86a3",
+      "_links": {
+        "avatar": {
+          "href": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTgxNTQ2MDI0Mi0xMjAzMzc0OTU3LTQyMzYyOTg2MzUtNTEyMzcy"
+        }
+      },
+      "id": "d825d537-0225-4c4f-8d6c-f1469dae86a3",
+      "uniqueName": "AD\\UEX13996",
+      "imageUrl": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_api/_common/identityImage?id=d825d537-0225-4c4f-8d6c-f1469dae86a3",
+      "descriptor": "win.Uy0xLTUtMjEtMTgxNTQ2MDI0Mi0xMjAzMzc0OTU3LTQyMzYyOTg2MzUtNTEyMzcy"
+    },
+    "Microsoft.VSTS.Common.Priority": 4,
+    "Microsoft.VSTS.TCM.AutomationStatus": "0-keine Automatisierung (Default)",
+    "RCH.ALL.BeschreibungHTML": "<b>Ziel</b><br><br><b>Vorbedingung</b><br><br><b>Varianz</b><br><br><b>Testdaten</b><br><br><b>Benutzerrolle</b><br><br>"
+  },
+  "_links": {
+    "self": {
+      "href": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/33029407-7843-42d8-9cc1-caec23331f35/_apis/wit/workItems/554491"
+    },
+    "workItemUpdates": {
+      "href": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/33029407-7843-42d8-9cc1-caec23331f35/_apis/wit/workItems/554491/updates"
+    },
+    "workItemRevisions": {
+      "href": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/33029407-7843-42d8-9cc1-caec23331f35/_apis/wit/workItems/554491/revisions"
+    },
+    "workItemComments": {
+      "href": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/33029407-7843-42d8-9cc1-caec23331f35/_apis/wit/workItems/554491/comments"
+    },
+    "html": {
+      "href": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/web/wi.aspx?pcguid=71587dbc-6597-4b94-a8d8-772ad246a905&id=554491"
+    },
+    "workItemType": {
+      "href": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/33029407-7843-42d8-9cc1-caec23331f35/_apis/wit/workItemTypes/Test%20Case"
+    },
+    "fields": {
+      "href": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/33029407-7843-42d8-9cc1-caec23331f35/_apis/wit/fields"
+    }
+  },
+  "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/33029407-7843-42d8-9cc1-caec23331f35/_apis/wit/workItems/554491"
+}

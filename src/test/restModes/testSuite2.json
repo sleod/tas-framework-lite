@@ -1,0 +1,40 @@
+{
+  "id": 471238,
+  "name": "Neue Sammlung",
+  "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/AP.Testtools/_apis/test/Plans/436601/Suites/471238",
+  "project": {
+    "id": "33029407-7843-42d8-9cc1-caec23331f35",
+    "name": "AP.Testtools",
+    "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_apis/projects/AP.Testtools"
+  },
+  "plan": {
+    "id": "436601",
+    "name": "MPP_Automation",
+    "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/AP.Testtools/_apis/test/Plans/436601"
+  },
+  "parent": {
+    "id": "436602",
+    "name": "MPP_Automation",
+    "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/AP.Testtools/_apis/test/Plans/436601/Suites/436602"
+  },
+  "revision": 7,
+  "testCaseCount": 2,
+  "suiteType": "StaticTestSuite",
+  "testCasesUrl": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/AP.Testtools/_apis/test/Plans/436601/Suites/471238/testcases",
+  "inheritDefaultConfigurations": true,
+  "state": "In Progress",
+  "lastUpdatedBy": {
+    "displayName": "Manuel Schäfler",
+    "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_apis/Identities/d825d537-0225-4c4f-8d6c-f1469dae86a3",
+    "_links": {
+      "avatar": {
+        "href": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTgxNTQ2MDI0Mi0xMjAzMzc0OTU3LTQyMzYyOTg2MzUtNTEyMzcy"
+      }
+    },
+    "id": "d825d537-0225-4c4f-8d6c-f1469dae86a3",
+    "uniqueName": "AD\\UEX13996",
+    "imageUrl": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_api/_common/identityImage?id=d825d537-0225-4c4f-8d6c-f1469dae86a3",
+    "descriptor": "win.Uy0xLTUtMjEtMTgxNTQ2MDI0Mi0xMjAzMzc0OTU3LTQyMzYyOTg2MzUtNTEyMzcy"
+  },
+  "lastUpdatedDate": "2019-11-11T16:00:54.167Z"
+}

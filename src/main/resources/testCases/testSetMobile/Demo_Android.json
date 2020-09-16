@@ -1,0 +1,22 @@
+{
+  "meta": [
+    "@focusAndroid"
+  ],
+  "name": "Demo Android Try",
+  "type": "mobile_android",
+  "description": "Demo Test Case of android twint",
+  "source": "TFS",
+  "testCaseId": "",
+  "requirement": "",
+  "reference": "",
+  "screenshotLevel": "ERROR",
+  "testDataRef": "File:testData/google-testData.json",
+  "appName": "ch.raiffeisen.twint",
+  "activity": "",
+  "steps": [
+    {
+      "name": "type login name",
+      "testObject": "android login page"
+    }
+  ]
+}

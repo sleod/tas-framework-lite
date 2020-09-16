@@ -1,0 +1,93 @@
+{
+  "value": [
+    {
+      "id": 350333,
+      "name": "AP.Testtools Team_Stories_Automation 02-2018",
+      "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/AP.Testtools/_apis/test/Plans/350333",
+      "project": {
+        "id": "33029407-7843-42d8-9cc1-caec23331f35",
+        "name": "AP.Testtools",
+        "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_apis/projects/AP.Testtools"
+      },
+      "area": {
+        "id": "0",
+        "name": "AP.Testtools"
+      },
+      "iteration": "AP.Testtools\\Automation\\2018-02",
+      "owner": null,
+      "revision": 0,
+      "state": "Inactive",
+      "rootSuite": {
+        "id": "350334"
+      },
+      "clientUrl": "mtms://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/p:AP.Testtools/Testing/testplan/connect?id=350333"
+    },
+    {
+      "id": 421131,
+      "name": "AutomationStoriesAP.Testtools",
+      "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/AP.Testtools/_apis/test/Plans/421131",
+      "project": {
+        "id": "33029407-7843-42d8-9cc1-caec23331f35",
+        "name": "AP.Testtools",
+        "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_apis/projects/AP.Testtools"
+      },
+      "area": {
+        "id": "0",
+        "name": "AP.Testtools"
+      },
+      "iteration": "AP.Testtools",
+      "owner": null,
+      "revision": 0,
+      "state": "Inactive",
+      "rootSuite": {
+        "id": "421132"
+      },
+      "clientUrl": "mtms://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/p:AP.Testtools/Testing/testplan/connect?id=421131"
+    },
+    {
+      "id": 436601,
+      "name": "MPP_Automation",
+      "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/AP.Testtools/_apis/test/Plans/436601",
+      "project": {
+        "id": "33029407-7843-42d8-9cc1-caec23331f35",
+        "name": "AP.Testtools",
+        "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_apis/projects/AP.Testtools"
+      },
+      "area": {
+        "id": "0",
+        "name": "AP.Testtools\\Test Automation"
+      },
+      "iteration": "AP.Testtools",
+      "owner": null,
+      "revision": 0,
+      "state": "Active",
+      "rootSuite": {
+        "id": "436602"
+      },
+      "clientUrl": "mtms://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/p:AP.Testtools/Testing/testplan/connect?id=436601"
+    },
+    {
+      "id": 475881,
+      "name": "CT@Tool",
+      "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/AP.Testtools/_apis/test/Plans/475881",
+      "project": {
+        "id": "33029407-7843-42d8-9cc1-caec23331f35",
+        "name": "AP.Testtools",
+        "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_apis/projects/AP.Testtools"
+      },
+      "area": {
+        "id": "0",
+        "name": "AP.Testtools\\Tool Box\\CTTool"
+      },
+      "iteration": "AP.Testtools",
+      "owner": null,
+      "revision": 0,
+      "state": "Active",
+      "rootSuite": {
+        "id": "475882"
+      },
+      "clientUrl": "mtms://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/p:AP.Testtools/Testing/testplan/connect?id=475881"
+    }
+  ],
+  "count": 4
+}

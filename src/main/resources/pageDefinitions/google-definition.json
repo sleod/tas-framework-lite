@@ -1,0 +1,10 @@
+{
+  "logo": {
+    "how": "id",
+    "using": "hplogo"
+  },
+  "title": {
+    "how": "tag_name",
+    "using": "title"
+  }
+}

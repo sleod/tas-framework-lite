@@ -1,0 +1,55 @@
+{
+  "id": 436601,
+  "name": "MPP_Automation",
+  "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/AP.Testtools/_apis/test/Plans/436601",
+  "project": {
+    "id": "33029407-7843-42d8-9cc1-caec23331f35",
+    "name": "AP.Testtools",
+    "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_apis/projects/AP.Testtools"
+  },
+  "area": {
+    "id": "0",
+    "name": "AP.Testtools\\Test Automation"
+  },
+  "startDate": "2019-01-29T15:29:43.62Z",
+  "endDate": "2019-02-05T15:29:43.62Z",
+  "iteration": "AP.Testtools",
+  "updatedDate": "2019-01-29T15:29:43.79Z",
+  "updatedBy": {
+    "displayName": "Heinz Ledermann",
+    "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_apis/Identities/7ea4a2e2-1acb-4f05-bfbb-72e5d6392982",
+    "_links": {
+      "avatar": {
+        "href": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTgxNTQ2MDI0Mi0xMjAzMzc0OTU3LTQyMzYyOTg2MzUtMzIyNzcx"
+      }
+    },
+    "id": "7ea4a2e2-1acb-4f05-bfbb-72e5d6392982",
+    "uniqueName": "AD\\UPR6400",
+    "imageUrl": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_api/_common/identityImage?id=7ea4a2e2-1acb-4f05-bfbb-72e5d6392982",
+    "descriptor": "win.Uy0xLTUtMjEtMTgxNTQ2MDI0Mi0xMjAzMzc0OTU3LTQyMzYyOTg2MzUtMzIyNzcx"
+  },
+  "owner": {
+    "displayName": "Heinz Ledermann",
+    "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_apis/Identities/7ea4a2e2-1acb-4f05-bfbb-72e5d6392982",
+    "_links": {
+      "avatar": {
+        "href": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTgxNTQ2MDI0Mi0xMjAzMzc0OTU3LTQyMzYyOTg2MzUtMzIyNzcx"
+      }
+    },
+    "id": "7ea4a2e2-1acb-4f05-bfbb-72e5d6392982",
+    "uniqueName": "AD\\UPR6400",
+    "imageUrl": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/_api/_common/identityImage?id=7ea4a2e2-1acb-4f05-bfbb-72e5d6392982",
+    "descriptor": "win.Uy0xLTUtMjEtMTgxNTQ2MDI0Mi0xMjAzMzc0OTU3LTQyMzYyOTg2MzUtMzIyNzcx"
+  },
+  "revision": 1,
+  "state": "Active",
+  "rootSuite": {
+    "id": "436602",
+    "name": "MPP_Automation",
+    "url": "https://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/AP.Testtools/_apis/test/Plans/436601/Suites/436602"
+  },
+  "clientUrl": "mtms://tfs-prod.service.raiffeisen.ch:8081/tfs/RCH/p:AP.Testtools/Testing/testplan/connect?id=436601",
+  "testOutcomeSettings": {
+    "syncOutcomeAcrossSuites": false
+  }
+}

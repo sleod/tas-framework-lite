@@ -1,0 +1,44 @@
+{
+  "meta": [
+    "@remote",
+    "@nightly",
+    "@CI"
+  ],
+  "name": "Demo test 1",
+  "type": "mobile_web_app",
+  "description": "Demo Test Case of Google home page",
+  "source": "TFS",
+  "testCaseId": "",
+  "requirement": "",
+  "reference": "",
+  "screenshotLevel": "ERROR",
+  "testDataRef": "File:testData/google-testData.csv",
+  "startURL": "https://www.google.ch",
+  "steps": [
+    {
+      "name": "Check Fields Present",
+      "testObject": "Google Home Page"
+    },
+    {
+      "name": "Check Page Title",
+      "testObject": "Google Home Page"
+    },
+    {
+      "name": "Search Text",
+      "testObject": "Google Home Page"
+    },
+    {
+      "name": "Check Fields Present",
+      "testObject": "Search Result Page"
+    },
+    {
+      "name": "Check First Entry of Search Result",
+      "testObject": "Search Result Page",
+      "using": "searchResultEntry1"
+    },
+    {
+      "name": "Check search with map",
+      "testObject": "Search Result Page"
+    }
+  ]
+}
