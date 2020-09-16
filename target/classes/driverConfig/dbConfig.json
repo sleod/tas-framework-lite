@@ -1,8 +1,0 @@
-{
-  "type": "mssql",
-  "host": "mssql-pfc-mada-p",
-  "port": "1433",
-  "user": "UT_PFCP02_P",
-  "password": "skugle911",
-  "instance.name": "pj.ebanking"
-}
