@@ -146,14 +146,14 @@ public class TestCaseStep extends TestCase {
             }
             if (throwable instanceof KnownIssueException) {
                 testStepResult.setStatus(TestStatus.BROKEN);
-                testStepResult.setTestFailure(new TestFailure(throwable.getMessage(), throwable));
+                testStepResult.setTestFailure(new TestFailure(throwable));
                 testStepMonitor.broken(testStepResult.getStepId(), throwable);
             } else {
                 testStepResult.setStatus(TestStatus.FAIL);
                 testStepResult.setActual("Exception: " + throwable.getMessage());
-                testStepResult.setTestFailure(new TestFailure(throwable.getMessage(), throwable));
+                testStepResult.setTestFailure(new TestFailure(throwable));
                 testStepMonitor.failed(testStepResult.getStepId(), throwable);
-                fail(throwable.getMessage());
+//                fail(throwable.getMessage());
             }
         } finally {
             testStepResult.stopNow();

@@ -1,10 +1,12 @@
 package ch.sleod.testautomation.framework.common.utils;
 
 import ch.sleod.testautomation.framework.configuration.PropertyResolver;
-import ch.sleod.testautomation.framework.common.logging.SystemLogger;
 
 import java.io.File;
 import java.io.IOException;
+
+import static ch.sleod.testautomation.framework.common.logging.SystemLogger.error;
+import static ch.sleod.testautomation.framework.common.logging.SystemLogger.trace;
 
 public class WindowsUtils {
 
@@ -17,10 +19,10 @@ public class WindowsUtils {
             driverName += ".exe";
         }
         try {
-            SystemLogger.trace("Try to clean up remain running driver services: " + driverName);
+            trace("Try to clean up remain running driver services: " + driverName);
             Runtime.getRuntime().exec("taskkill /f /fi \"pid gt 0\" /im " + driverName);
         } catch (IOException e) {
-            SystemLogger.error(e);
+            error(e);
         }
 
     }

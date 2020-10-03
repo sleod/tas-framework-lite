@@ -1,8 +1,9 @@
 package ch.sleod.testautomation.framework.common.utils;
 
-import ch.sleod.testautomation.framework.common.logging.SystemLogger;
-
 import java.io.*;
+
+import static ch.sleod.testautomation.framework.common.logging.SystemLogger.error;
+import static ch.sleod.testautomation.framework.common.logging.SystemLogger.trace;
 
 public class ObjectWriterReader {
 
@@ -21,10 +22,10 @@ public class ObjectWriterReader {
             objectOutputStream.close();
             fileOutputStream.close();
         } catch (FileNotFoundException e) {
-            SystemLogger.trace("File not found: " + fileName);
+            trace("File not found: " + fileName);
         } catch (IOException e) {
-            SystemLogger.trace("IO Exception of Stream!");
-            SystemLogger.error(e);
+            trace("IO Exception of Stream!");
+            error(e);
         }
     }
 
@@ -42,13 +43,13 @@ public class ObjectWriterReader {
             // Read objects
             object = objectInputStream.readObject();
         } catch (FileNotFoundException e) {
-            SystemLogger.trace("File not found: " + fileName);
+            trace("File not found: " + fileName);
         } catch (IOException e) {
-            SystemLogger.trace("IO Exception of Stream!");
-            SystemLogger.error(e);
+            trace("IO Exception of Stream!");
+            error(e);
         } catch (ClassNotFoundException e) {
-            SystemLogger.trace("Read Object failed! Object class can not be found!");
-            SystemLogger.error(e);
+            trace("Read Object failed! Object class can not be found!");
+            error(e);
         }
         return object;
     }

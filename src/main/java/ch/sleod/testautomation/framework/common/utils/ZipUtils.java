@@ -1,7 +1,5 @@
 package ch.sleod.testautomation.framework.common.utils;
 
-import ch.sleod.testautomation.framework.common.logging.SystemLogger;
-
 import java.io.*;
 import java.nio.file.Files;
 import java.util.Enumeration;
@@ -9,6 +7,8 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
+
+import static ch.sleod.testautomation.framework.common.logging.SystemLogger.error;
 
 public class ZipUtils {
 
@@ -78,7 +78,7 @@ public class ZipUtils {
             zos.closeEntry();
             zos.close();
         } catch (IOException ex) {
-            SystemLogger.error(ex);
+            error(ex);
         }
         return zipFile;
     }

@@ -11,13 +11,13 @@ import ch.sleod.testautomation.framework.intefaces.DBDataCollector;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static ch.sleod.testautomation.framework.common.logging.SystemLogger.error;
-import static ch.sleod.testautomation.framework.common.logging.SystemLogger.info;
+import static ch.sleod.testautomation.framework.common.logging.SystemLogger.*;
 import static java.util.Arrays.asList;
 
 public class TestDataContainer {
@@ -30,7 +30,7 @@ public class TestDataContainer {
     private static JSONObject globalTestData;
     private static final Map<String, Object> tempData = new LinkedHashMap<>();
 
-    public TestDataContainer(String testDataRef) {
+    public TestDataContainer(String testDataRef) throws IOException {
         loadTestData(testDataRef);
     }
 
@@ -122,16 +122,23 @@ public class TestDataContainer {
         }
     }
 
-    private void loadTestData(String testDataRef) {
-        if (testDataRef.toLowerCase().contains("file:")) {
-            loadWithFile(FileLocator.findResource(testDataRef.substring(5)).toString());
-        } else if (testDataRef.toLowerCase().contains("sql:")) {
-            loadDBContent(FileOperation.readFileToLinedString(FileLocator.findResource(testDataRef.substring(4)).toString()));
-        } else if (testDataRef.toLowerCase().contains("db:")) {
-            loadDBDataWith(testDataRef.substring(3));
-        } else {
-            throw new RuntimeException("Test Data Reference can not be loaded: no 'File:' ,'SQL:' or 'DB:' header found!");
-        }
+    private void loadTestData(String testDataRef) throws IOException {
+        String testDataLocation = Objects.requireNonNull(FileLocator.findResource(PropertyResolver.getTestDataFolder())).toString();
+        String[] token = testDataRef.split(":");
+        if (!"db".equals(token[0].toLowerCase())) {
+            String filePath;
+            if (token[1].replace("\\", "/").contains("/")) {
+                filePath = Objects.requireNonNull(FileLocator.findResource(token[1])).toString();
+            } else filePath = FileLocator.findExactFile(testDataLocation, 5, token[1]).toString();
+            trace("Take test data file: " + filePath);
+            if ("file".equals(token[0].toLowerCase())) {
+                loadWithFile(filePath);
+            } else if ("sql".equals(token[0].toLowerCase())) {
+                loadDBContent(filePath);
+            } else
+                throw new RuntimeException("Test Data Reference can not be loaded: no 'File:' ,'SQL:' or 'DB:' header found!");
+        } else loadDBDataWith(token[1]);
+
     }
 
     private void loadDBDataWith(String className) {
@@ -159,7 +166,7 @@ public class TestDataContainer {
                     loadCSVContent(testDataRef);
                     break;
                 case SQL:
-                    loadDBContent(FileOperation.readFileToLinedString(testDataRef));
+                    loadDBContent(testDataRef);
                     break;
                 case XML:
                     loadXMLContent(testDataRef);
@@ -167,6 +174,8 @@ public class TestDataContainer {
                 case JSON:
                     loadJSONContent(testDataRef);
                     break;
+                default:
+                    throw new RuntimeException("Test Data Reference can not be loaded: File Format is not supported jet! " + "<" + testDataRef + ">");
             }
         }
     }
@@ -228,10 +237,11 @@ public class TestDataContainer {
         }
     }
 
-    private void loadDBContent(String sqlStatement) {
+    private void loadDBContent(String testDataRef) {
+        String sql = FileOperation.readFileToLinedString(testDataRef);
         JSONObject config = JSONContainerFactory.getConfig(PropertyResolver.getDBConfigFile());
         dataContent = DBConnector.connectAndExcute(config.getString("type"), config.getString("host"),
-                config.getString("user"), config.getString("port"), config.getString("instance.name"), config.getString("password"), sqlStatement);
+                config.getString("user"), config.getString("port"), config.getString("instance.name"), config.getString("password"), sql);
     }
 
     //todo: define xml content loader

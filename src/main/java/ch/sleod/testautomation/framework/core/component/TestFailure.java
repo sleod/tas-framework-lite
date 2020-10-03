@@ -4,16 +4,16 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 public class TestFailure {
 
-    private String message;
-    private Throwable exception;
+    private final Throwable exception;
 
-    public TestFailure(String message, Throwable exception) {
-        this.message = message;
+    public TestFailure(Throwable exception) {
         this.exception = exception;
     }
 
     public String getMessage() {
-        return message;
+        if (exception != null && exception.getMessage() != null)
+            return exception.getMessage();
+        else return "Test Failure with unknown exception!!";
     }
 
     public Throwable getException() {

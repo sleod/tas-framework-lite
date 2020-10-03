@@ -5,19 +5,15 @@ import ch.sleod.testautomation.framework.common.IOUtils.FileOperation;
 import ch.sleod.testautomation.framework.configuration.PropertyResolver;
 import ch.sleod.testautomation.framework.core.controller.ExternAppController;
 import ch.sleod.testautomation.framework.core.json.container.*;
+import ch.sleod.testautomation.framework.common.logging.SystemLogger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.sf.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
-import static ch.sleod.testautomation.framework.common.logging.SystemLogger.error;
-import static ch.sleod.testautomation.framework.common.logging.SystemLogger.warn;
 import static java.util.Arrays.asList;
 
 public class JSONContainerFactory {
@@ -114,7 +110,21 @@ public class JSONContainerFactory {
      * @throws IOException io exception
      */
     public static JSONRunnerConfig getRunnerConfig(String jsonFileName) throws IOException {
-        String jsonString = FileOperation.readFileToLinedString(FileLocator.findResource(jsonFileName).toString());
+        String jsonString = FileOperation.readFileToLinedString(Objects.requireNonNull(FileLocator.findResource(jsonFileName)).toString());
+        JSONObject jsonObject = JSONObject.fromObject(jsonString);
+        return new ObjectMapper().readValue(jsonObject.toString(), JSONRunnerConfig.class);
+    }
+
+
+    /**
+     * fetch runner configuration in json file
+     *
+     * @param jsonFileName json file path
+     * @return JSONDriverConfig
+     * @throws IOException io exception
+     */
+    public static JSONRunnerConfig loadRunnerConfig(String jsonFileName) throws IOException {
+        String jsonString = FileOperation.readFileToLinedString(FileLocator.loadResource(jsonFileName));
         JSONObject jsonObject = JSONObject.fromObject(jsonString);
         return new ObjectMapper().readValue(jsonObject.toString(), JSONRunnerConfig.class);
     }
@@ -154,7 +164,7 @@ public class JSONContainerFactory {
         if (new File(dirPath).exists()) {
             return FileLocator.findPaths(new File(dirPath).toPath(), Collections.singletonList("*.json"), Collections.singletonList(""), dirPath);
         } else {
-            warn("No History File of Allure Report found!");
+            SystemLogger.warn("No History File of Allure Report found!");
             return Collections.emptyList();
         }
     }
@@ -175,7 +185,7 @@ public class JSONContainerFactory {
                 String serialized = new ObjectMapper().writeValueAsString(result);
                 FileOperation.writeBytesToFile(serialized.getBytes(), new File(resultsDir + "/" + result.getUuid() + "-result.json"));
             } catch (IOException ex) {
-                error(ex);
+                SystemLogger.error(ex);
             }
         });
         generateExecutorJSON();
@@ -205,7 +215,7 @@ public class JSONContainerFactory {
         try {
             FileOperation.writeBytesToFile(executor.toString().getBytes(), new File(resultsDir + "/executor.json"));
         } catch (IOException ex) {
-            error(ex);
+            SystemLogger.error(ex);
         }
     }
 
@@ -261,7 +271,7 @@ public class JSONContainerFactory {
      * @return json object of config file
      */
     public static JSONObject getConfig(String filePath) {
-        String path = FileLocator.findResource(filePath).toString();
+        String path = Objects.requireNonNull(FileLocator.findResource(filePath)).toString();
         String content = FileOperation.readFileToLinedString(path);
         return JSONObject.fromObject(content);
     }

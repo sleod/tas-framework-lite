@@ -1,6 +1,7 @@
 package ch.sleod.testautomation.framework.core.component;
 
 
+import ch.sleod.testautomation.framework.common.IOUtils.FileLocator;
 import ch.sleod.testautomation.framework.common.enumerations.TestType;
 import ch.sleod.testautomation.framework.common.utils.WebOperationUtils;
 import ch.sleod.testautomation.framework.configuration.PropertyResolver;
@@ -28,7 +29,6 @@ import java.util.Objects;
 
 import static ch.sleod.testautomation.framework.common.logging.SystemLogger.error;
 import static ch.sleod.testautomation.framework.common.logging.SystemLogger.info;
-import static ch.sleod.testautomation.framework.configuration.PropertyResolver.*;
 
 /**
  * Utility class to manage drivers that will be used for further testing
@@ -42,43 +42,44 @@ public class DriverManager {
     private static WebDriverProvider webDriverProvider;
     private static NonDriverProvider nonDriverProvider;
 
-    public static WebDriverProvider setupWebDriver() {
-//        WebDriverProvider.loadConfig();
-//        String driverName = getDefaultWebDriverName();
+    public static void setupWebDriver() {
         switch (PropertyResolver.getWebDriverName()) {
-            case "chrome":
-                webDriverProvider = installChromeDriver();
+            case "safari":
+                webDriverProvider = installSafariDriver();
+                break;
+            case "firefox":
+                webDriverProvider = installFirefoxDriver();
                 break;
             case "ie":
                 webDriverProvider = installIEDriver();
                 break;
+            default:
+                webDriverProvider = installChromeDriver();
         }
-        return webDriverProvider;
     }
 
-    public static RestDriverProvider setupRestDriver() {
-        JSONObject restConfig = JSONContainerFactory.getConfig(getRESTConfigFile());
+
+    public static void setupRestDriver() {
+        JSONObject restConfig = JSONContainerFactory.getConfig(PropertyResolver.getRESTConfigFile());
         restDriverProvider = new RestDriverProvider(restConfig.getString("user"), restConfig.getString("password"), restConfig.getString("host"));
-        return restDriverProvider;
     }
 
-    public static RemoteWebDriverProvider setupRemoteWebDriver() {
+    public static void setupRemoteWebDriver() {
         try {
-            List<JSONDriverConfig> configs = JSONContainerFactory.getDriverConfigs(getDefaultDriverConfigLocation(), getRemoteWebDriverConfig());
+            List<JSONDriverConfig> configs = JSONContainerFactory.getDriverConfigs(PropertyResolver.getDefaultDriverConfigLocation(), PropertyResolver.getRemoteWebDriverConfig());
             remoteWebDriverProvider = new RemoteWebDriverProvider(configs);
         } catch (IOException e) {
             error(e);
         }
-        return remoteWebDriverProvider;
     }
 
     public static void setupNonDriver() {
         nonDriverProvider = new NonDriverProvider();
     }
 
-    public static MobileAppDriverProvider setupMobileAppDriver(TestType type) {
+    public static void setupMobileAppDriver(TestType type) {
         try {
-            List<JSONDriverConfig> configs = JSONContainerFactory.getDriverConfigs(getDefaultDriverConfigLocation(), getMobileAppDriverConfig());
+            List<JSONDriverConfig> configs = JSONContainerFactory.getDriverConfigs(PropertyResolver.getDefaultDriverConfigLocation(), PropertyResolver.getMobileAppDriverConfig());
             if (type.equals(TestType.MOBILE_IOS)) {
                 mobileAppDriverProvider = new IOSDriverProvider(configs);
             } else if (type.equals(TestType.MOBILE_ANDROID)) {
@@ -89,7 +90,6 @@ public class DriverManager {
         } catch (IOException e) {
             error(e);
         }
-        return mobileAppDriverProvider;
     }
 
     /**
@@ -183,42 +183,37 @@ public class DriverManager {
     }
 
     private static WebDriverProvider installChromeDriver() {
-        String chromeDriverPath = System.getenv("CHROME_DRIVER_EXECUTABLE_PATH");
-        if (chromeDriverPath != null) {
-            setChromeDriverPath(chromeDriverPath);
-        } else {
-            chromeDriverPath = PropertyResolver.getChromeDriverPath();
-//            String resource = driverBinDir + getChromeDriverFileName();
-//            if (isWindows()) {
-//                resource += ".exe";
-//            }
-//            String path = FileLocator.findResource(resource).toString();
-            if (chromeDriverPath == null) {
-                try {
-                    String path = ExternAppController.matchChromeAndDriverVersion().toString();
-                    driverFile = new File(path);
-                    driverFile.setExecutable(true);
-                    setChromeDriverPath(driverFile.getPath());
-                } catch (IOException ex) {
-                    error(ex);
-                }
-            }
+        try {
+            String path = ExternAppController.matchChromeAndDriverVersion().toString();
+            driverFile = new File(path);
+            driverFile.setExecutable(true);
+            PropertyResolver.setChromeDriverPath(driverFile.getPath());
+            PropertyResolver.setChromeDriverFileName(driverFile.getName());
+        } catch (IOException ex) {
+            error(ex);
         }
         return new ChromeDriverProvider();
     }
 
     private static WebDriverProvider installIEDriver() {
-        String ieDriverPath = System.getenv("IE_DRIVER_EXECUTABLE_PATH");
-        if (ieDriverPath != null) {
-            setWebDriverIEProperty(ieDriverPath);
-        } else {
-            if (isWindows()) {
-                String path = Objects.requireNonNull(DriverManager.class.getClassLoader().getResource(getDefaultWebDriverBinLocation() + getIEDriverFileName())).getPath();
-                driverFile = new File(path);
-            }
+        if (PropertyResolver.isWindows()) {
+            String path = Objects.requireNonNull(FileLocator.findResource(PropertyResolver.getDefaultWebDriverBinLocation() + PropertyResolver.getIEDriverFileName())).toString();
+            driverFile = new File(path);
             driverFile.setExecutable(true);
-            setWebDriverIEProperty(driverFile.getPath());
+            PropertyResolver.setWebDriverIEProperty(driverFile.getPath());
+        } else {
+            throw new RuntimeException("IE Driver can not be run in non windows OS!");
         }
         return new IEDriverProvider();
+    }
+
+    private static WebDriverProvider installFirefoxDriver() {
+        //todo: firefox driver install
+        return null;
+    }
+
+    private static WebDriverProvider installSafariDriver() {
+        //todo: safari driver install
+        return null;
     }
 }

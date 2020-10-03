@@ -62,6 +62,7 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
                 seriesNumber = testCase.getSeriesNumber();
             }
         } catch (IOException | NoSuchFieldException | IllegalAccessException ex) {
+            warn("Test Case Object initialization failed: " + jsonTestCase.getName());
             error(ex);
         }
     }
@@ -80,6 +81,7 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
         try {
             initTestObjects(testCase.getTestObjectNames());
         } catch (IOException | NoSuchFieldException | IllegalAccessException e) {
+            warn("Test Case Object initialization failed: " + jsonTestCase.getName());
             error(e);
         }
         initTestData(testDataContent);
@@ -150,9 +152,9 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
      *
      * @param testDataRef test data reference
      */
-    public void initTestData(String testDataRef) {
+    public void initTestData(String testDataRef) throws IOException {
         if (testDataRef == null || testDataRef.isEmpty()) {
-            SystemLogger.error(new RuntimeException("Nn test case: " + getName() + " -> No Test Data for Test Object defined!"));
+            SystemLogger.error(new RuntimeException("Init test case: " + getName() + " -> No Test Data for Test Object defined!"));
             System.exit(-1);
         }
         testDataContainer = new TestDataContainer(testDataRef);
@@ -288,6 +290,8 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
             String url = testCase.getStartURL();
             if (!url.isEmpty()) {
                 DriverManager.openUrl(url);
+            } else if (System.getProperty("startURL") != null) {
+                DriverManager.openUrl(System.getProperty("startURL"));
             }
         }
         ReportBuilder.startRecordingTest(testRunResult);

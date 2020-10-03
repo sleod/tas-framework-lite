@@ -2,6 +2,8 @@ package ch.sleod.testautomation.framework.core.component;
 
 import ch.sleod.testautomation.framework.configuration.PropertyResolver;
 import ch.sleod.testautomation.framework.core.runner.JUnitReportingRunner;
+import com.codeborne.selenide.Configuration;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -24,13 +26,13 @@ public abstract class PerformableTestCases {
     private static Map<String, SequenceCaseRunner> sequenceCaseRunners;
 
     public PerformableTestCases() {
-        PropertyResolver.loadTestRunProperties(getTestRunPropertiesPath());
         try {
-            TestRunManager.retrieveResources();
+            TestRunManager.retrieveResources(getTestRunPropertiesPath());
             TestRunManager.setPerformer(this);
             TestRunManager.initTestCases(TestRunManager.filePaths(getFileBaseDir(), includeFilePatterns(), excludeFilePatterns()), getMetaFilters());
             sortSequenceTestCases();
             TestRunManager.loadGlobalTestData();
+            setUpSelenide();
         } catch (Throwable throwable) {
             error(throwable);
             info("Test Case Initialization failed. Exit.. Please check the base dir of files and package of implementation of Test Object.");
@@ -233,6 +235,15 @@ public abstract class PerformableTestCases {
      */
     protected String getTestRunPropertiesPath() {
         return "properties/DefaultTestRunProperties.properties";
+    }
+
+    /**
+     * override to set up selenide
+     */
+    protected void setUpSelenide() {
+//        Configuration.reportsFolder = "test-result/reports";
+        Configuration.reportsFolder = StringUtils.chop(PropertyResolver.getDefaultTestCaseReportLocation());
+        Configuration.screenshots = false;
     }
 
 }

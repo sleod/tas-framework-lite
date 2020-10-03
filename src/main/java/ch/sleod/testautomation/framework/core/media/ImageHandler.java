@@ -68,12 +68,12 @@ public class ImageHandler {
     private static synchronized void saveImagesForVideo(TakesScreenshot taker) {
         String tid = Thread.currentThread().getName();
         imageStore.computeIfAbsent(tid, k -> new LinkedList<>());
-        BufferedImage screenshot = ScreenCapture.takeScreenShot(taker);
-        String location = PropertyResolver.getDefaultTestCaseReportLocation() + TimeUtils.getFormattedDate(TimeUtils.getLocalDateToday(), "yyyy-MM-dd") + "/";
+        String location = PropertyResolver.getDefaultTestCaseReportLocation() +
+                TimeUtils.getFormattedDate(TimeUtils.getLocalDateToday(), "yyyy-MM-dd") + "/";
         String filePath = location + UUID.randomUUID() + ".png";
         File imageFile = new File(filePath);
         try {
-            ImageIO.write(screenshot, "png", imageFile);
+            ImageIO.write(ScreenCapture.takeScreenShot(taker), "png", imageFile);
         } catch (IOException ex) {
             SystemLogger.error(ex);
         }

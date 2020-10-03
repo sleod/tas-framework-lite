@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ch.sleod.testautomation</groupId>
     <artifactId>framework</artifactId>
-    <version>1.0.5.09-SNAPSHOT</version>
+    <version>1.0.6.02-SNAPSHOT</version>
     <name>testautomation-framework</name>
 
     <properties>
@@ -33,6 +33,7 @@
         <guava.version>29.0-jre</guava.version>
         <zxing.version>3.4.0</zxing.version>
         <spring.version>5.2.8.RELEASE</spring.version>
+        <selenide.version>5.15.0</selenide.version>
     </properties>
 
     <dependencies>
@@ -203,6 +204,11 @@
                     <artifactId>junit</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.codeborne</groupId>
+            <artifactId>selenide</artifactId>
+            <version>${selenide.version}</version>
         </dependency>
     </dependencies>
     <build>

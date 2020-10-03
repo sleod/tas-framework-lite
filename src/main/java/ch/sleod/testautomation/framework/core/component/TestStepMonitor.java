@@ -98,7 +98,6 @@ public class TestStepMonitor {
      * @param e    exception
      */
     public synchronized void failed(String step, Throwable e) {
-        error(e);
         logStepInfo(getTid(), "Step failed: " + step);
         Description currentStep = allDescriptions.get(step);
         failedSteps.add(currentStep);

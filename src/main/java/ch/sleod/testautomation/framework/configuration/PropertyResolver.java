@@ -1,5 +1,6 @@
 package ch.sleod.testautomation.framework.configuration;
 
+import ch.sleod.testautomation.framework.common.IOUtils.FileLocator;
 import ch.sleod.testautomation.framework.common.IOUtils.FileOperation;
 import ch.sleod.testautomation.framework.common.enumerations.PropertyKey;
 import org.apache.commons.lang3.EnumUtils;
@@ -12,9 +13,15 @@ import static ch.sleod.testautomation.framework.common.logging.SystemLogger.*;
 public class PropertyResolver {
     private final static Properties properties = new Properties();
 
-    public static void loadTestRunProperties(String filePath) {
+    public static boolean loadTestRunProperties(String filePath) {
+        boolean isDefaultPath = false;
         try {
-            properties.load(FileOperation.retrieveFileFromResourcesAsStream(filePath));
+            if (FileOperation.retrieveFileFromResourcesAsStream(filePath) == null) {
+                isDefaultPath = true;
+                properties.load(FileOperation.retrieveFileFromResourcesAsStream("properties/DefaultTestRunProperties.properties"));
+            } else {
+                properties.load(FileOperation.retrieveFileFromResourcesAsStream(filePath));
+            }
             if (properties.isEmpty()) {
                 error(new RuntimeException("Properties is empty!! Test Run interrupted!"));
                 System.exit(-1);
@@ -25,6 +32,7 @@ public class PropertyResolver {
         } catch (IOException e) {
             error(e);
         }
+        return isDefaultPath;
     }
 
     public static String decodeBase64(String encoded) {
@@ -102,12 +110,12 @@ public class PropertyResolver {
         setProperty(PropertyKey.WEBDRIVER_IE_DRIVER.key(), path);
     }
 
-    public static String getDefaultWebDriverName() {
-        return System.getProperty(PropertyKey.DEFAULT_WEBDRIVER_NAME.key(), "chrome");
+    public static String getWebDriverName() {
+        return System.getProperty(PropertyKey.WEBDRIVER_NAME.key(), "chrome");
     }
 
-    public static void setDefaultWebDriverName(String driverName) {
-        setProperty(PropertyKey.DEFAULT_WEBDRIVER_NAME.key(), driverName);
+    public static void setWebDriverName(String driverName) {
+        setProperty(PropertyKey.WEBDRIVER_NAME.key(), driverName);
     }
 
     public static String getDefaultWebDriverBinLocation() {
@@ -159,10 +167,6 @@ public class PropertyResolver {
     public static String getTextEditor() {
         return System.getProperty(PropertyKey.TEXT_EDITOR.key(), "notepad");
     }
-
-//    public static String getWebDriverConfig() {
-//        return System.getProperty(PropertyKey.TEST_DRIVER_WEB_CONFIG.key(), "chromeDriverConfig.json");
-//    }
 
     public static String getRemoteWebDriverConfig() {
         return System.getProperty(PropertyKey.TEST_DRIVER_REMOTE_CONFIG.key(), "remoteWebDriverConfig.json");
@@ -326,10 +330,6 @@ public class PropertyResolver {
         return System.getProperty("os.name").toLowerCase().contains("mac");
     }
 
-    public static String getWebDriverName() {
-        return System.getProperty(PropertyKey.DRIVER_NAME.key(), "chrome");
-    }
-
     public static String getRemoteWebDriverFolder() {
         return System.getProperty(PropertyKey.REMOTE_WEB_DRIVER_FOLDER.key());
     }
@@ -338,4 +338,19 @@ public class PropertyResolver {
         return System.getProperty(PropertyKey.DEFAULT_OCR_TESSDATA_LOCATION.key(), "tessdata");
     }
 
+    public static String getTFSConfigurationID() {
+        return System.getProperty(PropertyKey.TFS_CONFIGURATION_ID.key(), null);
+    }
+
+    public static String getTestEnvironment() {
+        return System.getProperty(PropertyKey.TEST_ENVIRONMENT.key(), "");
+    }
+
+    public static String getTestDataFolder() {
+        String folder = PropertyResolver.getDefaultTestDataLocation() + PropertyResolver.getTestEnvironment();
+        if (FileLocator.findLocalResource(folder) == null) {
+            folder = PropertyResolver.getDefaultTestDataLocation();
+        }
+        return folder;
+    }
 }

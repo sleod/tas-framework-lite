@@ -31,7 +31,7 @@ public class JSONRunnerConfig {
     private String[] selectedTestCaseIds;
     @JsonProperty
     private Map<String, String> tfsConfig = new LinkedHashMap<>();
-    @JsonProperty
+
     private Map<String, String> testPlanConfig = new LinkedHashMap<>();
 
     @JsonAnySetter
@@ -43,28 +43,40 @@ public class JSONRunnerConfig {
         this.tfsConfig.put(key, value);
     }
 
-    public void setTestPlanConfig(String key, String value) {
-        this.testPlanConfig.put(key, value);
-    }
-
     public void setTestPlanConfig(Map<String, String> config) {
         this.testPlanConfig = config;
     }
 
     public String getPlanId() {
-        return planId;
+        if (System.getProperty("tfs.planId") == null) {
+            return planId;
+        } else {
+            return System.getProperty("tfs.planId");
+        }
     }
 
     public String getSuiteId() {
-        return suiteId;
+        if (System.getProperty("tfs.suiteId") == null) {
+            return suiteId;
+        } else {
+            return System.getProperty("tfs.suiteId");
+        }
     }
 
     public boolean isFullRun() {
-        return fullRun;
+        if (System.getProperty("tfs.fullRun") == null) {
+            return fullRun;
+        } else {
+            return System.getProperty("tfs.fullRun").equalsIgnoreCase("true");
+        }
     }
 
     public boolean isFailureRetest() {
-        return failureRetest;
+        if (System.getProperty("tfs.failureRetest") == null) {
+            return failureRetest;
+        } else {
+            return System.getProperty("tfs.failureRetest").equalsIgnoreCase("true");
+        }
     }
 
     @JsonAnyGetter
@@ -117,7 +129,11 @@ public class JSONRunnerConfig {
     }
 
     public String getRunName() {
-        return runName;
+        if (System.getProperty("tfs.runName") == null) {
+            return runName;
+        } else {
+            return System.getProperty("tfs.runName");
+        }
     }
 
     public void setRunName(String runName) {
@@ -129,6 +145,10 @@ public class JSONRunnerConfig {
     }
 
     public boolean feedbackAfterSingleTest() {
-        return feedbackAfterSingleTest;
+        if (System.getProperty("tfs.feedbackAfterSingleTest") == null) {
+            return feedbackAfterSingleTest;
+        } else {
+            return System.getProperty("tfs.feedbackAfterSingleTest").equalsIgnoreCase("true");
+        }
     }
 }

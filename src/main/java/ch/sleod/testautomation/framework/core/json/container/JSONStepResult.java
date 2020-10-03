@@ -102,6 +102,11 @@ public class JSONStepResult {
             attachments.add(new JSONAttachment("REASON: " + stepResult.getTestFailure().getMessage(), "plain/text", ""));
         }
         String attachType = "image/" + PropertyResolver.getDefaultScreenshotFormat().toLowerCase();
-        screenshots.forEach(screenshot -> attachments.add(new JSONAttachment(screenshot.getScreenshotFile().getName(), attachType, screenshot.getScreenshotFile().getAbsolutePath())));
+        for (Screenshot screenshot : screenshots) {
+            attachments.add(new JSONAttachment(screenshot.getScreenshotFile().getName(), attachType, screenshot.getScreenshotFile().getAbsolutePath()));
+            if (screenshot.hasPageFile()) {
+                attachments.add(new JSONAttachment(screenshot.getPageFile().getName(), "text/html", screenshot.getPageFile().getAbsolutePath()));
+            }
+        }
     }
 }

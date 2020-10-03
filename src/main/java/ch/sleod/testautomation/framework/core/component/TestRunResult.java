@@ -1,6 +1,7 @@
 package ch.sleod.testautomation.framework.core.component;
 
 import ch.sleod.testautomation.framework.common.enumerations.TestStatus;
+import ch.sleod.testautomation.framework.common.logging.Screenshot;
 import junit.framework.TestResult;
 
 import java.io.File;
@@ -58,7 +59,11 @@ public class TestRunResult extends TestResult {
             setStatus(stepResult.getStatus());
         }
         if (!stepResult.getScreenshots().isEmpty()) {
-            stepResult.getScreenshots().forEach(screenshot -> attachments.add(screenshot.getScreenshotFile()));
+            for (Screenshot screenshot : stepResult.getScreenshots()) {
+                attachments.add(screenshot.getScreenshotFile());
+                if (screenshot.hasPageFile())
+                    attachments.add(screenshot.getPageFile());
+            }
         }
         if (stepResult.getStatus().equals(TestStatus.FAIL)) {
             setTestFailure(stepResult.getTestFailure());

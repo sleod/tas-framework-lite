@@ -3,8 +3,10 @@ package ch.sleod.testautomation.framework.web;
 import ch.sleod.testautomation.framework.common.abstraction.SingleTestObject;
 import ch.sleod.testautomation.framework.configuration.PropertyResolver;
 import ch.sleod.testautomation.framework.core.component.DriverManager;
+import com.codeborne.selenide.WebDriverRunner;
+import com.codeborne.selenide.impl.SelenideFieldDecorator;
+import com.codeborne.selenide.impl.SelenidePageFactory;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.events.EventFiringWebDriver;
 
 public abstract class WebPageObject extends SingleTestObject {
@@ -19,7 +21,10 @@ public abstract class WebPageObject extends SingleTestObject {
         } else {
             driver = DriverManager.getWebDriver();
         }
-        PageFactory.initElements(driver, this);
+        WebDriverRunner.setWebDriver(driver);
+        SelenidePageFactory factory = new SelenidePageFactory();
+        factory.initElements(new SelenideFieldDecorator(factory, WebDriverRunner.driver(), WebDriverRunner.getWebDriver()), this);
+//        PageFactory.initElements(new DefaultFieldDecorator(new DefaultElementLocatorFactory(driver)), this);
     }
 
     /**

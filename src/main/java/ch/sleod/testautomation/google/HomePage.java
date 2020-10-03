@@ -4,13 +4,13 @@ import ch.sleod.testautomation.framework.common.utils.WebOperationUtils;
 import ch.sleod.testautomation.framework.core.annotations.StopOnError;
 import ch.sleod.testautomation.framework.core.annotations.TestObject;
 import ch.sleod.testautomation.framework.core.annotations.TestStep;
-import org.openqa.selenium.By;
+import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.SelenideElement;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.FindBy;
-import org.openqa.selenium.support.pagefactory.Annotations;
 
-import java.lang.annotation.Annotation;
-
+import static com.codeborne.selenide.Selenide.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -18,7 +18,9 @@ import static org.junit.Assert.assertTrue;
 public class HomePage extends FunctionPage {
 
     @FindBy(id = "hplog")
-    private WebElement logo;
+    private SelenideElement logo;
+
+    private SelenideElement hpLogo = $("#hplogo");
 
     @FindBy(id = "cnskx")
     private WebElement accept;
@@ -29,15 +31,23 @@ public class HomePage extends FunctionPage {
     @TestStep(name = "Check Page Title", using = "pageTitle")
     @StopOnError(false)
     public void checkTitle(String pageTitle) {
-        String text = driver.getTitle();
+        String text = title();
+//        String text = driver.getTitle();
 //        Assertion.assessTrue("Page Title is wrong! Actual: " + text + " but expected: " + pageTitle, text.equalsIgnoreCase(pageTitle));
-        assertEquals("Page Title is wrong!", text, pageTitle);
+        assertEquals("Page Title is wrong!", pageTitle, text);
     }
 
     @Override
     @TestStep(name = "Check Fields Present")
     public void checkFields() {
-//        WebOperationUtils.waitUntilVisible(driver, logo);
+        WebOperationUtils.waitUntilVisible(driver, logo);
+//        hpLogo.should(Condition.appears);
+//        assertTrue("Logo is not displayed!", hpLogo.isDisplayed());
+        assertTrue("Logo is not displayed!", logo.isDisplayed());
+
+        new Actions(driver).moveToElement(logo).click(logo).build().perform();
+
+        /*
         try {
             Annotations annotations = new Annotations(getClass().getDeclaredField("accept"));
             By by = annotations.buildBy();
@@ -51,10 +61,7 @@ public class HomePage extends FunctionPage {
         } catch (NoSuchFieldException e) {
             e.printStackTrace();
         }
-
-
-//        assertTrue("Logo is not displayed!", logo.isEnabled());
-//        assertTrue("Input Field is not displayed!", searchInputField.isEnabled());
+*/
     }
 
 }

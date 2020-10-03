@@ -6,9 +6,13 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.remote.RemoteWebElement;
 import org.openqa.selenium.support.events.WebDriverEventListener;
 
 public class WebDriverEventCapture implements WebDriverEventListener {
+
+    WebElement target = null;
+
     @Override
     public void beforeAlertAccept(WebDriver driver) {
     }
@@ -70,9 +74,14 @@ public class WebDriverEventCapture implements WebDriverEventListener {
 
     @Override
     public void afterFindBy(By by, WebElement element, WebDriver driver) {
-        HighlightElement.highlightElement(element, driver, PropertyResolver.getDemoModeSleep(), PropertyResolver.getDemoModeHighLightColor());
-        ImageHandler.handleImage(driver);
-        HighlightElement.resetElement(element, driver, PropertyResolver.getDemoModeSleep());
+        if(element instanceof RemoteWebElement) {
+            if (target == null || !target.equals(element)) {
+                target = element;
+                HighlightElement.highlightElement(element, driver, PropertyResolver.getDemoModeSleep(), PropertyResolver.getDemoModeHighLightColor());
+                ImageHandler.handleImage(driver);
+                HighlightElement.resetElement(element, driver, PropertyResolver.getDemoModeSleep());
+            }
+        }
     }
 
     @Override

@@ -6,7 +6,6 @@ import ch.sleod.testautomation.framework.common.utils.ZipUtils;
 import ch.sleod.testautomation.framework.configuration.PropertyResolver;
 import ch.sleod.testautomation.framework.core.json.container.JSONRunnerConfig;
 import ch.sleod.testautomation.framework.core.json.deserialization.JSONContainerFactory;
-import ch.sleod.testautomation.framework.rest.TFS.connection.TFSConnector;
 import ch.sleod.testautomation.framework.rest.TFS.connection.TFSRestClient;
 
 import java.awt.*;
@@ -17,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -207,7 +207,9 @@ public class ExternAppController {
         String chromeVersion = getCurrentChromeVersion();
         //scan driver in folder
         String folderPath = PropertyResolver.getDefaultWebDriverBinLocation();
-        List<Path> paths = FileLocator.listRegularFilesRecursiveMatchedToName(FileLocator.findResource(folderPath).toString(), 3, "chromedriver");
+        String driverDir = FileLocator.getProjectBaseDir() + "/src/main/resources/" + folderPath;
+        new File(driverDir).mkdirs();
+        List<Path> paths = FileLocator.listRegularFilesRecursiveMatchedToName(driverDir, 3, "chromedriver");
         Path driverPath = null;
         if (!paths.isEmpty()) {
             driverPath = checkPaths(paths, chromeVersion);
@@ -281,11 +283,11 @@ public class ExternAppController {
      * @throws IOException io exception
      */
     public static String downloadChromeDrivers() throws IOException {
-        JSONRunnerConfig runnerConfig = JSONContainerFactory.getRunnerConfig(PropertyResolver.getTFSRunnerConfigFile());
-        TFSConnector tfsConnector = new TFSConnector(runnerConfig.getTfsConfig());
-        TFSRestClient tfsRestClient = new TFSRestClient(tfsConnector, runnerConfig.getTfsConfig());
-        String filePath = FileLocator.findResource(PropertyResolver.getDefaultWebDriverBinLocation()).toString().split("target")[0]
-                + "src/main/resources/" + PropertyResolver.getDefaultWebDriverBinLocation() + "/drivers.zip";
+        JSONRunnerConfig runnerConfig = JSONContainerFactory.loadRunnerConfig(PropertyResolver.getTFSRunnerConfigFile());
+        Map<String, String> config = runnerConfig.getTfsConfig();
+        TFSRestClient tfsRestClient = new TFSRestClient(config.get("host"), config.get("pat"), config.get("organization"),
+                config.get("collection"), "ap.testtools", config.get("apiVersion"));
+        String filePath = FileLocator.getProjectBaseDir() + "/src/main/resources/" + PropertyResolver.getDefaultWebDriverBinLocation() + "/drivers.zip";
         File target = new File(filePath);
         SystemLogger.warn("Write to target: " + target.getAbsolutePath());
         tfsRestClient.downloadFilesAsZip(PropertyResolver.getRemoteWebDriverFolder(), target);

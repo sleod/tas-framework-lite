@@ -534,7 +534,12 @@ public class QCRestClient {
             String upToDate = QCEntityBuilder.buildUpdateContentOfRunStep(stepStatus, actual);
             Response resp = updateEntityInQC(entity, upToDate);
             String pattern = "Add new Run-Step: " + name + " with status: " + stepStatus + " -> {0}\n";
-            avidence.forEach(screenshot -> appendAttachment(QCConstants.ENTITY_TYPE_RUN_STEP, stepId, screenshot.getScreenshotFile()));
+            for (Screenshot screenshot : avidence) {
+                appendAttachment(QCConstants.ENTITY_TYPE_RUN_STEP, stepId, screenshot.getScreenshotFile());
+                if (screenshot.hasPageFile()) {
+                    appendAttachment(QCConstants.ENTITY_TYPE_RUN_STEP, stepId, screenshot.getPageFile());
+                }
+            }
             String resText = buildResultReport(resp, pattern).getMessage();
             results.add(resText);
         }
@@ -769,12 +774,12 @@ public class QCRestClient {
         byte[] content = null;
         if (file.exists()) {
             try {
-                log("INFO", "Try to read File for Attachment: " + file.getAbsolutePath());
+                SystemLogger.log("INFO", "Try to read File for Attachment: " + file.getAbsolutePath());
                 content = FileOperation.readFileToByteArray(file);
             } catch (IOException ex) {
                 SystemLogger.error(ex);
             }
-            log("INFO", "Try to Upload Attachment: " + file.getName());
+            SystemLogger.log("INFO", "Try to Upload Attachment: " + file.getName());
             return appendAttachment(entityType, id, file.getName(), content);
         } else {
             return null;
@@ -793,7 +798,7 @@ public class QCRestClient {
         String statusInfo = QCConstants.getReturnStatus(resp.getStatus());
         String entry = resp.readEntity(String.class);
         String message = MessageFormat.format(messagePattern, statusInfo);
-        log("DEBUG", message + entry);
+        SystemLogger.log("DEBUG", message + entry);
         QCResponseMessage qcrm = new QCResponseMessage(getFirstEntityInResponse(entry), message, entry);
         return qcrm;
     }

@@ -5,12 +5,16 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Stream;
+
+import static ch.sleod.testautomation.framework.common.logging.SystemLogger.trace;
+import static ch.sleod.testautomation.framework.common.logging.SystemLogger.warn;
 
 public class FileLocator {
 
@@ -64,6 +68,24 @@ public class FileLocator {
         return paths;
     }
 
+    /**
+     * find all regular file paths within dir with max deep
+     * (p, bfa) -> bfa.isRegularFile()&& p.getFileName().toString().matches(".*\\.jpg")
+     *
+     * @param startDir start dir
+     * @param maxDeep  max deep
+     * @return list of paths
+     * @throws IOException io exception
+     */
+    public static Path findExactFile(String startDir, int maxDeep, String name) throws IOException {
+        List<Path> paths = new LinkedList<>();
+        Files.find(Paths.get(startDir), maxDeep, (p, bfa) -> bfa.isRegularFile() && p.getFileName().toString().matches(name)).forEach(paths::add);
+        if (paths.isEmpty()) {
+            throw new RuntimeException("File <" + name + "> was not found in folder " + startDir);
+        }
+        return paths.get(0);
+    }
+
 
     /**
      * walk through folder and get files only
@@ -87,7 +109,7 @@ public class FileLocator {
     }
 
     /**
-     * find resource with relative path also in case the files in a jar file
+     * find local resource with relative path
      *
      * @param relativePath path of file don't need "/" at beginning
      * @return path of target
@@ -101,14 +123,48 @@ public class FileLocator {
         //in normal case search local resource in resources folder
         URL url = FileLocator.class.getClassLoader().getResource(relativePath);
         if (url == null) {
-            throw new NullPointerException("Path: " + relativePath + " can not be found!");
+            warn("Path: " + relativePath + " can not be found!");
+            return null;
         } else {
             location = url.getPath();
         }
-        if (location.contains(".jar!")) {
-            location = Paths.get("").toAbsolutePath().toString() + "/" + relativePath;
-        }
         return new File(location).toPath();
+    }
+
+    /**
+     * find resource with relative path also in case the files in a jar file
+     *
+     * @param relativePath path of file don't need "/" at beginning
+     * @return path of target
+     */
+    public static Path findLocalResource(String relativePath) {
+        Path path = findResource(relativePath);
+        if (path != null && !path.toString().contains("jar!")) {
+            trace("Found Local Path: " + relativePath);
+            return path;
+        } else {
+            warn("Local Path: " + relativePath + " can not be found!");
+            return null;
+        }
+    }
+
+    /**
+     * find resource with relative path also in case the files in a jar file
+     *
+     * @param relativePath path of file don't need "/" at beginning
+     * @return path of target
+     */
+    public static InputStream loadResource(String relativePath) {
+        String location;
+        //clean up first '/'
+        if (relativePath.startsWith("/")) {
+            relativePath = relativePath.substring(1);
+        }
+        return FileOperation.retrieveFileFromResourcesAsStream(relativePath);
+    }
+
+    public static String getProjectBaseDir() {
+        return Paths.get("").toAbsolutePath().toString();
     }
 
     protected static List<String> prefix(final String prefixWith, List<String> paths) {

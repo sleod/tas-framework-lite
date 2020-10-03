@@ -52,7 +52,9 @@ public class TestStepResult {
     }
 
     public TestFailure getTestFailure() {
-        return testFailure;
+        if (testFailure != null) {
+            return testFailure;
+        } else return new TestFailure(new RuntimeException("Test Failure unknown!"));
     }
 
     public void setTestFailure(TestFailure testFailure) {

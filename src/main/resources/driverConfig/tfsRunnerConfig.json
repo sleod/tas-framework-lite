@@ -2,17 +2,17 @@
   "runName": "Automated Test Run with ...",
   "planId": "436601",
   "suiteId": "471238",
-  "configurationId": "679",
-  "fullRun": false,
+  "configurationId": "",
+  "fullRun": true,
   "failureRetest": false,
   "feedbackAfterSingleTest": false,
   "testCaseFiles": {
-    "554491": "GoogleDemo1.json",
-    "556461": "testcase2.json",
-    "123478": "testcase3.json"
+    "554491": "GoogleDemo2.json",
+    "556461": "GoogleDemo3.json"
   },
   "selectedTestCaseIds": [
-    "554491"
+    "554491",
+    "556461"
   ],
   "tfsConfig": {
     "host": "https://tfs-prod.service.raiffeisen.ch:8081/",
@@ -21,7 +21,5 @@
     "project": "ap.testtools",
     "pat": "vebyjjig3v7txr7eiq3he3aqbyvilqqllmwdf5d56fz64um5axua",
     "apiVersion": "5.0"
-  },
-  "testPlanConfig": {
   }
 }

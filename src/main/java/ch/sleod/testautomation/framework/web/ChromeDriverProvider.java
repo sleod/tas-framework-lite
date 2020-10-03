@@ -39,7 +39,9 @@ public class ChromeDriverProvider extends WebDriverProvider {
 
     private static ChromeOptions getChromeOptions() {
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("no-sandbox")
+        options.addArguments("--no-sandbox")
+                .addArguments("--disable-infobars")
+                .addArguments("test-type")
                 .addArguments("--lang=de-CH")
                 .setExperimentalOption("useAutomationExtension", false);
         if (isChromeMaximised()) {

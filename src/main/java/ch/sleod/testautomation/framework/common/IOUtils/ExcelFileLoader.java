@@ -1,6 +1,5 @@
 package ch.sleod.testautomation.framework.common.IOUtils;
 
-import ch.sleod.testautomation.framework.common.logging.SystemLogger;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -12,6 +11,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+
+import static ch.sleod.testautomation.framework.common.logging.SystemLogger.error;
 
 /**
  * tool class for reading excel files with .xls, .xlsx
@@ -34,7 +35,7 @@ public class ExcelFileLoader {
                 workbook = new HSSFWorkbook(excelFile);
             }
         } catch (IOException e) {
-            SystemLogger.error(e);
+            error(e);
         }
         return workbook;
     }

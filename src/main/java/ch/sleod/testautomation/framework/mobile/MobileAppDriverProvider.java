@@ -6,14 +6,13 @@ import ch.sleod.testautomation.framework.core.json.container.JSONDriverConfig;
 import ch.sleod.testautomation.framework.intefaces.DriverProvider;
 import ch.sleod.testautomation.framework.intefaces.ScreenshotTaker;
 import io.appium.java_client.AppiumDriver;
-import org.openqa.selenium.OutputType;
 import org.openqa.selenium.Platform;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import static ch.sleod.testautomation.framework.common.logging.SystemLogger.info;
+import static ch.sleod.testautomation.framework.common.logging.ScreenCapture.getScreenshot;
 
 public abstract class MobileAppDriverProvider implements DriverProvider, ScreenshotTaker {
 
@@ -60,15 +59,7 @@ public abstract class MobileAppDriverProvider implements DriverProvider, Screens
 
     @Override
     public Screenshot takeScreenShot(TestStepMonitor testStepMonitor) {
-        String testCaseName = testStepMonitor.getCurrentTestCase().getDisplayName();
-        String stepName = testStepMonitor.getLastStep().getMethodName();
-        Screenshot screenshot = null;
-        if (driver != null) {
-            info("*** save screenshot to Report for Test Case: " + testCaseName + " -> " + stepName);
-            byte[] imageData = driver.getScreenshotAs(OutputType.BYTES);
-            screenshot = new Screenshot(imageData, testCaseName, stepName);
-        }
-        return screenshot;
+        return getScreenshot(testStepMonitor, driver);
     }
 
     protected List<JSONDriverConfig> filterConfig(List<JSONDriverConfig> configFiles, Platform platform) {

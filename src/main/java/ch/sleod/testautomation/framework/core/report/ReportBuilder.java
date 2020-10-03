@@ -2,6 +2,7 @@ package ch.sleod.testautomation.framework.core.report;
 
 import ch.sleod.testautomation.framework.common.IOUtils.FileOperation;
 import ch.sleod.testautomation.framework.common.enumerations.TestStatus;
+import ch.sleod.testautomation.framework.common.logging.Screenshot;
 import ch.sleod.testautomation.framework.common.utils.TimeUtils;
 import ch.sleod.testautomation.framework.configuration.PropertyResolver;
 import ch.sleod.testautomation.framework.core.component.TestCaseObject;
@@ -221,7 +222,12 @@ public class ReportBuilder {
                 jsonTestResult.setStatusDetails("message", "Log Info: ");
                 jsonTestResult.setStatusDetails("trace", stepResult.getInfo());
             }
-            stepResult.getScreenshots().forEach(screenshot -> jsonTestResult.addAttachment(screenshot.getTestCaseName(), attachType, screenshot.getScreenshotFile().getAbsolutePath()));
+            for (Screenshot screenshot : stepResult.getScreenshots()) {
+                jsonTestResult.addAttachment(screenshot.getTestCaseName(), attachType, screenshot.getScreenshotFile().getAbsolutePath());
+                if (screenshot.hasPageFile()) {
+                    jsonTestResult.addAttachment(screenshot.getTestCaseName(), "text/html", screenshot.getPageFile().getAbsolutePath());
+                }
+            }
             allureResults.add(jsonTestResult);
         }));
         JSONContainerFactory.regenerateAllureResults(allureResults);

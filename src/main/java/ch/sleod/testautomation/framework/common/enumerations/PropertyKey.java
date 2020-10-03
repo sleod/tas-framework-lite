@@ -14,7 +14,7 @@ public enum PropertyKey {
     DEFAULT_SCREENSHOT_FORMAT("default.screenshot.format"),
     DEFAULT_DATE_FORMAT("default.data.format"),
     DEFAULT_LOGGER_NAME("default.logger.name"),
-    DEFAULT_WEBDRIVER_NAME("default.webdriver.name"),
+    WEBDRIVER_NAME("webdriver.name"),
     DEFAULT_WEBDRIVER_BIN_LOCATION("default.webdriver.bin.location"),
     DEFAULT_DRIVER_CONFIG_LOCATION("default.driver.config.location"),
     DEFAULT_PAGE_CONFIG_LOCATION("default.page.config.location"),
@@ -38,9 +38,9 @@ public enum PropertyKey {
     CURRENT_TESTCASE_NAME("current.testcase.name"),
     ENCODED_PASSWORD("encoded.password"),
     TFS_RUNNER_CONFIG("tfs.runner.config"),
+    TFS_CONFIGURATION_ID("tfs.configuration.id"),
     TEXT_EDITOR("text.editor"),
     //    TEST_DRIVER_WEB_CONFIG("test.driver.web.config"),
-    DRIVER_NAME("driver.name"),
     TEST_DRIVER_REMOTE_CONFIG("test.driver.remote.config"),
     USE_HEADLESS_CHROME("driver.chrome.headless"),
     USE_FULLSCREEN("driver.fullscreen"),
@@ -51,7 +51,7 @@ public enum PropertyKey {
     TEST_DB_CONFIG("test.db.config"), TEST_QC_CONFIG("test.qc.config"), TEST_REST_CONFIG("test.rest.config"), TEST_JIRA_CONFIG("test.jira.config"),
     JIRA_CUSTOMFIELD_CONFIG("jira.customfield.config"), DEFAULT_VIDEO_FORMAT("default.video.format"),
     DEFAULT_EXECUTION_MULTI_THREADING("default.execution.multi.threading"), DEFAULT_EXECUTION_THREADS("default.execution.threads"),
-    EXECUTION_REMOTE_SELENIUM_HUB("execution.remote.selenium.hub"),
+    EXECUTION_REMOTE_SELENIUM_HUB("execution.remote.selenium.hub"),TEST_ENVIRONMENT("test.environment"),
     RUNNER_MARKUP_OBJECTID_ENABLED("runner.markup.objectid.enabled");
 
     private String key;

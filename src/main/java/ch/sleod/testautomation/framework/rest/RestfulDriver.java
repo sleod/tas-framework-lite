@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ch.sleod.testautomation.framework.common.logging.SystemLogger.log;
+import static ch.sleod.testautomation.framework.common.logging.SystemLogger.trace;
 
 /**
  * general rest driver with basic authentication
@@ -71,7 +72,7 @@ public class RestfulDriver implements RestDriver {
 
     @Override
     public Response get(String path) {
-        SystemLogger.log("INFO", "Request GET: " + path);
+        log("INFO", "Request GET: " + path);
         response = webTarget.path(path)
                 .request(mediaType)
                 .header("Authorization", basic)
@@ -89,7 +90,7 @@ public class RestfulDriver implements RestDriver {
     @Override
     public Response get(String path, String query) {
         try {
-            SystemLogger.log("INFO", "Request Get: " + path + "\nWith Query: " + query);
+            log("INFO", "Request Get: " + path + "\nWith Query: " + query);
             response = webTarget.path(path)
                     .queryParam("query", URLEncoder.encode(query, "UTF-8"))
                     .request(mediaType)
@@ -111,7 +112,7 @@ public class RestfulDriver implements RestDriver {
      */
     @Override
     public Response get(String path, String key, String value) {
-        SystemLogger.log("TRACE", "Request Get: " + path + "\nWith Query: " + key + "=" + value);
+        log("TRACE", "Request Get: " + path + "\nWith Query: " + key + "=" + value);
         response = webTarget.path(path)
                 .queryParam(key, value)
                 .request(mediaType)
@@ -129,12 +130,12 @@ public class RestfulDriver implements RestDriver {
      */
     @Override
     public Response get(String path, Map<String, String> params) {
-        SystemLogger.trace("Request Get: " + path);
+        trace("Request Get: " + path);
         for (Map.Entry<String, String> entry : params.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
             webTarget = webTarget.queryParam(key, value);
-            SystemLogger.trace("Query: " + key + "=" + value);
+            trace("Query: " + key + "=" + value);
         }
         response = webTarget.path(path).request(mediaType)
                 .header("Authorization ", basic)
@@ -144,7 +145,7 @@ public class RestfulDriver implements RestDriver {
 
     @Override
     public Response post(String path, String payload) {
-        SystemLogger.log("INFO", "Request POST: " + path + "\nPayload: " + payload);
+        log("INFO", "Request POST: " + path + "\nPayload: " + payload);
         response = webTarget.path(path)
                 .request(mediaType)
                 .header("Authorization", basic)
@@ -154,7 +155,7 @@ public class RestfulDriver implements RestDriver {
 
     @Override
     public Response put(String path, String payload) {
-        SystemLogger.log("INFO", "Request POST: " + path + "\nPayload: " + payload);
+        log("INFO", "Request POST: " + path + "\nPayload: " + payload);
         response = webTarget.path(path)
                 .request(mediaType)
                 .header("Authorization", basic)
@@ -164,7 +165,7 @@ public class RestfulDriver implements RestDriver {
 
     @Override
     public Response delete(String path) {
-        SystemLogger.log("INFO", "Request DELETE: " + path);
+        log("INFO", "Request DELETE: " + path);
         response = webTarget.path(path)
                 .request(mediaType)
                 .header("Authorization", basic)

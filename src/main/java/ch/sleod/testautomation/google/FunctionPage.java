@@ -10,6 +10,9 @@ import org.openqa.selenium.support.FindBy;
 import java.util.List;
 import java.util.Map;
 
+import static com.codeborne.selenide.Selectors.*;
+import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.open;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -17,17 +20,22 @@ public class FunctionPage extends WebPageObject {
 
     @FindBy(name = "q")
     protected WebElement searchInputField;
+//    protected WebElement searchInputField = $(byXpath("//*[@name='q']"));
+//    protected WebElement searchInputField = $(byName("q"));
 
     @Override
     @TestStep(name = "Check Fields Present")
-    public void checkFields(){
+    public void checkFields() {
         assertTrue("Input Field is not displayed!", searchInputField.isDisplayed());
     }
 
     @TestStep(name = "Start Up")
     public void startUp() {
-        assertNotNull("Start URL is Null!",PropertyResolver.getProperty("startURL"));
-        driver.get(PropertyResolver.getProperty("startURL"));
+        if (PropertyResolver.getProperty("startURL") == null) {
+            open("https://www.google.ch");
+        } else {
+            open(PropertyResolver.getProperty("startURL"));
+        }
     }
 
     /**

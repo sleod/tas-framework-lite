@@ -1,5 +1,7 @@
 package ch.sleod.testautomation.framework.common.utils;
 
+import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.SelenideElement;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.*;
@@ -7,7 +9,17 @@ import org.openqa.selenium.support.ui.*;
 import java.time.Duration;
 import java.util.ArrayList;
 
+import static com.codeborne.selenide.Condition.appears;
+import static com.codeborne.selenide.Condition.disappears;
+import static com.codeborne.selenide.Selenide.$;
+
 public class WebOperationUtils {
+
+    private static int timeout = 10;
+
+    public static void setTimeout(int timeout) {
+        WebOperationUtils.timeout = timeout;
+    }
 
     /**
      * scroll element to middle of view
@@ -53,18 +65,39 @@ public class WebOperationUtils {
      * @return the Web Element
      */
     public static WebElement waitUntilVisible(WebDriver driver, WebElement webElement) {
-        return (new WebDriverWait(driver, 10)).until(ExpectedConditions.visibilityOf(webElement));
+        return (new WebDriverWait(driver, timeout)).until(ExpectedConditions.visibilityOf(webElement));
     }
+
+    /**
+     * wait until the target web element shows
+     *
+     * @param webElement the Web Element
+     * @return the Web Element
+     */
+    public static SelenideElement waitUntilVisible(SelenideElement webElement) {
+        return webElement.should(appears);
+    }
+
 
     /**
      * wait until the target web element disappear with time out for 10 secs
      *
      * @param driver     web driver
-     * @param webElement the Web Element
+     * @param webElement the SelenideElement Web Element
      * @return true if the element disappeared
      */
     public static boolean waitUntilDisappear(WebDriver driver, WebElement webElement) {
-        return (new WebDriverWait(driver, 10)).until(ExpectedConditions.invisibilityOf(webElement));
+        return (new WebDriverWait(driver, timeout)).until(ExpectedConditions.invisibilityOf(webElement));
+    }
+
+    /**
+     * wait until the target web element disappear
+     *
+     * @param webElement the SelenideElement Web Element
+     * @return true if the element disappeared
+     */
+    public static boolean waitUntilDisappear(SelenideElement webElement) {
+        return webElement.should(disappears).isDisplayed();
     }
 
 
@@ -124,10 +157,21 @@ public class WebOperationUtils {
      * @return true if page loaded
      */
     public static boolean waitForPageLoad(WebDriver driver) {
-        Wait<WebDriver> wait = new WebDriverWait(driver, 10);
+        Wait<WebDriver> wait = new WebDriverWait(driver, timeout);
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("Body")));
         return true;
     }
+
+    /**
+     * wait for page load
+     *
+     * @return true if page loaded
+     */
+    public static boolean waitForPageLoad() {
+        return $("body").should(appears).isDisplayed();
+
+    }
+
 
     /**
      * Wait for page load with element
@@ -137,9 +181,19 @@ public class WebOperationUtils {
      * @return WebElement expected element
      */
     public static WebElement waitForElementLoad(WebDriver driver, By selector) {
-        Wait<WebDriver> wait = new WebDriverWait(driver, 10);
+        Wait<WebDriver> wait = new WebDriverWait(driver, timeout);
         wait.until(ExpectedConditions.presenceOfElementLocated(selector));
         return driver.findElement(selector);
+    }
+
+    /**
+     * Wait for page load with element
+     *
+     * @param selector selector with by (e.g. By.xpath(), By.id()...)
+     * @return WebElement expected element
+     */
+    public static SelenideElement waitForElementLoad(By selector) {
+        return $(selector).should(appears);
     }
 
     /**

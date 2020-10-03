@@ -13,6 +13,7 @@ import ch.sleod.testautomation.framework.core.json.deserialization.JSONContainer
 import ch.sleod.testautomation.framework.core.report.ReportBuilder;
 import ch.sleod.testautomation.framework.rest.TFS.connection.QUERY_OPTION;
 import ch.sleod.testautomation.framework.rest.TFS.connection.TFSRestClient;
+import com.codeborne.selenide.Configuration;
 import com.google.common.collect.Multimap;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -24,10 +25,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 import static ch.sleod.testautomation.framework.common.logging.SystemLogger.*;
@@ -41,7 +39,6 @@ public class TestRunManager {
     private static String currentAppName;
     private static String currentAppActivity;
     private static JSONRunnerConfig runnerConfig = null;
-    private static String tfsRunId;
 
     public static PerformableTestCases getPerformer() {
         return performer;
@@ -341,13 +338,11 @@ public class TestRunManager {
         }
         //create test run with plan id, suite id and test points via test case id, if not done
         TFSRestClient restClient = new TFSRestClient(runnerConfig.getTfsConfig());
-        if (tfsRunId == null) {
-            String suiteId = runnerConfig.getSuiteId();
-            String planId = runnerConfig.getPlanId();
-            String runName = runnerConfig.getRunName();
-            JSONObject testRun = restClient.createTestRun(runName, planId, suiteId, new ArrayList<>(testRunResultMap.keySet()));
-            tfsRunId = testRun.getString("id");
-        }
+        String suiteId = runnerConfig.getSuiteId();
+        String planId = runnerConfig.getPlanId();
+        String runName = runnerConfig.getRunName();
+        JSONObject testRun = restClient.createTestRun(runName, planId, suiteId, new ArrayList<>(testRunResultMap.keySet()));
+        String tfsRunId = testRun.getString("id");
         //update test run with test run result
         JSONObject results = restClient.updateTestRunResults(tfsRunId, testRunResultMap);
         JSONArray values = results.getJSONArray("value");
@@ -372,37 +367,58 @@ public class TestRunManager {
     /**
      * copy resources files in defined locations to current local folder.
      */
-    public static void retrieveResources() {
+    public static void retrieveResources(String propertyFilePath) {
+        boolean isDefaultPath = PropertyResolver.loadTestRunProperties(propertyFilePath);
         try {
-            URL folderInJar = TestRunManager.class.getClassLoader().getResource("properties");
-            if (folderInJar != null && folderInJar.toURI().getScheme().equals("jar")) {
-                File jarFile = new File(folderInJar.getFile()).getParentFile();
-                String jarName = jarFile.getName();
-                String currentPath = Paths.get("").toAbsolutePath().toString() + "/";
-                trace("Get current location of jar: " + currentPath);
-                URI jarUri = URI.create("jar:file:/" + currentPath.replace("\\", "/") + jarName + "/");
-                FileSystem fileSystem = FileSystems.newFileSystem(jarUri, Collections.emptyMap());
-                //find folders
-                for (String folder : PropertyResolver.getAllPropertiesWith("location")) {
-                    if (folder.endsWith("/")) {
-                        folder = folder.substring(0, folder.length() - 1);
+            if (isDefaultPath) {
+                URL folderInJar = TestRunManager.class.getClassLoader().getResource("properties");
+                if (folderInJar != null && folderInJar.toURI().getScheme().equals("jar")) {
+                    File jarFile = new File(folderInJar.getFile()).getParentFile();
+                    String baseDir = FileLocator.getProjectBaseDir() + "/src/main/resources/";
+                    String jarPath = "jar:file:" + jarFile.getAbsolutePath().split("file:")[1].replace("\\", "/") + "/";
+                    trace("Jar Path: " + jarPath);
+                    URI jarUri = URI.create(jarPath);
+                    //retrieve property file and rename to normal
+                    File propertyFile = new File(baseDir + "properties/TestRunProperties.properties");
+                    FileOperation.retrieveFileFromResources("properties/DefaultTestRunProperties.properties", propertyFile);
+                    //build file system and find folders
+//                    FileSystem fileSystem = FileSystems.newFileSystem(jarUri, Collections.emptyMap());
+                    for (String folder : PropertyResolver.getAllPropertiesWith("location")) {
+                        trace("Property listed folder: " + folder);
+                        new File(baseDir + folder).mkdir();
+//                        if (folder.endsWith("/")) {
+//                            folder = folder.substring(0, folder.length() - 1);
+//                        }
+//                        Path path = fileSystem.getPath(folder);
+//                        //list folder recursive
+//                        List<Path> filePaths = FileLocator.walkThrough(path);
+//                        //retrieve file to local
+//                        for (Path filePath : filePaths) {
+//                            trace("Try to retrieve file: " + path);
+//                            FileOperation.retrieveFileFromResources(filePath.toString(), new File(baseDir + filePath));
+//                        }
                     }
-                    Path path = fileSystem.getPath(folder);
-                    //list folder recursive
-                    List<Path> filePaths = FileLocator.walkThrough(path);
-                    //retrieve file to local
-                    filePaths.forEach(filePath -> FileOperation.retrieveFileFromResources(filePath.toString(), new File(currentPath + filePath)));
                 }
             }
             if (PropertyResolver.isTFSFeedbackEnabled()) {
-                runnerConfig = JSONContainerFactory.getRunnerConfig(PropertyResolver.getTFSRunnerConfigFile());
+                String configName = PropertyResolver.getTFSRunnerConfigFile();
+                runnerConfig = JSONContainerFactory.getRunnerConfig(configName);
                 //init test plan configuration with given id
-                if (runnerConfig.getConfigurationId() != null && !runnerConfig.getConfigurationId().isEmpty()) {
+                String configId = "";
+                if (PropertyResolver.getTFSConfigurationID() != null && !PropertyResolver.getTFSConfigurationID().isEmpty()) {
+                    configId = PropertyResolver.getTFSConfigurationID();
+                } else if (runnerConfig.getConfigurationId() != null && !runnerConfig.getConfigurationId().isEmpty()) {
+                    configId = runnerConfig.getConfigurationId();
+                }
+                if (!configId.isEmpty()) {
                     TFSRestClient restClient = new TFSRestClient(runnerConfig.getTfsConfig());
-                    runnerConfig.setTestPlanConfig(restClient.getTestPlanConfiguration(runnerConfig.getConfigurationId()));
+                    runnerConfig.setTestPlanConfig(restClient.getTestPlanConfiguration(configId));
                     //set test plan configuration to system property
                     PropertyResolver.setProperties(runnerConfig.getTestPlanConfig());
-                }
+                    if (!PropertyResolver.getTFSRunnerConfigFile().equals(configName)) {
+                        runnerConfig = JSONContainerFactory.getRunnerConfig(PropertyResolver.getTFSRunnerConfigFile());
+                    }
+                } else warn("No Test Plan Configuration set, Test Run with local tfs runner config!");
             }
         } catch (URISyntaxException | IOException ex) {
             error(ex);
@@ -492,7 +508,7 @@ public class TestRunManager {
     public static void loadGlobalTestData() {
         try {
             List<Path> paths = FileLocator.listRegularFilesRecursiveMatchedToName(
-                    FileLocator.findResource(PropertyResolver.getDefaultTestDataLocation()).toString(), 5, "testdata-global");
+                    Objects.requireNonNull(FileLocator.findResource(PropertyResolver.getDefaultTestDataLocation())).toString(), 5, "testdata-global");
             if (paths.size() > 1) {
                 throw new RuntimeException("Test Data File with name 'xxx-testdata-global.json' should be single in testData folder!");
             } else if (paths.size() == 1) {
@@ -506,4 +522,5 @@ public class TestRunManager {
     public static boolean feedbackAfterSingleTest() {
         return runnerConfig.feedbackAfterSingleTest();
     }
+
 }

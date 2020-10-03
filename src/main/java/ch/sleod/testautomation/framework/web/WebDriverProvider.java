@@ -6,16 +6,13 @@ import ch.sleod.testautomation.framework.core.component.TestStepMonitor;
 import ch.sleod.testautomation.framework.core.json.container.JSONDriverConfig;
 import ch.sleod.testautomation.framework.intefaces.DriverProvider;
 import ch.sleod.testautomation.framework.intefaces.ScreenshotTaker;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
+import ch.sleod.testautomation.framework.common.logging.ScreenCapture;
+import ch.sleod.testautomation.framework.common.logging.SystemLogger;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.util.LinkedHashMap;
 import java.util.Objects;
-
-import static ch.sleod.testautomation.framework.common.logging.SystemLogger.error;
-import static ch.sleod.testautomation.framework.common.logging.SystemLogger.trace;
 
 public abstract class WebDriverProvider implements ScreenshotTaker, DriverProvider {
     private static LinkedHashMap<String, WebDriver> drivers = new LinkedHashMap<>();
@@ -23,17 +20,17 @@ public abstract class WebDriverProvider implements ScreenshotTaker, DriverProvid
 
     public void setDriver(WebDriver driver) {
         drivers.put(Thread.currentThread().getName(), driver);
-        trace("Save driver for: " + Thread.currentThread().getName());
+        SystemLogger.trace("Save driver for: " + Thread.currentThread().getName());
     }
 
     @SuppressWarnings("unchecked")
     public WebDriver getDriver() {
         String tid = Thread.currentThread().getName();
         if (drivers.get(tid) == null) {
-            trace("Init driver for: " + tid);
+            SystemLogger.trace("Init driver for: " + tid);
             initialize();
         } else {
-            trace("Get driver for: " + tid);
+            SystemLogger.trace("Get driver for: " + tid);
         }
         return drivers.get(tid);
     }
@@ -78,19 +75,7 @@ public abstract class WebDriverProvider implements ScreenshotTaker, DriverProvid
      */
     @Override
     public synchronized Screenshot takeScreenShot(TestStepMonitor testStepMonitor) {
-        String testCaseName = testStepMonitor.getCurrentTestCase().getDisplayName();
-        String stepName = testStepMonitor.getLastStep().getMethodName();
-        Screenshot screenshot = null;
-        WebDriver driver = drivers.get(Thread.currentThread().getName());
-        if (driver instanceof TakesScreenshot) {
-            trace("*** save screenshot to Report for Test Case: " + testCaseName + " -> " + stepName);
-            byte[] imageData = ((RemoteWebDriver) driver).getScreenshotAs(OutputType.BYTES);
-            try {
-                screenshot = new Screenshot(imageData, testCaseName, stepName);
-            } catch (RuntimeException ex) {
-                error(ex);
-            }
-        }
-        return screenshot;
+        RemoteWebDriver driver = (RemoteWebDriver) drivers.get(Thread.currentThread().getName());
+        return ScreenCapture.getScreenshot(testStepMonitor, driver);
     }
 }

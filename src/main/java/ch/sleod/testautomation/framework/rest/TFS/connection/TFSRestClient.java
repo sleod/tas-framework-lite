@@ -28,14 +28,15 @@ public class TFSRestClient {
     /**
      * Constructor with full setting of TFS
      *
-     * @param tfsConnector driver
-     * @param organization like "tfs"
-     * @param collection   like "RCH"
-     * @param project      like "AP.Testtools"
-     * @param apiVersion   like "5.0"
+     * @param host         host
+     * @param pat          personal access token
+     * @param organization organization like tfs
+     * @param collection   collection like RCH
+     * @param project      project like ap.testtools
+     * @param apiVersion   version like 5.0
      */
-    public TFSRestClient(TFSConnector tfsConnector, String organization, String collection, String project, String apiVersion) {
-        this.tfsConnector = tfsConnector;
+    public TFSRestClient(String host, String pat, String organization, String collection, String project, String apiVersion) {
+        this.tfsConnector = new TFSConnector(host, pat, apiVersion);
         this.apiVersion = apiVersion;
         this.organization = organization;
         this.collection = collection;
@@ -236,10 +237,11 @@ public class TFSRestClient {
                 testPlanId + "/Suites/" + testSuiteId + "/TestPoint";
         Response response = tfsConnector.get(path, "testCaseId", testCaseId);
         if (response.getStatus() == 200) {
-            return JSONObject.fromObject(response.readEntity(String.class)).getJSONArray("value").getJSONObject(0);
-        } else {
-            throw new RuntimeException("can not find test point with path: " + path);
-        }
+            JSONArray values = JSONObject.fromObject(response.readEntity(String.class)).getJSONArray("value");
+            if (values.size() > 0) {
+                return values.getJSONObject(0);
+            } else throw new RuntimeException("Given test case was not found in given test plan / suite! " + path);
+        } else throw new RuntimeException("Can not find test point with path: " + path);
     }
 
     /**
@@ -330,6 +332,7 @@ public class TFSRestClient {
         String path = organization + "/" + collection + "/" + project + "/_apis/tfvc/items";
         Response response = tfsConnector.downloadItemsInFolderAsZip(path, folder);
         if (response.getStatus() == 200) {
+            targetFile.getParentFile().mkdirs();
             Files.copy(response.readEntity(InputStream.class), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } else {
             throw new RuntimeException("Fail to download files from path! Response Code: " + response.getStatus());

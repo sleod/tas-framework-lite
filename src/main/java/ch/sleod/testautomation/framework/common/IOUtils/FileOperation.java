@@ -1,18 +1,15 @@
 package ch.sleod.testautomation.framework.common.IOUtils;
 
 import ch.sleod.testautomation.framework.core.assertion.Matchers;
-import ch.sleod.testautomation.framework.common.logging.SystemLogger;
 import org.hamcrest.Matcher;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 
+import static ch.sleod.testautomation.framework.common.logging.SystemLogger.*;
 import static java.util.Arrays.asList;
 
 public class FileOperation {
@@ -40,9 +37,29 @@ public class FileOperation {
         try {
             return Files.readAllLines(new File(filePath).toPath(), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            SystemLogger.error(e);
+            warn("Error while read file: " + filePath);
+            error(e);
         }
         return Collections.emptyList();
+    }
+
+    /**
+     * @param inputStream is input stream of file
+     * @return String of file content with break
+     */
+    public static String readFileToLinedString(InputStream inputStream) {
+        StringBuilder sb = new StringBuilder();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+        try {
+            while (reader.ready()) {
+                sb.append(reader.readLine());
+                sb.append(System.lineSeparator());
+            }
+        } catch (IOException ex) {
+            error(ex);
+        }
+
+        return sb.toString();
     }
 
     /**
@@ -68,7 +85,7 @@ public class FileOperation {
             FilenameFilter filter = (file, name) -> name.toLowerCase().endsWith(".".concat(suffix.toLowerCase()));
             return asList(Objects.requireNonNull(root.listFiles(filter)));
         } else {
-            SystemLogger.warn(root.getAbsolutePath() + "may not a directory or an empty one!");
+            warn(root.getAbsolutePath() + " may not a directory or an empty one!");
             return Collections.emptyList();
         }
     }
@@ -86,7 +103,7 @@ public class FileOperation {
             };
             return asList(Objects.requireNonNull(root.listFiles(filter)));
         } else {
-            SystemLogger.warn(root.getAbsolutePath() + "may not a directory or an empty one!");
+            warn(root.getAbsolutePath() + " may not a directory or an empty one!");
             return Collections.emptyList();
         }
     }
@@ -132,7 +149,7 @@ public class FileOperation {
      */
     public static void deleteFile(File file) throws IOException {
         boolean dq = Files.deleteIfExists(file.toPath());
-        SystemLogger.trace("try to deleteQCEntityInQC File: " + file + " : " + dq);
+        trace("try to deleteQCEntityInQC File: " + file + " : " + dq);
     }
 
     /**
@@ -152,9 +169,14 @@ public class FileOperation {
             if (srcFile.startsWith("/")) {
                 srcFile = srcFile.substring(1);
             }
-            Files.copy(retrieveFileFromResourcesAsStream(srcFile), absoluteTargetFile.toPath());
+            if (retrieveFileFromResourcesAsStream(srcFile) != null) {
+                Files.copy(retrieveFileFromResourcesAsStream(srcFile), absoluteTargetFile.toPath());
+            } else {
+                throw new RuntimeException("No resource found with path: " + srcFile);
+            }
         } catch (IOException ex) {
-            SystemLogger.error(ex);
+            warn("Error while retrieve file: " + srcFile);
+            error(ex);
         }
         return absoluteTargetFile;
     }
@@ -169,12 +191,7 @@ public class FileOperation {
         if (relativePath == null || relativePath.isEmpty()) {
             throw new RuntimeException("No resource can be retrieved because of empty path!");
         } else {
-            InputStream resource = FileOperation.class.getClassLoader().getResourceAsStream(relativePath);
-            if (resource == null) {
-                throw new RuntimeException("No resource found with path: " + relativePath);
-            } else {
-                return resource;
-            }
+            return FileOperation.class.getClassLoader().getResourceAsStream(relativePath);
         }
     }
 
@@ -234,7 +251,8 @@ public class FileOperation {
             try {
                 Files.deleteIfExists(new File(path).toPath());
             } catch (IOException e) {
-                SystemLogger.error(e);
+
+                error(e);
             }
         });
     }
@@ -259,7 +277,7 @@ public class FileOperation {
      * @return file path
      */
     public static String getFilePathFromResource(String relativePath) {
-        return FileLocator.findResource(relativePath).toString();
+        return Objects.requireNonNull(FileLocator.findResource(relativePath)).toString();
     }
 
     /**
@@ -273,8 +291,10 @@ public class FileOperation {
             byte[] fileContent = Files.readAllBytes(file.toPath());
             return Base64.getEncoder().encodeToString(fileContent);
         } catch (IOException ex) {
-            throw new IllegalStateException("could not read file " + file, ex);
+            warn("Error while encode file: " + file.getName());
+            error(ex);
         }
+        return null;
     }
 
     /**

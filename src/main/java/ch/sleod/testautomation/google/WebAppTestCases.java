@@ -1,9 +1,12 @@
 package ch.sleod.testautomation.google;
 
+import ch.sleod.testautomation.framework.configuration.PropertyResolver;
 import ch.sleod.testautomation.framework.core.annotations.AfterTest;
 import ch.sleod.testautomation.framework.core.annotations.BeforeTest;
 import ch.sleod.testautomation.framework.core.component.PerformableTestCases;
 import ch.sleod.testautomation.framework.core.runner.JUnitReportingRunner;
+import com.codeborne.selenide.Configuration;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.runner.RunWith;
 
 import java.util.Collections;
@@ -94,5 +97,15 @@ public class WebAppTestCases extends PerformableTestCases {
     @Override
     protected String getTestCaseFileFormat() {
         return ".json";
+    }
+
+    /**
+     * override to set up selenide
+     */
+    @Override
+    protected void setUpSelenide() {
+//        Configuration.reportsFolder = "test-result/reports";
+        Configuration.reportsFolder = StringUtils.chop(PropertyResolver.getDefaultTestCaseReportLocation());
+        Configuration.screenshots = false;
     }
 }

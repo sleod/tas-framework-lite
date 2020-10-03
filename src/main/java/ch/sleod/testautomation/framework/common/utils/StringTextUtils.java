@@ -1,6 +1,5 @@
 package ch.sleod.testautomation.framework.common.utils;
 
-import ch.sleod.testautomation.framework.common.logging.SystemLogger;
 import org.jsoup.Jsoup;
 
 import java.util.regex.Matcher;
@@ -24,7 +23,7 @@ public class StringTextUtils {
             String resultCount = matcher.group(1);
             return resultCount;
         } else {
-            SystemLogger.log("INFO", "Wrong content: \n" + content);
+            log("INFO", "Wrong content: \n" + content);
             return null;
         }
     }

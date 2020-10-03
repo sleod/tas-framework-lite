@@ -1,9 +1,10 @@
 package ch.sleod.testautomation.framework.common.utils;
 
-import ch.sleod.testautomation.framework.common.logging.SystemLogger;
-
 import java.sql.*;
 import java.util.*;
+
+import static ch.sleod.testautomation.framework.common.logging.SystemLogger.error;
+import static ch.sleod.testautomation.framework.common.logging.SystemLogger.trace;
 
 
 /**
@@ -36,7 +37,7 @@ public class DBConnector {
                     break;
             }
             if (!url.isEmpty()) {
-                SystemLogger.trace("Try to connect to DB: " + url);
+                trace("Try to connect to DB: " + url);
                 // Setup the connection with the DB
                 connect = DriverManager.getConnection(url, user, password);
             } else {
@@ -46,16 +47,16 @@ public class DBConnector {
             Statement statement = Objects.requireNonNull(connect).createStatement();
             // Result set get the result of the SQL query
             ResultSet resultSet = statement.executeQuery(sql);
-            SystemLogger.trace("Execute SQL: " + sql);
+            trace("Execute SQL: " + sql);
             results = writeResultSet(resultSet);
         } catch (ClassNotFoundException | SQLException e) {
-            SystemLogger.error(e);
+            error(e);
         } finally {
             if (connect != null) {
                 try {
                     connect.close();
                 } catch (SQLException e) {
-                    SystemLogger.error(e);
+                    error(e);
                 }
             }
         }
@@ -73,7 +74,7 @@ public class DBConnector {
         List<Map<String, Object>> results = new ArrayList<>(resultSet.getRow());
         // ResultSet is initially before the first data set
         while (resultSet.next()) {
-            SystemLogger.trace("Table Line: ----------------------------------------");
+            trace("Table Line: ----------------------------------------");
             // It is possible to get the columns via name
             // also possible to get the columns via the column number
             // which starts at 1
@@ -84,7 +85,7 @@ public class DBConnector {
             for (int i = 1; i <= columns; i++) {
                 String colName = rsmd.getColumnName(i);
                 row.put(colName, resultSet.getString(colName));
-                SystemLogger.trace("Column: " + colName + ": " + row.get(colName));
+                trace("Column: " + colName + ": " + row.get(colName));
             }
             results.add(row);
         }

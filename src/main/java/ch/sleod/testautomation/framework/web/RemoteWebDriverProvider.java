@@ -6,7 +6,8 @@ import ch.sleod.testautomation.framework.core.component.TestStepMonitor;
 import ch.sleod.testautomation.framework.core.json.container.JSONDriverConfig;
 import ch.sleod.testautomation.framework.intefaces.DriverProvider;
 import ch.sleod.testautomation.framework.intefaces.ScreenshotTaker;
-import org.openqa.selenium.OutputType;
+import ch.sleod.testautomation.framework.common.logging.ScreenCapture;
+import ch.sleod.testautomation.framework.common.logging.SystemLogger;
 import org.openqa.selenium.Platform;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.remote.DesiredCapabilities;
@@ -17,8 +18,6 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static ch.sleod.testautomation.framework.common.logging.SystemLogger.*;
 
 public class RemoteWebDriverProvider implements DriverProvider, ScreenshotTaker {
 
@@ -122,7 +121,7 @@ public class RemoteWebDriverProvider implements DriverProvider, ScreenshotTaker 
                         } else {
                             throw new RuntimeException("grdnUUID or realDeviceUuid not set!!");
                         }
-                        capabilities.toJson().forEach((key, value) -> trace("Capability: " + key + " -> " + value));
+                        capabilities.toJson().forEach((key, value) -> SystemLogger.trace("Capability: " + key + " -> " + value));
                     }
                     try {
                         driver = new RemoteWebDriver(new URL(hubURL), capabilities);
@@ -132,7 +131,7 @@ public class RemoteWebDriverProvider implements DriverProvider, ScreenshotTaker 
                         if (driver != null) {
                             driver.close();
                         }
-                        error(e);
+                        SystemLogger.error(e);
                     }
                 }
             }
@@ -141,14 +140,6 @@ public class RemoteWebDriverProvider implements DriverProvider, ScreenshotTaker 
 
     @Override
     public Screenshot takeScreenShot(TestStepMonitor testStepMonitor) {
-        String testCaseName = testStepMonitor.getCurrentTestCase().getDisplayName();
-        String stepName = testStepMonitor.getLastStep().getMethodName();
-        Screenshot screenshot = null;
-        if (driver != null) {
-            info("*** save screenshot to Report for Test Case: " + testCaseName + " -> " + stepName);
-            byte[] imageData = driver.getScreenshotAs(OutputType.BYTES);
-            screenshot = new Screenshot(imageData, testCaseName, stepName);
-        }
-        return screenshot;
+        return ScreenCapture.getScreenshot(testStepMonitor, driver);
     }
 }
