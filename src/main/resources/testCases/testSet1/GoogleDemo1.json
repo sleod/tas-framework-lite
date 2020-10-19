@@ -1,9 +1,6 @@
 {
   "meta": [
     "@test",
-    "@nightly",
-    "@CI",
-    "@demo",
     "@demo1"
   ],
   "name": "Google Demo Test Case 1",
@@ -14,7 +11,8 @@
   "requirement": "",
   "reference": "",
   "screenshotLevel": "ERROR",
-  "testDataRef": "File:testData/google-testData1.csv",
+  "testDataRef": "File:google-testData.json",
+  "additionalTestDataFile": "File:testData/google-testData.json",
   "startURL": "",
   "steps": [
     {
@@ -31,10 +29,16 @@
     },
     {
       "name": "Search Text",
-      "testObject": "Google Home Page"
+      "testObject": "Google Home Page",
+      "using": "searchText3"
     },
     {
       "name": "Search Text Twice",
+      "testObject": "Google Home Page",
+      "using": "[searchText4, searchText5]"
+    },
+    {
+      "name": "Search List Line",
       "testObject": "Google Home Page"
     }
   ]

@@ -7,10 +7,6 @@ import java.io.StringWriter;
 import junit.framework.TestCase;
 import org.json.simple.JSONValue;
 
-*/
-/**
- * @author UEX13061
- *//*
 
 
 public class JSONValueTest extends TestCase {

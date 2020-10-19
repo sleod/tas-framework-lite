@@ -323,8 +323,13 @@
 
             </plugin>
         </plugins>
-
     </build>
+    <distributionManagement>
+        <repository>
+            <id>local</id>
+            <name>Local repository</name>
+            <url>file://${user.home}/.m2/repository</url>
+        </repository>
+    </distributionManagement>
 
-    <!-->http://rchrepository:8080/nexus/content/repositories/Test_Services_Snapshot-->
 </project>

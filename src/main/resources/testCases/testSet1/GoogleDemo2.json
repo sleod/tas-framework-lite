@@ -24,7 +24,9 @@
     {
       "name": "Check Page Title",
       "testObject": "Google Home Page",
-      "using": "pageTitle1"
+      "using": "pageTitle1",
+      "stopOnError": false,
+      "takeScreenshot": true
     },
     {
       "name": "Search Text",
