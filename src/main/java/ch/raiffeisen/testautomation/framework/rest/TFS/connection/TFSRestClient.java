@@ -264,7 +264,8 @@ public class TFSRestClient {
             }
             return testCaseIds;
         } else {
-            return Collections.emptyList();
+            throw new RuntimeException("Error while getting test case id from TFS! \n" + response.readEntity(String.class));
+//            return Collections.emptyList();
         }
     }
 

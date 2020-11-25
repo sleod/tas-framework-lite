@@ -1,6 +1,7 @@
 package ch.raiffeisen.testautomation.google;
 
 import ch.raiffeisen.testautomation.framework.configuration.PropertyResolver;
+import ch.raiffeisen.testautomation.framework.core.annotations.TestObject;
 import ch.raiffeisen.testautomation.framework.core.annotations.TestStep;
 import ch.raiffeisen.testautomation.framework.web.WebPageObject;
 import org.openqa.selenium.Keys;
@@ -10,7 +11,6 @@ import org.openqa.selenium.support.FindBy;
 import java.util.List;
 import java.util.Map;
 
-import static com.codeborne.selenide.Selectors.*;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.open;
 import static org.junit.Assert.assertNotNull;
@@ -24,13 +24,13 @@ public class FunctionPage extends WebPageObject {
 //    protected WebElement searchInputField = $(byName("q"));
 
     @Override
-    @TestStep(name = "Check Fields Present")
+    @TestStep(name = "Check Fields Presents")
     public void checkFields() {
         assertTrue("Input Field is not displayed!", searchInputField.isDisplayed());
     }
 
     @TestStep(name = "Start Up")
-    public void startUp() {
+    public void StartUpAndGo() {
         if (PropertyResolver.getProperty("startURL") == null) {
             open("https://www.google.ch");
         } else {
@@ -95,13 +95,11 @@ public class FunctionPage extends WebPageObject {
 
     @TestStep(name = "Search List", using = "texts.values")
     public void searchList(List<Map<String, String>> values) {
-        values.forEach(text -> {
-            text.forEach((key, value) -> {
-                searchInputField.clear();
-                logStepInfo("Search " + key + " -> " + value);
-                searchInputField.sendKeys(value);
-            });
-        });
+        values.forEach(text -> text.forEach((key, value) -> {
+            searchInputField.clear();
+            logStepInfo("Search " + key + " -> " + value);
+            searchInputField.sendKeys(value);
+        }));
     }
 
     @TestStep(name = "Search List Line", using = "CustomizedDataMap")

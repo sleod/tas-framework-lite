@@ -288,4 +288,7 @@ public class TestCaseStep extends TestCase {
         testStepMonitor.ignorable(testStepResult.getStepId());
     }
 
+    public String getComment() {
+        return jsonTestCaseStep.getComment();
+    }
 }

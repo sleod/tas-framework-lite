@@ -37,7 +37,7 @@ public class SearchResultPage extends FunctionPage {
     }
 
     @TestStep(name = "Check search with map", using = "searchTextMap")
-    public void checkSearchs(Map<String, Object> texts) {
+    public void checkSearches(Map<String, Object> texts) {
         texts.forEach((key, value) -> {
             searchText(key);
             firstEntryOfSearchResultContains(String.valueOf(value));

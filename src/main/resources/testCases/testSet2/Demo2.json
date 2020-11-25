@@ -15,7 +15,7 @@
   "startURL": "",
   "steps": [
     {
-      "name": "Check Fields Present",
+      "name": "Check Fields Presents",
       "testObject": "Search Result Page"
     },
     {

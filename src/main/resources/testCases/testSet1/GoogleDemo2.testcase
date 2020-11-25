@@ -15,10 +15,10 @@
   "screenshotLevel": "ERROR",
   "testDataRef": "File:google-testData.json",
   "startURL": "https://www.google.ch",
-  "seriesNumber": "",
+  "additionalTestDataFile": "File:testData/google-testData.json",
   "steps": [
     {
-      "name": "Check Fields Present",
+      "name": "Check Fields Presents",
       "testObject": "Google Home Page"
     },
     {

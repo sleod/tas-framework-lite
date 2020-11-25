@@ -18,7 +18,7 @@
   "seriesNumber": "",
   "steps": [
     {
-      "name": "Check Fields Present",
+      "name": "Check Fields Presents",
       "testObject": "Google Home Page"
     },
     {

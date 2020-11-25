@@ -112,7 +112,7 @@ public class ReportBuilder {
             jsonTestResult.addLabel("testClass", testCaseObject.getTestRunResult().getName());
             for (TestCaseStep testCaseStep : testCaseObject.getSteps()) {
                 //Attachment will be done by construction
-                JSONStepResult jsonStepResult = new JSONStepResult(testCaseStep.getTestStepResult(), logFilePath);
+                JSONStepResult jsonStepResult = new JSONStepResult(testCaseStep, logFilePath);
                 TestStatus testStatus = testCaseStep.getTestStepResult().getStatus();
                 if (testStatus.equals(TestStatus.FAIL) || testStatus.equals(TestStatus.BROKEN)) {
                     jsonTestResult.setStatusDetails("known", false);

@@ -16,7 +16,7 @@
   "startURL": "https://www.google.ch",
   "steps": [
     {
-      "name": "Check Fields Present",
+      "name": "Check Fields Presents",
       "testObject": "Google Home Page"
     },
     {
@@ -28,7 +28,7 @@
       "testObject": "Google Home Page"
     },
     {
-      "name": "Check Fields Present",
+      "name": "Check Fields Presents",
       "testObject": "Search Result Page"
     },
     {

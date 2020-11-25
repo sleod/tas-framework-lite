@@ -105,14 +105,20 @@ public class TestDataContainer {
         if (key.startsWith("global.")) {
             return getTestDataInJSON(key.replace("global.", ""), globalTestData);
         } else {
-            if (jsonData != null) {
-                return getTestDataInJSON(key, jsonData);
-            } else if (dataContent != null) {
+            if(dataContent != null && checkDataContentContainsKey(key)){
+
                 return dataContent.get(parameterRow).get(key);
-            } else {
+            } else if(jsonData != null ){
+
+                return getTestDataInJSON(key, jsonData);
+            }else{
                 return key;
             }
         }
+    }
+
+    private boolean checkDataContentContainsKey(String key) {
+        return dataContent.get(0).containsKey(key);
     }
 
     public Integer getDataContentSize() {
@@ -139,7 +145,12 @@ public class TestDataContainer {
                 throw new RuntimeException("Check Parameter definition with given KEY! No Test Data can be Selected.");
             }
         } else {
-            return storage.get(key);
+
+            if(storage.containsKey(key)){
+                return storage.get(key);
+            }else{
+                return key;
+            }
         }
     }
 
@@ -246,6 +257,9 @@ public class TestDataContainer {
             }
             if (commentBlockClosed) {
                 Object[] values = line.split(";");
+                if(values.length != colums.length){
+                    throw new RuntimeException("In der Zeilennummer " + rowNumber + " stimmt die Anzahl der Werte nicht mit der Anzahl im CSV Header überrein");
+                }
                 for (int i = 0; i < colums.length; i++) {
                     rowContent.put(colums[i], values[i]);
                 }

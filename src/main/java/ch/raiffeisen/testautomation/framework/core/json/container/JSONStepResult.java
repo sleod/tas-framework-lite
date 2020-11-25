@@ -3,6 +3,7 @@ package ch.raiffeisen.testautomation.framework.core.json.container;
 import ch.raiffeisen.testautomation.framework.common.IOUtils.FileOperation;
 import ch.raiffeisen.testautomation.framework.common.logging.Screenshot;
 import ch.raiffeisen.testautomation.framework.configuration.PropertyResolver;
+import ch.raiffeisen.testautomation.framework.core.component.TestCaseStep;
 import ch.raiffeisen.testautomation.framework.core.component.TestStepResult;
 import ch.raiffeisen.testautomation.framework.core.json.customDeserializer.CustomAttachmentListDeserializer;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -33,13 +34,16 @@ public class JSONStepResult {
 
     private final String logFilePath;
 
-    public JSONStepResult(TestStepResult testStepResult, String logFilePath) throws IOException {
+    public JSONStepResult(TestCaseStep testCaseStep, String logFilePath) throws IOException {
+
+        TestStepResult testStepResult = testCaseStep.getTestStepResult();
         this.name = testStepResult.getName();
         this.status = testStepResult.getStatus().text();
         this.start = testStepResult.getStart();
         this.stop = testStepResult.getStop();
         this.logFilePath = logFilePath;
-        addAttachments(testStepResult);
+
+        addAttachments(testCaseStep);
     }
 
     public long getStart() {
@@ -97,14 +101,34 @@ public class JSONStepResult {
         this.statusDetails = detailsMap;
     }
 
-    private void addAttachments(TestStepResult stepResult) throws IOException {
-        List<Screenshot> screenshots = stepResult.getScreenshots();
+    private void addAttachments(TestCaseStep testCaseStep) throws IOException {
+
         attachments = new LinkedList<>();
+        addComment(testCaseStep);
+        addLogs(testCaseStep);
+        addScreenshots(testCaseStep);
+    }
+
+    private void addComment(TestCaseStep testCaseStep) {
+        String comment = testCaseStep.getComment();
+        if(comment != null && !comment.isEmpty()){
+            attachments.add(new JSONAttachment("Comment: " + comment, "text/json", ""));
+        }
+    }
+
+    private void addLogs(TestCaseStep testCaseStep) throws IOException {
+
+        TestStepResult stepResult = testCaseStep.getTestStepResult();
         String location = new File(logFilePath).getParentFile().getAbsolutePath();
         File target = new File(location + stepResult.getName() + ".txt");
         FileOperation.writeBytesToFile(stepResult.getInfo().getBytes(), target);
         attachments.add(new JSONAttachment("Step Log", "text/plain", target.getAbsolutePath()));
+    }
+
+    private void addScreenshots(TestCaseStep testCaseStep) {
+        TestStepResult stepResult = testCaseStep.getTestStepResult();
         String attachType = "image/" + PropertyResolver.getDefaultScreenshotFormat().toLowerCase();
+        List<Screenshot> screenshots = stepResult.getScreenshots();
         for (Screenshot screenshot : screenshots) {
             attachments.add(new JSONAttachment("Screenshot", attachType, screenshot.getScreenshotFile().getAbsolutePath()));
             if (screenshot.hasPageFile()) {

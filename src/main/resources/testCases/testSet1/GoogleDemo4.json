@@ -18,7 +18,7 @@
   "seriesNumber": "gd.v3.3",
   "steps": [
     {
-      "name": "Check Fields Present",
+      "name": "Check Fields Presents",
       "testObject": "Google Home Page"
     },
     {

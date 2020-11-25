@@ -13,11 +13,9 @@ import ch.raiffeisen.testautomation.framework.core.json.deserialization.JSONCont
 import ch.raiffeisen.testautomation.framework.core.report.ReportBuilder;
 import ch.raiffeisen.testautomation.framework.rest.TFS.connection.QUERY_OPTION;
 import ch.raiffeisen.testautomation.framework.rest.TFS.connection.TFSRestClient;
-import com.codeborne.selenide.Configuration;
 import com.google.common.collect.Multimap;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.Cookie;
 import org.openqa.selenium.WebDriver;
 
@@ -26,14 +24,12 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.*;
-import static ch.raiffeisen.testautomation.framework.common.utils.ObjectWriterReader.*;
+import static ch.raiffeisen.testautomation.framework.common.utils.ObjectWriterReader.WriteObject;
+import static ch.raiffeisen.testautomation.framework.common.utils.ObjectWriterReader.readObject;
 import static java.util.Arrays.asList;
 
 public class TestRunManager {
@@ -75,6 +71,7 @@ public class TestRunManager {
         if (metaFilters == null || metaFilters.isEmpty()) {
             return true;
         }
+        metaFilters.replaceAll(metaFilter -> metaFilter.replace("@", ""));
         List<String> testCaseMetas = jsonTestCase.getMeta();
         boolean toBeAdd = false;
         for (String metaTag : testCaseMetas) {
@@ -114,7 +111,7 @@ public class TestRunManager {
      * @param filePaths   file paths
      * @param metaFilters meta filters
      */
-    public static void initTestCases(List<String> filePaths, List<String> metaFilters) throws IOException, NoSuchFieldException, IllegalAccessException {
+    public static void initTestCases(List<String> filePaths, List<String> metaFilters) throws IOException {
         Multimap<String, String> coverage = null;//coverage with test case ids in multimap
         List<String> selectedIds = Collections.emptyList();
         if (PropertyResolver.isTFSFeedbackEnabled()) {//check for feedback to tfs
@@ -125,6 +122,9 @@ public class TestRunManager {
                 selectedIds = getLastFailedTestCaseIds(runnerConfig);
             } else {//check run config for selected ids to run
                 selectedIds = asList(runnerConfig.getSelectedTestCaseIds());
+            }
+            if (selectedIds.isEmpty()) {
+                throw new RuntimeException("Fail on get test case id from TFS, Response list is empty!");
             }
         }
         if (filePaths.isEmpty()) {
