@@ -109,7 +109,7 @@ public class ReportBuilderAllureService {
      *
      * @param
      */
-    private Map<String, String> changeAttachmentsPathInResultFile(JSONObject allureResultObject) {
+    protected Map<String, String> changeAttachmentsPathInResultFile(JSONObject allureResultObject) {
 
         Map<String, String> changedSourcePathList = new HashMap<>();
 
@@ -133,7 +133,7 @@ public class ReportBuilderAllureService {
      * @param changedSourcePath List welche Pfade geaendert wurden
      * @param jsonObject        Inhalt des -result.json
      */
-    private void replaceSourcePathWithUUID(Map<String, String> changedSourcePath, JSONObject jsonObject) {
+    protected void replaceSourcePathWithUUID(Map<String, String> changedSourcePath, JSONObject jsonObject) {
 
         String attachmentNode = "attachments";
         String sourceNode = "source";
