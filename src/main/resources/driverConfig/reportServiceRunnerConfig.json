@@ -1,0 +1,10 @@
+{
+  "allureServiceConfig": {
+    "host": "https://vlx01193.server.raiffeisen.ch/allure/allure-docker-service",
+    "project_id": "",
+    "force_project_creation": "true",
+    "execution_name": "Automated Test",
+    "execution_from": "",
+    "execution_type": "bamboo"
+  }
+}

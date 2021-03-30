@@ -291,7 +291,13 @@ public class JSONContainerFactory {
      * @return json object of config file
      */
     public static JSONObject getConfig(String filePath) {
-        String path = FileLocator.findResource(filePath).toString();
+        Path target;
+        String path;
+        if ((target = FileLocator.findLocalResource(filePath)) != null) {
+            path = target.toString();
+        } else {
+            path = FileLocator.findResource(filePath).toString();
+        }
         String content = FileOperation.readFileToLinedString(path);
         return JSONObject.fromObject(content);
     }

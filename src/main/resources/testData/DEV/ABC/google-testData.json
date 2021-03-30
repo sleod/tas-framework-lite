@@ -1,0 +1,49 @@
+{
+  "dataArray": [
+    12,
+    2.4,
+    "text"
+  ],
+  "customer": {
+    "name": "Raiffeisenbank",
+    "city": "St.Gallen"
+  },
+  "login": {
+    "name": "tester123",
+    "password": "12345"
+  },
+  "searchText": "Raiffeisenbank",
+  "searchText1": "Yellow",
+  "searchText2": "Red",
+  "searchText3": "Blue",
+  "searchText4": "Grey",
+  "searchText5": "Pink",
+  "searchResultEntry": "Raiffeisen",
+  "searchResultEntry1": "Search result",
+  "pageTitle": "Google",
+  "pageTitle1": "Google.ch",
+  "searchArray": [
+    "Germany",
+    "China",
+    "England",
+    "Switzerland"
+  ],
+  "search": {
+    "text1": "Zurich",
+    "text2": "Munich",
+    "text3": "London"
+  },
+  "searchTextMap": {
+    "iphone": "iphone",
+    "Monitor": "Monitor",
+    "Keyboard": "Keyboard"
+  },
+  "texts": [
+    {
+      "DE": "Germany"
+    },
+    {
+      "CH": "Switzerland"
+    }
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "id": "https://www.raiffeisen.ch/testautomation/testcase/schema#",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RCH Test Framework - Test Case Schema",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "type": "array",
+      "items": {
+        "uniqueItems": true,
+        "type": "string"
+      }
+    },
+    "name": {
+      "type": "string",
+      "description": "Test Case Name"
+    },
+    "type": {
+      "type": "string",
+      "description": "Test Case Type, the test driver depends on the type",
+      "enum": [
+        "app",
+        "web_app",
+        "mobile_web_app",
+        "mobile_ios",
+        "mobile_android",
+        "rest"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "description": "Test Case Description"
+    },
+    "source": {
+      "type": "string",
+      "description": "optional: where the test case originally stored."
+    },
+    "testCaseId": {
+      "type": "string",
+      "description": "Test Case ID, reference to external manual test case that storage in test case management system like QC, JIRA..."
+    },
+    "requirement": {
+      "type": "string",
+      "description": "Requirement reference similar to test case id"
+    },
+    "reference": {
+      "type": "string",
+      "description": "External extra Reference, optional information"
+    },
+    "screenshotLevel": {
+      "type": "string",
+      "enum": [
+        "ERROR",
+        "SUCCESS"
+      ],
+      "description": "screen shot will be taken on given level"
+    },
+    "testDataRef": {
+      "type": "string",
+      "examples": [
+        "File:MyData.json",
+        "File:testData/AT/multiCase.csv",
+        "SQL:testData/AT/SQLs/mySQL.sql"
+      ],
+      "description": "Test Data Reference, File, sql statement or also DB interface."
+    },
+    "additionalTestDataFile": {
+      "type": "string",
+      "description": "Test Data Reference, json file only.",
+      "examples": [
+        "File:testData/MyData.json"
+      ]
+    },
+    "startURL": {
+      "type": "string",
+      "description": "Start url for the test object.",
+      "examples": [
+        "https://www.myPage.com/login"
+      ]
+    },
+    "steps": {
+      "type": "array",
+      "description": "Test Case Steps",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Test step name that implemented in java method with annotation like @TestStep(name=\"my Step\")."
+          },
+          "testObject": {
+            "type": "string",
+            "description": "Test page object name that implemented in java class with annotation like @TestObject(name=\"my Step\")."
+          },
+          "using": {
+            "type": "string",
+            "description": "To override the method definition of parameters in annotation like @TestStep(using=\"myData.user\")."
+          },
+          "comment": {
+            "type": "string",
+            "description": "Comment for additional step info as such special identifier usefully for report"
+          },
+          "takeScreenshot": {
+            "type": "boolean",
+            "enum": [
+              true,
+              false
+            ],
+            "description": "To specify the screen shot taken strategy only for the step."
+          },
+          "stopOnError": {
+            "type": "boolean",
+            "enum": [
+              true,
+              false
+            ],
+            "description": "To specify the stop on error strategy only for the step."
+          }
+        },
+        "required": [
+          "name",
+          "testObject"
+        ]
+      }
+    },
+    "required": [
+      "meta",
+      "name",
+      "type",
+      "description",
+      "source",
+      "testCaseId",
+      "requirement",
+      "reference",
+      "screenshotLevel",
+      "testDataRef",
+      "startURL",
+      "steps"
+    ]
+  }
+}
