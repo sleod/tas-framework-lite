@@ -52,7 +52,7 @@ public class ReportBuilderAllureService {
         }
     }
 
-    private AllureRestClient initAllureRestClient() {
+    protected AllureRestClient initAllureRestClient() {
 
         JSONObject config = JSONContainerFactory.getConfig(PropertyResolver.getReportServiceRunnerConfigFile());
         return new AllureRestClient((JSONObject) config.get(ALLURE_SERVICE_CONFIG));
