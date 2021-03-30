@@ -95,11 +95,11 @@ public class PropertyResolver {
     }
 
     public static String getAllureResultsDir() {
-        return System.getProperty(PropertyKey.ALLURE_RESULTS_DIRECTORY.key(), "target/allure-results");
+        return System.getProperty(PropertyKey.ALLURE_RESULTS_DIRECTORY.key(), "target/allure-results/");
     }
 
     public static String getAllureReportDir() {
-        return System.getProperty(PropertyKey.ALLURE_REPORT_DIRECTORY.key(), "target/allure-reports");
+        return System.getProperty(PropertyKey.ALLURE_REPORT_DIRECTORY.key(), "target/allure-reports/");
     }
 
     public static void setChromeDriverPath(String path) {

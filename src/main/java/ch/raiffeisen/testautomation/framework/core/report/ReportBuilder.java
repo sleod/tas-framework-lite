@@ -194,11 +194,11 @@ public class ReportBuilder {
         }
         try {
             if (!historyContent.isEmpty()) {
-                String filePath = PropertyResolver.getAllureResultsDir() + "/history/history.json";
+                String filePath = PropertyResolver.getAllureResultsDir() + "history/history.json";
                 FileOperation.writeBytesToFile(historyContent.getBytes(), new File(filePath));
             }
             for (JSONObject result : rebasedAllureResults) {
-                FileOperation.writeBytesToFile(result.toString().getBytes(), new File(PropertyResolver.getAllureResultsDir() + "/" + result.getString("uuid") + "-result.json"));
+                FileOperation.writeBytesToFile(result.toString().getBytes(), new File(PropertyResolver.getAllureResultsDir() + result.getString("uuid") + "-result.json"));
             }
         } catch (IOException ex) {
             warn("IOException while rebase existing allure results! \n" + ex.getMessage());
@@ -222,11 +222,11 @@ public class ReportBuilder {
         String reportDir = PropertyResolver.getAllureResultsDir();
         try {
             if (new File(reportDir).exists()) {
-                String historyDir = reportDir + "/history";
+                String historyDir = reportDir + "history/";
                 new File(historyDir).mkdir();
                 for (String filePath : JSONContainerFactory.getHistoryFiles()) {
                     File source = new File(filePath);
-                    Files.copy(source.toPath(), new File(historyDir + "/" + source.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    Files.copy(source.toPath(), new File(historyDir + source.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
                 }
             }
         } catch (IOException ex) {
@@ -279,7 +279,7 @@ public class ReportBuilder {
 
         SortedProperties propertiesSorted = sortProperties(properties);
 
-        String environment = PropertyResolver.getAllureResultsDir() + "/environment.properties";
+        String environment = PropertyResolver.getAllureResultsDir() + "environment.properties";
         FileWriter fileWriter = null;
         try {
             fileWriter = new FileWriter(environment);

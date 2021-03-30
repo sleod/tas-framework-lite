@@ -173,7 +173,7 @@ public class JSONContainerFactory {
      * @return list of history files
      */
     public static List<String> getHistoryFiles() {
-        String dirPath = PropertyResolver.getAllureReportDir() + "/history";
+        String dirPath = PropertyResolver.getAllureReportDir() + "history";
         if (new File(dirPath).exists()) {
             return FileLocator.findPaths(new File(dirPath).toPath(), Collections.singletonList("*.json"), Collections.singletonList(""), dirPath);
         } else {
@@ -196,7 +196,7 @@ public class JSONContainerFactory {
         results.forEach(result -> {
             try {
                 String serialized = new ObjectMapper().writeValueAsString(result);
-                FileOperation.writeBytesToFile(serialized.getBytes(), new File(resultsDir + "/" + result.getUuid() + "-result.json"));
+                FileOperation.writeBytesToFile(serialized.getBytes(), new File(resultsDir + result.getUuid() + "-result.json"));
             } catch (IOException ex) {
                 error(ex);
             }
@@ -226,7 +226,7 @@ public class JSONContainerFactory {
                 .element("reportUrl", url).element("reportName", "Allure Report of Test Run");
         String resultsDir = PropertyResolver.getAllureResultsDir();
         try {
-            FileOperation.writeBytesToFile(executor.toString().getBytes(), new File(resultsDir + "/executor.json"));
+            FileOperation.writeBytesToFile(executor.toString().getBytes(), new File(resultsDir + "executor.json"));
         } catch (IOException ex) {
             error(ex);
         }
@@ -272,7 +272,7 @@ public class JSONContainerFactory {
      * @return String of history content
      */
     public static String getHistoryContent() {
-        String filePath = PropertyResolver.getAllureResultsDir() + "/history/history.json";
+        String filePath = PropertyResolver.getAllureResultsDir() + "history/history.json";
         return getJSONFileContent(filePath);
     }
 
@@ -282,7 +282,7 @@ public class JSONContainerFactory {
      * @return String Executor json Content
      */
     public static String getExecutorContent() {
-        String filePath = PropertyResolver.getAllureResultsDir() + "/executor.json";
+        String filePath = PropertyResolver.getAllureResultsDir() + "executor.json";
         return getJSONFileContent(filePath);
     }
 
