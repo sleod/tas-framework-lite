@@ -1,11 +1,11 @@
 package ch.raiffeisen.testautomation.framework.rest.hpqc.connection;
 
-import ch.raiffeisen.testautomation.framework.common.utils.XMLUtils;
 import ch.raiffeisen.testautomation.framework.common.logging.SystemLogger;
+import ch.raiffeisen.testautomation.framework.common.utils.TimeUtils;
+import ch.raiffeisen.testautomation.framework.common.utils.XMLUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
-import ch.raiffeisen.testautomation.framework.common.utils.TimeUtils;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;

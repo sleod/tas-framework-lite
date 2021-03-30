@@ -6,12 +6,18 @@ import ch.raiffeisen.testautomation.framework.configuration.PropertyResolver;
 import ch.raiffeisen.testautomation.framework.core.controller.ExternAppController;
 import ch.raiffeisen.testautomation.framework.core.json.container.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.error;
 import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.warn;
@@ -32,7 +38,13 @@ public class JSONContainerFactory {
         JSONObject jsonObject = JSONObject.fromObject(jsonString);
         JSONTestCase jsonTestCase = new ObjectMapper().readValue(jsonObject.toString(), JSONTestCase.class);
         File testCaseFile = new File(path);
-        jsonTestCase.setPackage(testCaseFile.getParentFile().getName());
+        String packageName = "Default";
+        String[] token = testCaseFile.getParentFile().getAbsolutePath().replace("\\", "/")
+                .split(PropertyResolver.getDefaultTestCaseLocation());
+        if (token.length == 2) {
+            packageName = token[1].replace("/", ".");
+        }
+        jsonTestCase.setPackage(packageName);
         jsonTestCase.setFileName(testCaseFile.getName());
         return jsonTestCase;
     }
@@ -111,7 +123,7 @@ public class JSONContainerFactory {
      * @throws IOException io exception
      */
     public static JSONRunnerConfig getRunnerConfig(String jsonFileName) throws IOException {
-        String jsonString = FileOperation.readFileToLinedString(Objects.requireNonNull(FileLocator.findResource(jsonFileName)).toString());
+        String jsonString = FileOperation.readFileToLinedString(FileLocator.findResource(jsonFileName).toString());
         JSONObject jsonObject = JSONObject.fromObject(jsonString);
         return new ObjectMapper().readValue(jsonObject.toString(), JSONRunnerConfig.class);
     }
@@ -220,13 +232,10 @@ public class JSONContainerFactory {
         }
     }
 
-    /**
-     * Execute system command to generate allure report using allure executable
-     */
-    public static void generateAllureReport() {
-        String resultsPath = PropertyResolver.getAllureResultsDir();
-        String reportPath = PropertyResolver.getAllureReportDir();
-        ExternAppController.executeCommand("allure generate " + resultsPath + " --clean -o " + reportPath);
+    public static JSONObject getAllureResultObject(Path path) {
+
+        String content = FileOperation.readFileToLinedString(path.toString());
+        return JSONObject.fromObject(content);
     }
 
     /**
@@ -237,6 +246,16 @@ public class JSONContainerFactory {
     public static List<String> getAllureResults() {
         String dirPath = PropertyResolver.getAllureResultsDir();
         return FileLocator.findPaths(new File(dirPath).toPath(), asList("*-result.json", "**/*-result.json"), Collections.singletonList(""), dirPath);
+    }
+
+    /**
+     * Find all existing allure results attachments in default allure results location
+     *
+     * @return list of result file path
+     */
+    public static List<String> getAllureResultsAttachments() {
+        String dirPath = PropertyResolver.getAllureResultsDir();
+        return FileLocator.findPaths(new File(dirPath).toPath(), asList("*-attachment.*", "**/*-attachment.*"), Collections.singletonList(""), dirPath);
     }
 
     /**
@@ -272,7 +291,7 @@ public class JSONContainerFactory {
      * @return json object of config file
      */
     public static JSONObject getConfig(String filePath) {
-        String path = Objects.requireNonNull(FileLocator.findResource(filePath)).toString();
+        String path = FileLocator.findResource(filePath).toString();
         String content = FileOperation.readFileToLinedString(path);
         return JSONObject.fromObject(content);
     }
@@ -283,7 +302,7 @@ public class JSONContainerFactory {
      * @param filePath file path of json file
      * @return json object of file
      */
-    private static String getJSONFileContent(String filePath) {
+    public static String getJSONFileContent(String filePath) {
         if (Files.exists(new File(filePath).toPath())) {
             return FileOperation.readFileToLinedString(filePath);
         } else {

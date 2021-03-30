@@ -7,7 +7,7 @@ public class RestDriverProvider implements DriverProvider {
     private RestfulDriver restfulDriver = null;
     private String user = "";
     private String password = "";
-    private String host = "";
+    private String host;
     private String basic = "";
 
     public void setUser(String user) {

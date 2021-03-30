@@ -15,7 +15,7 @@ public class WindowsUtils {
      */
     public static void cleanUpWindowsDriverProcess() {
         String driverName = new File(PropertyResolver.getChromeDriverFileName()).getName();
-        if (PropertyResolver.isWindows()) {
+        if (PropertyResolver.isWindows() && !driverName.endsWith(".exe")) {
             driverName += ".exe";
         }
         try {

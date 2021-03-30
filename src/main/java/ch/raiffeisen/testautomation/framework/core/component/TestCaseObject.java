@@ -47,7 +47,7 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
      *
      * @param jsonTestCase deserialize json test case
      */
-    public TestCaseObject(JSONTestCase jsonTestCase)  {
+    public TestCaseObject(JSONTestCase jsonTestCase) {
         super(jsonTestCase.getName());
         testCase = jsonTestCase;
         this.description = testCase.getDescription();
@@ -118,7 +118,7 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
             }
         }
         if (pageObjects.isEmpty()) {
-            throw new RuntimeException("Page Object " + pageObjectNames + " was found in implementation!!");
+            throw new RuntimeException("Page Object " + pageObjectNames + " was not found in implementation!!");
         }
     }
 
@@ -242,7 +242,7 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
      * after test
      */
     private void afterTest() {
-        testStepMonitor.afterTest(); // finish test step
+        testStepMonitor.afterTest(); // finish last test step and also the test case
         log("INFO", "Finish Test Case: {}", getName());
         invokeWithAnnotation(AfterTest.class);
         testRunResult.stopNow("Test Case Ends: " + getName());
@@ -251,6 +251,12 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
         ImageHandler.finishVideoRecording(testRunResult);
         if (PropertyResolver.isTFSFeedbackEnabled() && TestRunManager.feedbackAfterSingleTest()) {
             TestRunManager.tfsFeedback(Collections.singletonList(this));
+        }
+        try {
+            log("TRACE", "Generate Allure Result: {}", getName());
+            ReportBuilder.generateReport(Collections.singletonList(this));
+        } catch (IOException ex) {
+            warn("IO Exception while generate report after test run!\n" + ex.getMessage());
         }
     }
 

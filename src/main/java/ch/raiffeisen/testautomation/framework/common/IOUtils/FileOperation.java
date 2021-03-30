@@ -1,6 +1,7 @@
 package ch.raiffeisen.testautomation.framework.common.IOUtils;
 
 import ch.raiffeisen.testautomation.framework.core.assertion.Matchers;
+import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matcher;
 
 import java.io.*;
@@ -8,6 +9,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.*;
 import static java.util.Arrays.asList;
@@ -258,6 +260,21 @@ public class FileOperation {
     }
 
     /**
+     * delete folder
+     *
+     * @param pathDir Folder to delete
+     */
+    public static void deleteFolder(String pathDir) {
+
+        File file = new File(pathDir);
+        try {
+            FileUtils.deleteDirectory(file);
+        } catch (IOException e) {
+            error(e);
+        }
+    }
+
+    /**
      * list all files in resource folder
      *
      * @param folder folder name
@@ -277,7 +294,7 @@ public class FileOperation {
      * @return file path
      */
     public static String getFilePathFromResource(String relativePath) {
-        return Objects.requireNonNull(FileLocator.findResource(relativePath)).toString();
+        return FileLocator.findResource(relativePath).toString();
     }
 
     /**
@@ -303,11 +320,24 @@ public class FileOperation {
      * @param fileName file name
      * @return extension
      */
-    private static String getFileNameExtension(String fileName) {
+    public static String getFileNameExtension(String fileName) {
         if (fileName.lastIndexOf(".") != -1 && fileName.lastIndexOf(".") != 0) {
             return fileName.substring(fileName.lastIndexOf(".") + 1);
         } else {
             return "";
         }
+    }
+
+    /**
+     * Prueft ob es sich um eine UUID handelt
+     *
+     * @param uuid
+     * @return
+     */
+    public static boolean isUUID(String uuid) {
+
+        Pattern p = Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-5][0-9a-fA-F]{3}-[089ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$");
+        java.util.regex.Matcher matcher = p.matcher(uuid);
+        return matcher.matches();
     }
 }

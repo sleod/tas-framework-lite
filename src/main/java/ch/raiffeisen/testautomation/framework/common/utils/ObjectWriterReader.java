@@ -5,6 +5,9 @@ import java.io.*;
 import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.error;
 import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.trace;
 
+/**
+ * Read and Write Serializable Object
+ */
 public class ObjectWriterReader {
 
     /**
@@ -15,7 +18,7 @@ public class ObjectWriterReader {
      */
     public static void WriteObject(Serializable object, String fileName) {
         try {
-            FileOutputStream fileOutputStream = new FileOutputStream(new File(fileName));
+            FileOutputStream fileOutputStream = new FileOutputStream(fileName);
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
             // Write objects to file
             objectOutputStream.writeObject(object);
@@ -38,7 +41,7 @@ public class ObjectWriterReader {
      */
     public static Object readObject(Object object, String fileName) {
         try {
-            FileInputStream fileInputStream = new FileInputStream(new File(fileName));
+            FileInputStream fileInputStream = new FileInputStream(fileName);
             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
             // Read objects
             object = objectInputStream.readObject();

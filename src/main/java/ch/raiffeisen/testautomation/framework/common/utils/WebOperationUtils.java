@@ -1,6 +1,5 @@
 package ch.raiffeisen.testautomation.framework.common.utils;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
@@ -58,26 +57,59 @@ public class WebOperationUtils {
     }
 
     /**
-     * wait until the target web element shows with time out for 10 secs
+     * Wait until the target web element shows with timeout for 10 secs
      *
      * @param driver     web driver
      * @param webElement the Web Element
      * @return the Web Element
      */
     public static WebElement waitUntilVisible(WebDriver driver, WebElement webElement) {
+        return waitUntilVisibleTimeout(driver, webElement, timeout);
+    }
+
+    /**
+     * wait until element is displayed
+     *
+     * @param driver     driver
+     * @param webElement webElement
+     * @param timeout    long
+     * @author Andrej Bagoutdinov
+     */
+    public static WebElement waitUntilVisibleTimeout(WebDriver driver, WebElement webElement, long timeout) {
         return (new WebDriverWait(driver, timeout)).until(ExpectedConditions.visibilityOf(webElement));
     }
 
     /**
-     * wait until the target web element shows
+     * Waits the defined time of selenide
      *
-     * @param webElement the Web Element
-     * @return the Web Element
+     * @param selenideElement Selenide Element
+     * @return SelenideElement
      */
-    public static SelenideElement waitUntilVisible(SelenideElement webElement) {
-        return webElement.should(appears);
+    public static SelenideElement waitUntilVisible(SelenideElement selenideElement) {
+        return selenideElement.should(appears);
     }
 
+    /**
+     * Waits the defined time of selenide to appear
+     *
+     * @param selector selector with by (e.g. By.xpath(), By.id()...)
+     * @return WebElement expected element
+     */
+    public static SelenideElement waitUntilVisible(By selector) {
+        return $(selector).should(appears);
+    }
+
+    /**
+     * Waits the defined time of selenide to appear
+     *
+     * @param selector selector with by (e.g. By.xpath(), By.id()...)
+     * @return WebElement expected element
+     * @deprecated Use waitUntilVisible(By selector) Since 1.0.6.05
+     */
+    @Deprecated
+    public static SelenideElement waitForElementLoad(By selector) {
+        return $(selector).should(appears);
+    }
 
     /**
      * wait until the target web element disappear with time out for 10 secs
@@ -91,13 +123,12 @@ public class WebOperationUtils {
     }
 
     /**
-     * wait until the target web element disappear
+     * Waits the defined time of selenide to disappear
      *
      * @param webElement the SelenideElement Web Element
-     * @return true if the element disappeared
      */
-    public static boolean waitUntilDisappear(SelenideElement webElement) {
-        return webElement.should(disappears).isDisplayed();
+    public static void waitUntilDisappear(SelenideElement webElement) {
+        webElement.should(disappears);
     }
 
 
@@ -144,14 +175,14 @@ public class WebOperationUtils {
     }
 
     /**
-     * default wait method for loading page, mostly useful when testing pages with little dynamic content
-     *
-     * @param driver driver
-     * @return true case the page with body showed
+     * Wait for page load with Selenide Timeout
      */
+    public static void waitForPageLoad() {
+        $("body").should(appears);
+    }
 
     /**
-     * wait for page load with timeout for 10 secs
+     * Wait for page load with timeout for 10 secs
      *
      * @param driver web driver
      * @return true if page loaded
@@ -163,18 +194,7 @@ public class WebOperationUtils {
     }
 
     /**
-     * wait for page load
-     *
-     * @return true if page loaded
-     */
-    public static boolean waitForPageLoad() {
-        return $("body").should(appears).isDisplayed();
-
-    }
-
-
-    /**
-     * Wait for page load with element
+     * Wait for page load with element with timeout for 10 secs
      *
      * @param driver   driver
      * @param selector selector with by (e.g. By.xpath(), By.id()...)
@@ -184,16 +204,6 @@ public class WebOperationUtils {
         Wait<WebDriver> wait = new WebDriverWait(driver, timeout);
         wait.until(ExpectedConditions.presenceOfElementLocated(selector));
         return driver.findElement(selector);
-    }
-
-    /**
-     * Wait for page load with element
-     *
-     * @param selector selector with by (e.g. By.xpath(), By.id()...)
-     * @return WebElement expected element
-     */
-    public static SelenideElement waitForElementLoad(By selector) {
-        return $(selector).should(appears);
     }
 
     /**
@@ -260,22 +270,6 @@ public class WebOperationUtils {
         builder.moveToElement(webElement).perform();
     }
 
-
-    /**
-     * wait until element is displayed
-     *
-     * @param driver     driver
-     * @param webElement webElement
-     * @param timeout    long
-     * @author Andrej Bagoutdinov
-     */
-    public static void waitForElementIsDisplayed(WebDriver driver, WebElement webElement, long timeout) {
-        WebDriverWait wait = new WebDriverWait(driver, timeout);
-        //isDisplayed() is deprecated
-        //ExpectedCondition<Boolean> elementIsDisplayed = arg0 -> webElement.isDisplayed();
-        wait.until(ExpectedConditions.visibilityOf(webElement));
-    }
-
     /**
      * wait specified amount of time until url contains a certain text (useful for long loads or redirections)
      *
@@ -325,5 +319,4 @@ public class WebOperationUtils {
                 .ignoring(ElementClickInterceptedException.class);
         wait.until(ExpectedConditions.visibilityOfElementLocated(by));
     }
-
 }

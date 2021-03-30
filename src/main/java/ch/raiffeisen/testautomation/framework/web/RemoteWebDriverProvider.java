@@ -6,13 +6,11 @@ import ch.raiffeisen.testautomation.framework.core.component.TestStepMonitor;
 import ch.raiffeisen.testautomation.framework.core.json.container.JSONDriverConfig;
 import ch.raiffeisen.testautomation.framework.intefaces.DriverProvider;
 import ch.raiffeisen.testautomation.framework.intefaces.ScreenshotTaker;
-import org.openqa.selenium.OutputType;
 import org.openqa.selenium.Platform;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
@@ -20,7 +18,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static ch.raiffeisen.testautomation.framework.common.logging.ScreenCapture.getScreenshot;
-import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.*;
+import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.error;
+import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.trace;
 
 public class RemoteWebDriverProvider implements DriverProvider, ScreenshotTaker {
 

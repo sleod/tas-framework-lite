@@ -3,6 +3,7 @@ package ch.raiffeisen.testautomation.framework.common.IOUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,11 +61,17 @@ public class FileLocator {
      * @param sDir    start dir
      * @param maxDeep max deep
      * @return list of paths
-     * @throws IOException io exception
      */
-    public static List<Path> listRegularFilesRecursiveMatchedToName(String sDir, int maxDeep, String name) throws IOException {
+    public static List<Path> listRegularFilesRecursiveMatchedToName(String sDir, int maxDeep, String name) {
         List<Path> paths = new LinkedList<>();
-        Files.find(Paths.get(sDir), maxDeep, (p, bfa) -> bfa.isRegularFile() && p.getFileName().toString().matches(".*" + name + ".*")).forEach(paths::add);
+        try {
+            Files.find(Paths.get(sDir), maxDeep, (p, bfa) -> bfa.isRegularFile() && p.getFileName().toString().matches(".*" + name + ".*")).forEach(paths::add);
+        } catch (IOException e) {
+            throw new RuntimeException("Error by list files with name <" + name + "> in folder " + sDir + " --> " + e.getMessage());
+        }
+        if (paths.isEmpty()) {
+            warn("File <" + name + "> was not found in folder " + sDir);
+        }
         return paths;
     }
 
@@ -75,19 +82,18 @@ public class FileLocator {
      * @param startDir start dir
      * @param maxDeep  max deep
      * @return list of paths
-     * @throws IOException io exception
      */
     public static Path findExactFile(String startDir, int maxDeep, String name) {
-        List<Path> paths = new LinkedList<>();
+        Optional<Path> paths;
         try {
-            Files.find(Paths.get(startDir), maxDeep, (p, bfa) -> bfa.isRegularFile() && p.getFileName().toString().matches(name)).forEach(paths::add);
+            paths = Files.find(Paths.get(startDir), maxDeep, (p, bfa) -> bfa.isRegularFile() && p.getFileName().toString().matches(name)).findFirst();
         } catch (IOException e) {
             throw new RuntimeException("Error by search exact file with name <" + name + "> in folder " + startDir + " --> " + e.getMessage());
         }
-        if (paths.isEmpty()) {
+        if (!paths.isPresent()) {
             throw new RuntimeException("File <" + name + "> was not found in folder " + startDir);
         }
-        return paths.get(0);
+        return paths.get();
     }
 
 
@@ -118,6 +124,7 @@ public class FileLocator {
      * @param relativePath path of file don't need "/" at beginning
      * @return path of target
      */
+    @NotNull
     public static Path findResource(String relativePath) {
         String location;
         //clean up first '/'
@@ -127,8 +134,7 @@ public class FileLocator {
         //in normal case search local resource in resources folder
         URL url = FileLocator.class.getClassLoader().getResource(relativePath);
         if (url == null) {
-            warn("Path: " + relativePath + " can not be found!");
-            return null;
+            throw new RuntimeException("Path: " + relativePath + " can not be found!");
         } else {
             location = url.getPath();
         }
@@ -143,7 +149,7 @@ public class FileLocator {
      */
     public static Path findLocalResource(String relativePath) {
         Path path = findResource(relativePath);
-        if (path != null && !path.toString().contains("jar!")) {
+        if (!path.toString().contains("jar!")) {
             trace("Found Local Path: " + relativePath);
             return path;
         } else {

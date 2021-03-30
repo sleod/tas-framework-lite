@@ -1,6 +1,5 @@
 package ch.raiffeisen.testautomation.framework.mobile;
 
-import ch.raiffeisen.testautomation.framework.common.abstraction.SingleTestObject;
 import ch.raiffeisen.testautomation.framework.core.component.DriverManager;
 import io.appium.java_client.ios.IOSDriver;
 import io.appium.java_client.ios.IOSElement;

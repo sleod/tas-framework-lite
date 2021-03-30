@@ -105,13 +105,13 @@ public class TestDataContainer {
         if (key.startsWith("global.")) {
             return getTestDataInJSON(key.replace("global.", ""), globalTestData);
         } else {
-            if(dataContent != null && checkDataContentContainsKey(key)){
+            if (dataContent != null && checkDataContentContainsKey(key)) {
 
                 return dataContent.get(parameterRow).get(key);
-            } else if(jsonData != null ){
+            } else if (jsonData != null) {
 
                 return getTestDataInJSON(key, jsonData);
-            }else{
+            } else {
                 return key;
             }
         }
@@ -146,26 +146,34 @@ public class TestDataContainer {
             }
         } else {
 
-            if(storage.containsKey(key)){
+            if (storage.containsKey(key)) {
                 return storage.get(key);
-            }else{
+            } else {
                 return key;
             }
         }
     }
 
     private void loadTestData(String testDataRef) {
-        String testDataLocation = Objects.requireNonNull(FileLocator.findResource(PropertyResolver.getTestDataFolder())).toString();
         String[] token = testDataRef.split(":");
-        if (!"db".equals(token[0].toLowerCase())) {
+        if (!"db".equalsIgnoreCase(token[0])) {
             String filePath;
             if (token[1].replace("\\", "/").contains("/")) {
-                filePath = Objects.requireNonNull(FileLocator.findResource(token[1])).toString();
-            } else filePath = FileLocator.findExactFile(testDataLocation, 5, token[1]).toString();
+                filePath = FileLocator.findResource(token[1]).toString();
+            } else {
+                String testDataLocation = FileLocator.findResource(PropertyResolver.getDefaultTestDataLocation()).toString();
+                List<Path> filePaths = FileLocator.listRegularFilesRecursiveMatchedToName(testDataLocation, 5, token[1]);
+                if (filePaths.size() > 1) {
+                    testDataLocation = FileLocator.findResource(PropertyResolver.getTestDataFolder()).toString();
+                    filePath = FileLocator.findExactFile(testDataLocation, 5, token[1]).toString();
+                } else {
+                    filePath = filePaths.get(0).toString();
+                }
+            }
             trace("Take test data file: " + filePath);
-            if ("file".equals(token[0].toLowerCase())) {
+            if ("file".equalsIgnoreCase(token[0])) {
                 loadWithFile(filePath);
-            } else if ("sql".equals(token[0].toLowerCase())) {
+            } else if ("sql".equalsIgnoreCase(token[0])) {
                 loadDBContent(filePath);
             } else
                 throw new RuntimeException("Test Data Reference can not be loaded: no 'File:' ,'SQL:' or 'DB:' header found!");
@@ -257,7 +265,7 @@ public class TestDataContainer {
             }
             if (commentBlockClosed) {
                 Object[] values = line.split(";");
-                if(values.length != colums.length){
+                if (values.length != colums.length) {
                     throw new RuntimeException("In der Zeilennummer " + rowNumber + " stimmt die Anzahl der Werte nicht mit der Anzahl im CSV Header überrein");
                 }
                 for (int i = 0; i < colums.length; i++) {

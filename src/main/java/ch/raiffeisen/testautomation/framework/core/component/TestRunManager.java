@@ -10,7 +10,6 @@ import ch.raiffeisen.testautomation.framework.configuration.PropertyResolver;
 import ch.raiffeisen.testautomation.framework.core.json.container.JSONRunnerConfig;
 import ch.raiffeisen.testautomation.framework.core.json.container.JSONTestCase;
 import ch.raiffeisen.testautomation.framework.core.json.deserialization.JSONContainerFactory;
-import ch.raiffeisen.testautomation.framework.core.report.ReportBuilder;
 import ch.raiffeisen.testautomation.framework.rest.TFS.connection.QUERY_OPTION;
 import ch.raiffeisen.testautomation.framework.rest.TFS.connection.TFSRestClient;
 import com.google.common.collect.Multimap;
@@ -313,19 +312,6 @@ public class TestRunManager {
     }
 
     /**
-     * generate Report with runResult
-     *
-     * @param testCaseObjects test objects
-     */
-    public static void generateReport(List<TestCaseObject> testCaseObjects) {
-        try {
-            ReportBuilder.generateReport(testCaseObjects);
-        } catch (IOException ex) {
-            error(ex);
-        }
-    }
-
-    /**
      * Feed test results back to TFS after run
      *
      * @param testCaseObjects test case objects after test run
@@ -445,11 +431,17 @@ public class TestRunManager {
      */
     @SuppressWarnings("unchecked")
     public static void restoreSessions(WebDriver webDriver) {
-        if (new File("target/logs/cookies.txt").exists()) {
-            ArrayList<Cookie> cookies = (ArrayList<Cookie>) readObject(new ArrayList<Cookie>(), "target/logs/cookies.txt");
-            String currentURL = (String) readObject("", "target/logs/currentURL.txt");
-            if (cookies != null) {
+        if (new File("target/logs/cookies.data").exists()) {
+            List<Cookie> cookies = (ArrayList<Cookie>) readObject(new ArrayList<Cookie>(), "target/logs/cookies.data");
+//            List<Cookie> cookies = CookieHandler.readCookie("target/logs/cookies.data");
+            String currentURL = (String) readObject("", "target/logs/currentURL.data");
+            if (currentURL != null && !currentURL.isEmpty()) {
+                webDriver.navigate().to(currentURL);
+            }
+            if (!cookies.isEmpty()) {
                 cookies.forEach(cookie -> webDriver.manage().addCookie(cookie));
+            }else {
+                throw new RuntimeException("Failed on reload Cookie from retest Step!");
             }
             if (currentURL != null && !currentURL.isEmpty()) {
                 webDriver.navigate().to(currentURL);
@@ -463,8 +455,9 @@ public class TestRunManager {
      * @param webDriver Web Driver
      */
     public static void storeSessions(WebDriver webDriver) {
-        WriteObject(new ArrayList<>(webDriver.manage().getCookies()), "target/logs/cookies.txt");
-        WriteObject(webDriver.getCurrentUrl(), "target/logs/currentURL.txt");
+        WriteObject(new ArrayList<>(webDriver.manage().getCookies()), "target/logs/cookies.data");
+//        CookieHandler.saveCookie(webDriver, "target/logs/cookies.data");
+        WriteObject(webDriver.getCurrentUrl(), "target/logs/currentURL.data");
     }
 
     /**
@@ -476,8 +469,8 @@ public class TestRunManager {
      */
     public static void storeRetryStep(String testCaseFolder, String testCaseName, int stepOrder) {
         String retryTestCaseID = testCaseFolder + "." + testCaseName;
-        WriteObject(retryTestCaseID, "target/logs/retryTestCaseID.txt");
-        WriteObject(stepOrder, "target/logs/stepOrder.txt");
+        WriteObject(retryTestCaseID, "target/logs/retryTestCaseID.data");
+        WriteObject(stepOrder, "target/logs/stepOrder.data");
     }
 
     /**
@@ -486,8 +479,8 @@ public class TestRunManager {
      * @return number of step order
      */
     public static int loadRetryStepOrder() {
-        if (new File("target/logs/stepOrder.txt").exists()) {
-            return (Integer) readObject("", "target/logs/stepOrder.txt");
+        if (new File("target/logs/stepOrder.data").exists()) {
+            return (Integer) readObject("", "target/logs/stepOrder.data");
         } else {
             return -1;
         }
@@ -499,8 +492,8 @@ public class TestRunManager {
      * @return test case id
      */
     public static String loadRetryTestCaseID() {
-        if (new File("target/logs/retryTestCaseID.txt").exists()) {
-            return (String) readObject("", "target/logs/retryTestCaseID.txt");
+        if (new File("target/logs/retryTestCaseID.data").exists()) {
+            return (String) readObject("", "target/logs/retryTestCaseID.data");
         } else {
             return "";
         }
@@ -510,16 +503,12 @@ public class TestRunManager {
      * the file named with "xxxx-test-data-global.json" will be loaded automatically
      */
     public static void loadGlobalTestData() {
-        try {
-            List<Path> paths = FileLocator.listRegularFilesRecursiveMatchedToName(
-                    Objects.requireNonNull(FileLocator.findResource(PropertyResolver.getDefaultTestDataLocation())).toString(), 5, "testdata-global");
-            if (paths.size() > 1) {
-                throw new RuntimeException("Test Data File with name 'xxx-testdata-global.json' should be single in testData folder!");
-            } else if (paths.size() == 1) {
-                TestDataContainer.loadGlobalTestData(paths.get(0));
-            }
-        } catch (IOException e) {
-            error(e);
+        List<Path> paths = FileLocator.listRegularFilesRecursiveMatchedToName(
+                FileLocator.findResource(PropertyResolver.getDefaultTestDataLocation()).toString(), 5, "testdata-global");
+        if (paths.size() > 1) {
+            throw new RuntimeException("Test Data File with name 'xxx-testdata-global.json' should be single in testData folder!");
+        } else if (paths.size() == 1) {
+            TestDataContainer.loadGlobalTestData(paths.get(0));
         }
     }
 

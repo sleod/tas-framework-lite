@@ -18,6 +18,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.*;
+import static ch.raiffeisen.testautomation.framework.core.report.ReportBuilder.generateAllureHTMLReport;
+import static ch.raiffeisen.testautomation.framework.core.report.ReportBuilder.generateMavenTestXMLReport;
 
 @RunWith(JUnitReportingRunner.class)
 public abstract class PerformableTestCases {
@@ -148,11 +150,18 @@ public abstract class PerformableTestCases {
      */
     @AfterClass
     public static void afterTests() {
+        endingTests();
+    }
+
+    /**
+     * closing test run, close drivers and generate reports
+     */
+
+    protected static void endingTests() {
         DriverManager.closeDriver();
-        if (!testCaseObjects.isEmpty()) {
-            if (testCaseObjects.get(0).getSteps().get(0).getTestStepResult() != null) {
-                TestRunManager.generateReport(testCaseObjects);
-            }
+        if (!testCaseObjects.isEmpty() && !testCaseObjects.get(0).getTestRunResult().getStepResults().isEmpty()) {
+            generateAllureHTMLReport();
+            generateMavenTestXMLReport(testCaseObjects);
             if (PropertyResolver.isTFSFeedbackEnabled() && !TestRunManager.feedbackAfterSingleTest()) {
                 TestRunManager.tfsFeedback(testCaseObjects);
             } else {
@@ -244,6 +253,7 @@ public abstract class PerformableTestCases {
 //        Configuration.reportsFolder = "test-result/reports";
         Configuration.reportsFolder = StringUtils.chop(PropertyResolver.getDefaultTestCaseReportLocation());
         Configuration.screenshots = false;
+        Configuration.timeout = PropertyResolver.getSelenideTimeout();
     }
 
 }

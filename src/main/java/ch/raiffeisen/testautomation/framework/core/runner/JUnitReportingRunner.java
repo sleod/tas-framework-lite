@@ -9,6 +9,7 @@ import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
+
 import java.util.LinkedHashMap;
 
 public class JUnitReportingRunner extends BlockJUnit4ClassRunner {

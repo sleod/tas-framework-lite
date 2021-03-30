@@ -18,6 +18,7 @@ import net.sf.json.JSONArray;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 
 
 public class TestCaseStep extends TestCase {
@@ -135,7 +136,7 @@ public class TestCaseStep extends TestCase {
                     throw new RuntimeException(message);
                 }
                 int parameterRowNum = 0;
-                if (parameterCount == 1 || !using.contains(",")) {
+                if (parameterCount == 1) {
                     Object parameter;
                     if (using.equalsIgnoreCase("CustomizedDataMap")) {
                         //transfer whole map as parameter
@@ -144,7 +145,7 @@ public class TestCaseStep extends TestCase {
                         parameter = testDataContainer.getParameter(using, parameterRowNum);
                     }
                     if (parameter instanceof JSONArray) {
-                        invokeMethod(runMethod, instance, ((JSONArray) parameter).toArray());
+                        invokeMethod(runMethod, instance, Arrays.asList(((JSONArray) parameter).toArray()));
                     } else {
                         if (using.length() > 7 && using.substring(using.length() - 7).equalsIgnoreCase("@base64")) {
                             parameter = PropertyResolver.decodeBase64(parameter.toString());
@@ -152,10 +153,20 @@ public class TestCaseStep extends TestCase {
                         invokeMethod(runMethod, instance, parameter);
                     }
                 } else {
-                    String[] usingKeys = using.replace("[", "").replace("]", "").split(",");
-                    Object[] parameters = new Object[usingKeys.length];
-                    for (int index = 0; index < usingKeys.length; index++) {
-                        parameters[index] = testDataContainer.getParameter(usingKeys[index].trim(), parameterRowNum);
+                    Object[] parameters;
+                    if (using.contains("[") || using.contains(",")) {
+                        String[] usingKeys = using.replace("[", "").replace("]", "").split(",");
+                        parameters = new Object[usingKeys.length];
+                        for (int index = 0; index < usingKeys.length; index++) {
+                            parameters[index] = testDataContainer.getParameter(usingKeys[index].trim(), parameterRowNum);
+                        }
+                    } else {
+                        Object parameter = testDataContainer.getParameter(using, parameterRowNum);
+                        if (parameter instanceof JSONArray) {
+                            parameters = ((JSONArray) parameter).toArray();
+                        } else {
+                            throw new RuntimeException("Given test data does not match to required parameters!");
+                        }
                     }
                     invokeMethod(runMethod, instance, parameters);
                 }

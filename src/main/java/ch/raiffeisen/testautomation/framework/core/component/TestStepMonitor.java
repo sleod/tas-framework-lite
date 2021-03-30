@@ -8,9 +8,11 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
-import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.*;
+import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.log;
+import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.logStepInfo;
 
 /**
  * TestStep Monitor for each testcase
@@ -105,7 +107,7 @@ public class TestStepMonitor {
      * break the test step because of known issue
      *
      * @param step name of step
-     * @param ex    exception
+     * @param ex   exception
      */
     public synchronized void broken(String step, Throwable ex) {
         log("WARN", "Step Broken: {} (cause: {})", step, ex.getMessage());
@@ -154,9 +156,6 @@ public class TestStepMonitor {
         Class<?>[] types = method.getParameterTypes();
         if (types.length > 0) {
             stringBuilder.append(" With Parameter: ");
-            for (int i = 0; i < types.length; i++) {
-                types[i].cast(args[i]);
-            }
             if (args.length == 1 && (args[0] instanceof Map)) {
                 ((Map) args[0]).forEach((key, value) -> stringBuilder.append("\n").append(key).append(" -> ").append(value));
             } else {

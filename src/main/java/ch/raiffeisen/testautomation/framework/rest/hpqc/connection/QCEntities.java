@@ -1,8 +1,8 @@
 package ch.raiffeisen.testautomation.framework.rest.hpqc.connection;
 
+import ch.raiffeisen.testautomation.framework.common.logging.SystemLogger;
 import ch.raiffeisen.testautomation.framework.common.utils.StringTextUtils;
 import ch.raiffeisen.testautomation.framework.common.utils.XMLUtils;
-import ch.raiffeisen.testautomation.framework.common.logging.SystemLogger;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;

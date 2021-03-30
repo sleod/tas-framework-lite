@@ -6,7 +6,6 @@ import ch.raiffeisen.testautomation.framework.common.utils.ZipUtils;
 import ch.raiffeisen.testautomation.framework.configuration.PropertyResolver;
 import ch.raiffeisen.testautomation.framework.core.json.container.JSONRunnerConfig;
 import ch.raiffeisen.testautomation.framework.core.json.deserialization.JSONContainerFactory;
-import ch.raiffeisen.testautomation.framework.rest.TFS.connection.TFSConnector;
 import ch.raiffeisen.testautomation.framework.rest.TFS.connection.TFSRestClient;
 
 import java.awt.*;
@@ -188,7 +187,7 @@ public class ExternAppController {
             int exitCode = process.waitFor();
             trace("Process exit code: " + exitCode);
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line = "";
+            String line;
             while ((line = reader.readLine()) != null) {
                 output.append(line).append("\n");
             }
@@ -258,7 +257,7 @@ public class ExternAppController {
      * @return version in string
      */
     public static String getCurrentChromeVersion() {
-        String response = "";
+        String response;
         if (PropertyResolver.isWindows()) {
             response = executeCommand("reg query \"HKEY_CURRENT_USER\\Software\\Google\\Chrome\\BLBeacon\" /v version");
         } else if (PropertyResolver.isLinux()) {

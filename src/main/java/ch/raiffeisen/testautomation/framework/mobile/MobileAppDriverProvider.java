@@ -6,17 +6,13 @@ import ch.raiffeisen.testautomation.framework.core.json.container.JSONDriverConf
 import ch.raiffeisen.testautomation.framework.intefaces.DriverProvider;
 import ch.raiffeisen.testautomation.framework.intefaces.ScreenshotTaker;
 import io.appium.java_client.AppiumDriver;
-import org.openqa.selenium.OutputType;
 import org.openqa.selenium.Platform;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
 import static ch.raiffeisen.testautomation.framework.common.logging.ScreenCapture.getScreenshot;
-import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.error;
-import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.info;
 
 public abstract class MobileAppDriverProvider implements DriverProvider, ScreenshotTaker {
 

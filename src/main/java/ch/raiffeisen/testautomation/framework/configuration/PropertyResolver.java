@@ -90,6 +90,10 @@ public class PropertyResolver {
         return System.getProperty(PropertyKey.DEFAULT_LOGGER_NAME.key(), "SystemLogger");
     }
 
+    public static boolean isAllureReportService() {
+        return System.getProperty(PropertyKey.ALLURE_REPORT_SERVICE.key(), "false").equalsIgnoreCase("true");
+    }
+
     public static String getAllureResultsDir() {
         return System.getProperty(PropertyKey.ALLURE_RESULTS_DIRECTORY.key(), "target/allure-results");
     }
@@ -188,6 +192,11 @@ public class PropertyResolver {
         return System.getProperty(PropertyKey.USE_FULLSCREEN.key(), "false").equalsIgnoreCase("true");
     }
 
+    public static String getScreenSize() {
+        return System.getProperty(PropertyKey.SCREEN_SIZE.key(), "1920,1080");
+    }
+
+
     public static boolean keepIECache() {
         return System.getProperty(PropertyKey.DRIVER_IE_KEEP_CACHE.key(), "false").equalsIgnoreCase("true");
     }
@@ -225,12 +234,20 @@ public class PropertyResolver {
         return System.getProperty(PropertyKey.TFS_RUNNER_CONFIG.key(), "driverConfig/tfsRunnerConfig.json");
     }
 
+    public static String getReportServiceRunnerConfigFile() {
+        return System.getProperty(PropertyKey.REPORT_SERVICE_RUNNER_CONFIG.key(), "driverConfig/reportServiceRunnerConfig.json");
+    }
+
     public static boolean isTFSFeedbackEnabled() {
         return System.getProperty(PropertyKey.DEFAULT_RUN_TFS_FEEDBACK.key(), "false").equalsIgnoreCase("true");
     }
 
     public static boolean isRebaseAllureReport() {
         return System.getProperty(PropertyKey.ALLURE_REPORT_REBASE.key(), "false").equalsIgnoreCase("true");
+    }
+
+    public static boolean showAllEnviromentVariables() {
+        return System.getProperty(PropertyKey.ALLURE_REPORT_ALL_ENVIRONMENT_VARIABLES.key(), "false").equalsIgnoreCase("true");
     }
 
     public static boolean isRetryEnabled() {
@@ -352,5 +369,14 @@ public class PropertyResolver {
             folder = PropertyResolver.getDefaultTestDataLocation();
         }
         return folder;
+    }
+
+    public static String getDefaultDownloadDir() {
+        return System.getProperty(PropertyKey.DEFAULT_DOWNLOAD_LOCATION.key(), "");
+    }
+
+    public static int getSelenideTimeout() {
+        String timeout = System.getProperty(PropertyKey.SELENIDE_CONFIGURATION_TIMEOUT.key(), "5");
+        return Integer.parseInt(timeout) * 1000;
     }
 }

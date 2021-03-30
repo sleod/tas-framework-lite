@@ -18,7 +18,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.UUID;
 
 import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.error;
 import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.warn;
@@ -75,7 +78,7 @@ public class ImageHandler {
         try {
             ImageIO.write(ScreenCapture.takeScreenShot(taker), "png", imageFile);
         } catch (IOException ex) {
-            SystemLogger.error(ex);
+            SystemLogger.warn("IO Exception while write image to file! \n" + ex.getMessage());
         }
         imageStore.get(tid).add(imageFile);
     }
@@ -95,11 +98,11 @@ public class ImageHandler {
     }
 
     private static synchronized void write(BufferedImage image, float quality, ByteArrayOutputStream out) throws IOException {
-        Iterator writers = ImageIO.getImageWritersBySuffix("JPG");
+        Iterator<ImageWriter> writers = ImageIO.getImageWritersBySuffix("JPG");
         if (!writers.hasNext()) {
             throw new IllegalStateException("No writers found");
         }
-        ImageWriter writer = (ImageWriter) writers.next();
+        ImageWriter writer = writers.next();
         ImageOutputStream ios = ImageIO.createImageOutputStream(out);
         writer.setOutput(ios);
         ImageWriteParam param = writer.getDefaultWriteParam();

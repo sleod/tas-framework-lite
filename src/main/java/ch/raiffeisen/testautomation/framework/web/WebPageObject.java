@@ -7,10 +7,7 @@ import com.codeborne.selenide.WebDriverRunner;
 import com.codeborne.selenide.impl.SelenideFieldDecorator;
 import com.codeborne.selenide.impl.SelenidePageFactory;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.events.EventFiringWebDriver;
-import org.openqa.selenium.support.pagefactory.DefaultElementLocatorFactory;
-import org.openqa.selenium.support.pagefactory.DefaultFieldDecorator;
 
 public abstract class WebPageObject extends SingleTestObject {
 
@@ -36,7 +33,8 @@ public abstract class WebPageObject extends SingleTestObject {
      * note that, not all fields should be visible after initialization.
      * Some fields can be displayed later after some action
      */
-    public abstract void checkFields();
+    @Deprecated
+    public void checkFields() {}
 
 }
 

@@ -41,7 +41,7 @@ public class OCRController {
     }
 
     private static Rectangle findTextLinePosition(String text, BufferedImage image) {
-        tesseract.setDatapath(Objects.requireNonNull(FileLocator.findResource("tessdata")).toString());
+        tesseract.setDatapath(FileLocator.findResource("tessdata").toString());
         tesseract.setLanguage(LANGUAGE);
         Rectangle boundingBox = null;
         for (Word word : tesseract.getWords(image, ITERATOR_LEVEL)) {
@@ -56,7 +56,7 @@ public class OCRController {
     }
 
     public static boolean checkTextLineWithText(String text, BufferedImage image) {
-        tesseract.setDatapath(Objects.requireNonNull(FileLocator.findResource("tessdata")).toString());
+        tesseract.setDatapath(FileLocator.findResource("tessdata").toString());
         tesseract.setLanguage(LANGUAGE);
         for (Word word : tesseract.getWords(image, ITessAPI.TessPageIteratorLevel.RIL_TEXTLINE)) {
             if (word.getText().contains(text)) {

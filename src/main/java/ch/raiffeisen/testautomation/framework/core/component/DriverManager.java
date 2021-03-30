@@ -198,7 +198,7 @@ public class DriverManager {
 
     private static WebDriverProvider installIEDriver() {
         if (isWindows()) {
-            String path = Objects.requireNonNull(FileLocator.findResource(getDefaultWebDriverBinLocation() + getIEDriverFileName())).toString();
+            String path = FileLocator.findResource(getDefaultWebDriverBinLocation() + getIEDriverFileName()).toString();
             driverFile = new File(path);
             driverFile.setExecutable(true);
             setWebDriverIEProperty(driverFile.getPath());

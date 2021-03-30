@@ -1,5 +1,11 @@
 package ch.raiffeisen.testautomation.framework.core.media;
 
+import org.jcodec.api.awt.AWTSequenceEncoder;
+import org.jcodec.common.io.NIOUtils;
+import org.jcodec.common.io.SeekableByteChannel;
+import org.jcodec.common.model.Rational;
+
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -8,14 +14,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import javax.imageio.ImageIO;
 
-import org.jcodec.api.awt.AWTSequenceEncoder;
-import org.jcodec.common.io.NIOUtils;
-import org.jcodec.common.io.SeekableByteChannel;
-import org.jcodec.common.model.Rational;
-
-import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.*;
+import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.error;
+import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.warn;
 import static java.util.Arrays.asList;
 
 public class NPGtoMP4Converter {
