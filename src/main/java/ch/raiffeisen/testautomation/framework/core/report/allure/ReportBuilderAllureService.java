@@ -61,10 +61,8 @@ public class ReportBuilderAllureService {
     /**
      * Aendert die Pfade in den Results Files und ermittelt
      * dann die dazugehoerigen Attachments Files
-     *
-     * @throws IOException
      */
-    private void modifyResultFiles() {
+    protected void modifyResultFiles() {
 
         Map<String, String> changedAttachmentSourcePath = null;
 
@@ -92,7 +90,7 @@ public class ReportBuilderAllureService {
      *
      * @param changedSourcePath
      */
-    private void collectAttachmentsFiles(Map<String, String> changedSourcePath) {
+    protected void collectAttachmentsFiles(Map<String, String> changedSourcePath) {
 
         changedSourcePath.forEach((sourcePath, targetPath) -> {
 
