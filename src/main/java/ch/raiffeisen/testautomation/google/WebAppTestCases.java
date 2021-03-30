@@ -96,7 +96,7 @@ public class WebAppTestCases extends PerformableTestCases {
 
     @Override
     protected String getTestCaseFileFormat() {
-        return ".json";
+        return ".tas";
     }
 
     /**

@@ -137,6 +137,9 @@ public class FileLocator {
             throw new RuntimeException("Path: " + relativePath + " can not be found!");
         } else {
             location = url.getPath();
+            if (location.contains("jar!")) {
+                throw new RuntimeException("Path: " + relativePath + " can not be found! Instead: " + location);
+            }
         }
         return new File(location).toPath();
     }
