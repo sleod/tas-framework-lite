@@ -4,15 +4,14 @@ import ch.raiffeisen.testautomation.framework.common.utils.WebOperationUtils;
 import ch.raiffeisen.testautomation.framework.core.annotations.StopOnError;
 import ch.raiffeisen.testautomation.framework.core.annotations.TestObject;
 import ch.raiffeisen.testautomation.framework.core.annotations.TestStep;
-import ch.raiffeisen.testautomation.framework.core.assertion.Assertion;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
-import net.sourceforge.lept4j.Sel;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.FindBy;
 
-import static com.codeborne.selenide.Selenide.*;
+import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.title;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 

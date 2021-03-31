@@ -1,10 +1,10 @@
 package ch.raiffeisen.testautomation.framework.core.media;
 
-import java.io.File;
-import java.util.Date;
-
 import ch.raiffeisen.testautomation.framework.common.logging.SystemLogger;
 import ws.schild.jave.*;
+
+import java.io.File;
+import java.util.Date;
 
 public class AviToMp4Converter {
     public void AviToMp4(String oldPath, String newPath) {

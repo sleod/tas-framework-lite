@@ -25,7 +25,6 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 
 import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.error;
 import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.info;

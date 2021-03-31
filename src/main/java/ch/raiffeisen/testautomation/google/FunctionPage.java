@@ -1,7 +1,6 @@
 package ch.raiffeisen.testautomation.google;
 
 import ch.raiffeisen.testautomation.framework.configuration.PropertyResolver;
-import ch.raiffeisen.testautomation.framework.core.annotations.TestObject;
 import ch.raiffeisen.testautomation.framework.core.annotations.TestStep;
 import ch.raiffeisen.testautomation.framework.web.WebPageObject;
 import org.openqa.selenium.Keys;
@@ -11,9 +10,7 @@ import org.openqa.selenium.support.FindBy;
 import java.util.List;
 import java.util.Map;
 
-import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.open;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class FunctionPage extends WebPageObject {

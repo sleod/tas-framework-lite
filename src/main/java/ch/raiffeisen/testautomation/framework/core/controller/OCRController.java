@@ -9,7 +9,6 @@ import net.sourceforge.tess4j.Word;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.Objects;
 
 import static org.junit.Assert.assertNotNull;
 

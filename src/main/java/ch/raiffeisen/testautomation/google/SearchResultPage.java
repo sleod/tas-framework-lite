@@ -3,15 +3,11 @@ package ch.raiffeisen.testautomation.google;
 import ch.raiffeisen.testautomation.framework.common.utils.WebOperationUtils;
 import ch.raiffeisen.testautomation.framework.core.annotations.TestObject;
 import ch.raiffeisen.testautomation.framework.core.annotations.TestStep;
-import com.codeborne.selenide.SelenideElement;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 
-
 import java.util.Map;
 
-import static com.codeborne.selenide.Condition.*;
-import static com.codeborne.selenide.Selenide.*;
 import static org.junit.Assert.assertTrue;
 
 @TestObject(name = "Search Result Page")

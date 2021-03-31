@@ -3,21 +3,18 @@ package ch.raiffeisen.testautomation.framework.core.json.deserialization;
 import ch.raiffeisen.testautomation.framework.common.IOUtils.FileLocator;
 import ch.raiffeisen.testautomation.framework.common.IOUtils.FileOperation;
 import ch.raiffeisen.testautomation.framework.configuration.PropertyResolver;
-import ch.raiffeisen.testautomation.framework.core.controller.ExternAppController;
 import ch.raiffeisen.testautomation.framework.core.json.container.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
 
 import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.error;
 import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.warn;

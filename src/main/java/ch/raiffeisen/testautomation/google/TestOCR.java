@@ -1,24 +1,18 @@
 package ch.raiffeisen.testautomation.google;
 
 
-import ch.raiffeisen.testautomation.framework.common.IOUtils.FileOperation;
 import ch.raiffeisen.testautomation.framework.common.abstraction.SingleTestObject;
 import ch.raiffeisen.testautomation.framework.core.annotations.TestObject;
 import ch.raiffeisen.testautomation.framework.core.annotations.TestStep;
 import ch.raiffeisen.testautomation.framework.core.controller.ExternAppController;
-import ch.raiffeisen.testautomation.framework.core.controller.OCRController;
-import ch.raiffeisen.testautomation.framework.core.controller.UserRobot;
 import net.sourceforge.tess4j.ITessAPI;
 import org.junit.Test;
-import org.openqa.selenium.WebElement;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 @TestObject(name = "Test OCR")
 public class TestOCR extends SingleTestObject {
