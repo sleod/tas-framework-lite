@@ -166,13 +166,11 @@ public class ReportBuilder {
         String resultsPath = PropertyResolver.getAllureResultsDir();
         String reportPath = PropertyResolver.getAllureReportDir();
         if (PropertyResolver.isAllureReportService()) {
-
-            ReportBuilderAllureService service = new ReportBuilderAllureService();
-            service.generateAllureReportOnService();
-        } else {
-
-            ExternAppController.executeCommand("allure generate " + resultsPath + " --clean -o " + reportPath);
+            //upload to allure report server
+            new ReportBuilderAllureService().generateAllureReportOnService();
         }
+        ExternAppController.executeCommand("allure generate " + resultsPath + " --clean -o " + reportPath);
+
     }
 
     /**
@@ -286,9 +284,9 @@ public class ReportBuilder {
             propertiesSorted.store(fileWriter, "Save to environment properties file.");
         } catch (IOException ex) {
             warn("IO Exception while generate environment file after test run!\n" + ex.getMessage());
-        }finally {
+        } finally {
             try {
-                if(fileWriter != null){
+                if (fileWriter != null) {
                     fileWriter.close();
                 }
             } catch (IOException e) {
@@ -300,6 +298,7 @@ public class ReportBuilder {
     /**
      * Prueft ob alle Properties ausgegeben werden sollen,
      * oder nur jene von der File DefaultTestRunProperties
+     *
      * @return Liste mit den benoetigten Properties
      */
     private static Properties getPropertiesList() {

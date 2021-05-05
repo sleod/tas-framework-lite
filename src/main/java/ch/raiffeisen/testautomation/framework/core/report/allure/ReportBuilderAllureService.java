@@ -25,14 +25,16 @@ public class ReportBuilderAllureService {
     public static final String CONTENT_BASE_64_NODE = "content_base64";
     public static final String FILE_NAME_NODE = "file_name";
     public static final String RESULTS_NODE = "results";
+    public static final String resultsDir = PropertyResolver.getAllureResultsDir() + "upload/";
 
     /**
-     *Erzeugt den Report auf dem Allure Webservice
+     * Erzeugt den Report auf dem Allure Webservice
      */
     public void generateAllureReportOnService() {
 
         AllureRestClient restClient = null;
         try {
+            new File(resultsDir).mkdirs();
 
             modifyResultFiles();
 
@@ -44,7 +46,7 @@ public class ReportBuilderAllureService {
 
         } finally {
 
-            FileOperation.deleteFolder(PropertyResolver.getAllureResultsDir());
+            FileOperation.deleteFolder(resultsDir);
 
             if (restClient != null) {
                 restClient.close();
@@ -64,39 +66,36 @@ public class ReportBuilderAllureService {
      */
     protected void modifyResultFiles() {
 
-        Map<String, String> changedAttachmentSourcePath = null;
+        Map<String, String> changedAttachmentSourcePath;
 
         try {
             List<String> resultFilesPaths = JSONContainerFactory.getAllureResults();
-
             for (String resultFilePath : resultFilesPaths) {
-
                 JSONObject allureResultObject = JSONContainerFactory.getAllureResultObject(Paths.get(resultFilePath));
                 changedAttachmentSourcePath = changeAttachmentsPathInResultFile(allureResultObject);
-                //Geaenderte Result File mit neuen Pfaden im Ordner allure-result ueberschreiben
-                FileOperation.writeBytesToFile(allureResultObject.toString().getBytes(), new File(resultFilePath));
+                //Geänderte Result File mit neuen Pfaden im Ordner allure-result ueberschreiben
+                String newFilePath = resultsDir + Paths.get(resultFilePath).getFileName();
+                FileOperation.writeBytesToFile(allureResultObject.toString().getBytes(), new File(newFilePath));
 
                 collectAttachmentsFiles(changedAttachmentSourcePath);
                 changedAttachmentSourcePath.clear();
             }
 
         } catch (IOException e) {
-           throw new RuntimeException(e.getMessage());
+            throw new RuntimeException(e.getMessage());
         }
     }
 
     /**
      * Kopiert die benoetigten Attachments Files und benennt sie um
      *
-     * @param changedSourcePath
+     * @param changedSourcePath changed source path
      */
     protected void collectAttachmentsFiles(Map<String, String> changedSourcePath) {
-
+        changedSourcePath.put(PropertyResolver.getAllureResultsDir() + "environment.properties", resultsDir + "environment.properties");
         changedSourcePath.forEach((sourcePath, targetPath) -> {
-
             try {
-                String targetDir = PropertyResolver.getAllureResultsDir() + targetPath;
-                FileUtils.copyFile(FileUtils.getFile(sourcePath), FileUtils.getFile(targetDir));
+                FileUtils.copyFile(FileUtils.getFile(sourcePath), FileUtils.getFile(resultsDir + targetPath));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -107,7 +106,7 @@ public class ReportBuilderAllureService {
      * Iteriert durch die -result.json, beim Node 'attachments' wird der Pfad ausgelesen und
      * durch eine UUID ersetzt
      *
-     * @param
+     * @param allureResultObject allure result object
      */
     protected Map<String, String> changeAttachmentsPathInResultFile(JSONObject allureResultObject) {
 

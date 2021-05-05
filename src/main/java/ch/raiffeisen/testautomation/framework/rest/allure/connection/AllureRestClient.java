@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static ch.raiffeisen.testautomation.framework.core.report.allure.ReportBuilderAllureService.resultsDir;
+
 /**
  * Liefert Methoden um mit dem Allure Service zu kommunizieren
  */
@@ -39,7 +41,7 @@ public class AllureRestClient {
 
     private void checkExistsProjectId(JSONObject allureServiceConfig) {
 
-        if ("".equals((String) allureServiceConfig.get(PROJECT_ID_PARAM))) {
+        if ("".equals( allureServiceConfig.get(PROJECT_ID_PARAM))) {
             throw new IllegalArgumentException(PROJECT_ID_IS_NOT_DEFINED);
         }
     }
@@ -54,9 +56,7 @@ public class AllureRestClient {
      */
     public void uploadAllureResultFiles() {
 
-        List<String> resultsPaths = JSONContainerFactory.getAllureResults();
-        List<String> attachmentsPaths = JSONContainerFactory.getAllureResultsAttachments();
-        resultsPaths.addAll(attachmentsPaths);
+        List<String> resultsPaths = JSONContainerFactory.getAllureResults4Upload(resultsDir);
 
         JSONObject transferContainer = transferFileBuilder.prepareFileTransferContainer(resultsPaths);
 

@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -242,7 +243,7 @@ public class JSONContainerFactory {
      */
     public static List<String> getAllureResults() {
         String dirPath = PropertyResolver.getAllureResultsDir();
-        return FileLocator.findPaths(new File(dirPath).toPath(), asList("*-result.json", "**/*-result.json"), Collections.singletonList(""), dirPath);
+        return FileLocator.findPaths(Paths.get(dirPath), asList("*-result.json", "**/*-result.json"), Collections.singletonList(""), dirPath);
     }
 
     /**
@@ -252,7 +253,21 @@ public class JSONContainerFactory {
      */
     public static List<String> getAllureResultsAttachments() {
         String dirPath = PropertyResolver.getAllureResultsDir();
-        return FileLocator.findPaths(new File(dirPath).toPath(), asList("*-attachment.*", "**/*-attachment.*"), Collections.singletonList(""), dirPath);
+        return FileLocator.findPaths(Paths.get(dirPath), asList("*-attachment.*", "**/*-attachment.*"), Collections.singletonList(""), dirPath);
+    }
+
+    public static List<String> getAllureResults4Upload(String resultsDir) {
+        return FileLocator.findPaths(Paths.get(resultsDir), asList("*-result.json", "*-attachment.*", "environment.properties"), Collections.singletonList(""), resultsDir);
+    }
+
+    /**
+     * Get environment.properties File
+     *
+     * @return list of result file path
+     */
+    public static List<String> getEnvironmentPropertiesFile() {
+        String dirPath = PropertyResolver.getAllureResultsDir();
+        return FileLocator.findPaths(Paths.get(dirPath), asList("environment.properties"), Collections.singletonList(""), dirPath);
     }
 
     /**
