@@ -198,6 +198,27 @@ public class ExternAppController {
         return output.toString();
     }
 
+    public static String executeCommandInDir(String targetDir, String command) {
+        StringBuilder output = new StringBuilder();
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        processBuilder.command("cmd.exe", "/c", command);
+        processBuilder.directory(new File(targetDir));
+        trace("Executing command: " + command);
+        try {
+            Process process = processBuilder.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
+            }
+            int exitCode = process.waitFor();
+            trace("Output: " + output.toString());
+        } catch (IOException | InterruptedException ex) {
+            error(ex);
+        }
+        return output.toString();
+    }
+
     /**
      * check current chrome and driver version
      *

@@ -29,6 +29,7 @@ import java.util.Properties;
 
 import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.error;
 import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.warn;
+import static ch.raiffeisen.testautomation.framework.core.json.deserialization.JSONContainerFactory.*;
 
 public class ReportBuilder {
 
@@ -143,34 +144,29 @@ public class ReportBuilder {
             allureResults.add(jsonTestResult);
         }
         JSONContainerFactory.regenerateAllureResults(allureResults);
-
     }
 
     /**
      * generate final allure html report via existing allure results
      */
     public static void generateAllureHTMLReport() {
-        restoreHistory();
-        generateEnvironmentProperties();
-        generateAllureReport();
-        if (PropertyResolver.isRebaseAllureReport()) {
-            rebaseExistingAllureResults();
-        }
-    }
-
-    /**
-     * Execute system command to generate allure report using allure executable
-     */
-    public static void generateAllureReport() {
-
         String resultsPath = PropertyResolver.getAllureResultsDir();
         String reportPath = PropertyResolver.getAllureReportDir();
+        //environment.properties file
+        generateEnvironmentProperties();
+        //executor.json file
+        int currentOrder = generateExecutorJSON();
         if (PropertyResolver.isAllureReportService()) {
             //upload to allure report server
             new ReportBuilderAllureService().generateAllureReportOnService();
         }
-        ExternAppController.executeCommand("allure generate " + resultsPath + " --clean -o " + reportPath);
-
+        //get last run history data
+        restoreHistory(currentOrder - 1);
+        ExternAppController.executeCommand("allure generate " + resultsPath + " -o " + reportPath + "run" + currentOrder);
+        archiveResults(currentOrder);
+        if (PropertyResolver.isRebaseAllureReport()) {
+            rebaseExistingAllureResults();
+        }
     }
 
     /**
@@ -178,9 +174,9 @@ public class ReportBuilder {
      */
     @SuppressWarnings("unchecked")
     private static void rebaseExistingAllureResults() {
-        String historyContent = JSONContainerFactory.getHistoryContent();
+        String historyContent = getHistoryContent();
         List<JSONObject> rebasedAllureResults = new LinkedList<>();
-        for (String filePath : JSONContainerFactory.getAllureResults()) {
+        for (String filePath : getAllureResults()) {
             JSONObject result = JSONObject.fromObject(FileOperation.readFileToLinedString(filePath));
             String historyId = result.getString("historyId");
             String rebaseHisId = buildHistoryId(result.getJSONArray("labels").getJSONObject(0).getString("value") + "." + result.getString("name"));
@@ -216,15 +212,20 @@ public class ReportBuilder {
     /**
      * restore history folder case existence
      */
-    private static void restoreHistory() {
-        String reportDir = PropertyResolver.getAllureResultsDir();
+    private static void restoreHistory(int order) {
+        String resultsPath = PropertyResolver.getAllureResultsDir();
         try {
-            if (new File(reportDir).exists()) {
-                String historyDir = reportDir + "history/";
-                new File(historyDir).mkdir();
-                for (String filePath : JSONContainerFactory.getHistoryFiles()) {
-                    File source = new File(filePath);
-                    Files.copy(source.toPath(), new File(historyDir + source.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
+            File historyDir = new File(resultsPath + "history/");
+            if (new File(resultsPath).exists()) {
+                historyDir.mkdir();
+                List<String> hisFiles = JSONContainerFactory.getHistoryFiles(order);
+                if (hisFiles.isEmpty()) {
+                    historyDir.delete();
+                } else {
+                    for (String filePath : hisFiles) {
+                        File source = new File(filePath);
+                        Files.copy(source.toPath(), new File(historyDir + "/" + source.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    }
                 }
             }
         } catch (IOException ex) {
@@ -272,11 +273,8 @@ public class ReportBuilder {
      * generate environment properties with every thing
      */
     private static void generateEnvironmentProperties() {
-
         Properties properties = getPropertiesList();
-
         SortedProperties propertiesSorted = sortProperties(properties);
-
         String environment = PropertyResolver.getAllureResultsDir() + "environment.properties";
         FileWriter fileWriter = null;
         try {
@@ -302,23 +300,15 @@ public class ReportBuilder {
      * @return Liste mit den benoetigten Properties
      */
     private static Properties getPropertiesList() {
-
         Properties properties = System.getProperties();
-
         if (PropertyResolver.showAllEnviromentVariables()) {
-
             return properties;
-
         } else {
-
             Properties propertiesFromFile = new Properties();
-
             //Enum von PropertyKey durchgehen und die benoetigten Properties auslesen
             //und die Werte in die neue propertiesFromFile schreiben
             for (PropertyKey key : PropertyKey.values()) {
-
                 String value = properties.getProperty(key.key());
-
                 if (value != null) {
                     propertiesFromFile.setProperty(key.key(), value);
                 }
@@ -328,10 +318,8 @@ public class ReportBuilder {
     }
 
     private static SortedProperties sortProperties(Properties properties) {
-
         SortedProperties sortedProperties = new SortedProperties();
         properties.forEach(sortedProperties::put);
-
         return sortedProperties;
     }
 }

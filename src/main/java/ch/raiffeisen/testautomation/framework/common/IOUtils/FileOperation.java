@@ -8,6 +8,8 @@ import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -331,13 +333,21 @@ public class FileOperation {
     /**
      * Prueft ob es sich um eine UUID handelt
      *
-     * @param uuid
-     * @return
+     * @param uuid uuid
+     * @return if string match to uuid regex
      */
     public static boolean isUUID(String uuid) {
 
         Pattern p = Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-5][0-9a-fA-F]{3}-[089ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$");
         java.util.regex.Matcher matcher = p.matcher(uuid);
         return matcher.matches();
+    }
+
+    public static void moveFileTo(Path srcFile, Path tarFile) {
+        try {
+            Files.move(srcFile, tarFile, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException ex) {
+            warn("IOException while moving file " + srcFile + " to " + tarFile + "!\n" + ex.getMessage());
+        }
     }
 }

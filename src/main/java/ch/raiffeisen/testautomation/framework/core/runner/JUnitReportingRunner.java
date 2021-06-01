@@ -10,6 +10,7 @@ import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 
 public class JUnitReportingRunner extends BlockJUnit4ClassRunner {
@@ -24,9 +25,9 @@ public class JUnitReportingRunner extends BlockJUnit4ClassRunner {
      * @param testCasesClass test case aggregation
      * @throws InitializationError if the test class is malformed.
      */
-    public JUnitReportingRunner(Class<? extends PerformableTestCases> testCasesClass) throws InitializationError, IllegalAccessException, InstantiationException {
+    public JUnitReportingRunner(Class<? extends PerformableTestCases> testCasesClass) throws InitializationError, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         super(testCasesClass);
-        allTestCases = testCasesClass.newInstance();
+        allTestCases = testCasesClass.getDeclaredConstructor().newInstance();
         if (allTestCases.getTestCases().isEmpty() && allTestCases.getSequenceCaseRunners().isEmpty()) {
             SystemLogger.warn("No Test Cases was found to run! System exit ...");
             System.exit(-1);

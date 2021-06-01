@@ -12,16 +12,21 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.error;
 import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.warn;
 import static java.util.Arrays.asList;
 
 public class JSONContainerFactory {
+
+    public static final String MAIN_BUILD_URL_KEY = "build.main.url";
+    public static final String BUILD_ORDER_KEY = "buildOrder";
+    public static final String HUB_URL_KEY = "hubURL";
+    public static final String BUILD_NAME_KEY = "buildName";
+    public static final String REPORT_URL = "reportUrl";
+    public static final String REPORT_NAME = "reportName";
+
 
     /**
      * checkFields the test case object via test case file
@@ -100,7 +105,7 @@ public class JSONContainerFactory {
             if (file.getName().endsWith(".json")) {
                 String jsonString = FileOperation.readFileToLinedString(file.getPath());
                 JSONObject jsonObject = JSONObject.fromObject(jsonString);
-                if (jsonObject.containsKey("hubURL")) {
+                if (jsonObject.containsKey(HUB_URL_KEY)) {
                     JSONDriverConfig driverConfig = new ObjectMapper().readValue(jsonObject.toString(), JSONDriverConfig.class);
                     if (file.getName().equalsIgnoreCase(defaultConfigFileName)) {
                         configs.addFirst(driverConfig);
@@ -170,8 +175,8 @@ public class JSONContainerFactory {
      *
      * @return list of history files
      */
-    public static List<String> getHistoryFiles() {
-        String dirPath = PropertyResolver.getAllureReportDir() + "history";
+    public static List<String> getHistoryFiles(int order) {
+        String dirPath = PropertyResolver.getAllureReportDir() + "run" + order + "/history";
         if (new File(dirPath).exists()) {
             return FileLocator.findPaths(new File(dirPath).toPath(), Collections.singletonList("*.json"), Collections.singletonList(""), dirPath);
         } else {
@@ -199,15 +204,16 @@ public class JSONContainerFactory {
                 error(ex);
             }
         });
-        generateExecutorJSON();
     }
 
     /**
      * Generate executor json
+     *
+     * @return current build / run number
      */
-    private static void generateExecutorJSON() {
+    public static int generateExecutorJSON() {
         JSONObject executor = new JSONObject();
-        String url = System.getProperty("executor.build.url", "http://localhost:63342/framework/target/allure-report/");
+        String url = System.getProperty(MAIN_BUILD_URL_KEY, "http://localhost:63342/framework/target/allure-report/");
         int buildOrder = 1;
         String content = getExecutorContent();
         JSONObject existingExecutor = null;
@@ -215,23 +221,26 @@ public class JSONContainerFactory {
             existingExecutor = JSONObject.fromObject(content);
         }
         if (existingExecutor != null) {
-            buildOrder = existingExecutor.getInt("buildOrder") + 1;
+            buildOrder = existingExecutor.getInt(BUILD_ORDER_KEY) + 1;
         }
-        String name = System.getProperty("executor.name", PropertyResolver.getSystemUser());
-        String buildName = System.getProperty("executor.build.name", "Automated_Test_Run") + "/#" + buildOrder;
-        executor.element("name", name).element("type", "junit").element("url", url)
-                .element("buildOrder", buildOrder).element("buildName", buildName)
-                .element("reportUrl", url).element("reportName", "Allure Report of Test Run");
-        String resultsDir = PropertyResolver.getAllureResultsDir();
+        String buildName = System.getProperty(BUILD_NAME_KEY, "Automated_Test_Run") + "/#" + buildOrder;
+        executor.element("name", PropertyResolver.getSystemUser())
+                .element("type", "junit")
+                .element("url", url)
+                .element(BUILD_ORDER_KEY, buildOrder)
+                .element(BUILD_NAME_KEY, buildName)
+                .element(REPORT_URL, url + "run" + buildOrder)
+                .element(REPORT_NAME, "Allure Report of Test Run" + buildOrder);
         try {
-            FileOperation.writeBytesToFile(executor.toString().getBytes(), new File(resultsDir + "executor.json"));
+            FileOperation.writeBytesToFile(executor.toString().getBytes(),
+                    new File(PropertyResolver.getAllureResultsDir() + "executor.json"));
         } catch (IOException ex) {
             error(ex);
         }
+        return buildOrder;
     }
 
     public static JSONObject getAllureResultObject(Path path) {
-
         String content = FileOperation.readFileToLinedString(path.toString());
         return JSONObject.fromObject(content);
     }
@@ -243,7 +252,17 @@ public class JSONContainerFactory {
      */
     public static List<String> getAllureResults() {
         String dirPath = PropertyResolver.getAllureResultsDir();
-        return FileLocator.findPaths(Paths.get(dirPath), asList("*-result.json", "**/*-result.json"), Collections.singletonList(""), dirPath);
+        return FileLocator.findPaths(Paths.get(dirPath), Collections.singletonList("*-result.json"), Collections.singletonList(""), dirPath);
+    }
+
+    /**
+     * Find all existing allure results in default allure results location
+     *
+     * @return list of result file path
+     */
+    public static List<Path> listCurrentAllureResults() {
+        String dirPath = PropertyResolver.getAllureResultsDir();
+        return FileLocator.listRegularFilesRecursiveMatchedToName(dirPath, 1, "-result.json");
     }
 
     /**
@@ -267,7 +286,7 @@ public class JSONContainerFactory {
      */
     public static List<String> getEnvironmentPropertiesFile() {
         String dirPath = PropertyResolver.getAllureResultsDir();
-        return FileLocator.findPaths(Paths.get(dirPath), asList("environment.properties"), Collections.singletonList(""), dirPath);
+        return FileLocator.findPaths(Paths.get(dirPath), Collections.singletonList("environment.properties"), Collections.singletonList(""), dirPath);
     }
 
     /**
@@ -276,6 +295,15 @@ public class JSONContainerFactory {
     public static void cleanUpAllureResults() {
         List<String> resultFiles = getAllureResults();
         FileOperation.deleteFiles(resultFiles);
+    }
+
+    public static void archiveResults(int order) {
+        String resultsDir = PropertyResolver.getAllureResultsDir();
+        File targetDir = new File(resultsDir + "run" + order);
+        targetDir.mkdir();
+        listCurrentAllureResults().forEach(filePath -> {
+            FileOperation.moveFileTo(filePath, Paths.get(targetDir.getAbsolutePath() + "/" + filePath.getFileName()));
+        });
     }
 
     /**

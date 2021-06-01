@@ -72,7 +72,7 @@ public class TestCaseStep extends TestCase {
         this.stopOnError = stopOnError;
     }
 
-    public boolean isTakeScreenshot() {
+    public boolean isTakeScreenshotDefinedOnTestcaseStep() {
         if (!takeScreenshot && jsonTestCaseStep.getTakeScreenshot() != null) {
             setTakeScreenshot(jsonTestCaseStep.getTakeScreenshot().equalsIgnoreCase("true"));
         }
@@ -253,13 +253,11 @@ public class TestCaseStep extends TestCase {
      */
     private void handlingScreenshots() {
         Screenshot screenshot = null;
-        if (screenshotLevel.equalsIgnoreCase("ALL") || isTakeScreenshot()) {
+        if (screenshotLevel.equalsIgnoreCase("SUCCESS") || isTakeScreenshotDefinedOnTestcaseStep()) {
             this.takeScreenshot = true;
         } else {
             if (screenshotLevel.equalsIgnoreCase("ERROR")) {
                 this.takeScreenshot = testStepResult.getStatus().equals(TestStatus.FAIL);
-            } else if (screenshotLevel.equalsIgnoreCase("SUCCESS")) {
-                this.takeScreenshot = testStepResult.getStatus().equals(TestStatus.PASS);
             }
         }
         if (this.takeScreenshot) {

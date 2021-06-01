@@ -1,3 +1,7 @@
-pageTitle;searchText;searchText1;searchText2;testCaseId;seriesNumber
-Google;Good;Good1;Good2;554491;gd.1v.2
-google1;Test;Test1;Test2;556461;gd.1v.1
+Variante;Suchbegriff;Suchresultat;seriesNumber;testCaseId
+1;Raiffeisen St.Gallen;Raiffeisenbank St. Gallen;gd.v1.4;681736
+2;Raiffeisen Zürich;Raiffeisenbank Zürich;gd.v1.3;682321
+3;Raiffeisen Graubünden;Raiffeisenbank Bündner Rheintal;gd.v1.2;682322
+4;Raiffeisen St.Gallen;Raiffeisenbank St. Gallen;gd.v1.1.1;681725
+5;Raiffeisen Zürich;Raiffeisenbank Zürich;gd.v1.1.2;686498
+6;Raiffeisen Graubünden;Raiffeisenbank Bündner Rheintal;gd.v1.1.3;686499

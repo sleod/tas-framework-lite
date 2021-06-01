@@ -6,5 +6,13 @@
   "title": {
     "how": "tag_name",
     "using": "title"
+  },
+  "popupIframe": {
+    "how": "css",
+    "using": "#cnsw > iframe"
+  },
+  "agreeButton": {
+    "how": "css",
+    "using": "#introAgreeButton"
   }
 }

@@ -90,7 +90,12 @@ public class TestDataContainer {
      * @return object can be null
      */
     public static Object getGlobalTestData(String key) {
-        return globalTestData.get(key);
+        Object value = globalTestData.get(key);
+        if (value instanceof JSONArray) {
+            return ((JSONArray) value).toArray().clone();
+        } else if (value instanceof JSONObject) {
+            return JSONObject.fromObject(value);
+        } else return value;
     }
 
     public boolean isRepeat() {

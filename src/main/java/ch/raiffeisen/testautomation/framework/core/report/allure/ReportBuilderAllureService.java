@@ -10,7 +10,7 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,14 +69,15 @@ public class ReportBuilderAllureService {
         Map<String, String> changedAttachmentSourcePath;
 
         try {
-            List<String> resultFilesPaths = JSONContainerFactory.getAllureResults();
-            for (String resultFilePath : resultFilesPaths) {
-                JSONObject allureResultObject = JSONContainerFactory.getAllureResultObject(Paths.get(resultFilePath));
+            //List<String> resultFilesPaths = JSONContainerFactory.getAllureResults();
+            //change: list only result files of current run
+            List<Path> resultFilesPaths = JSONContainerFactory.listCurrentAllureResults();
+            for (Path resultFilePath : resultFilesPaths) {
+                JSONObject allureResultObject = JSONContainerFactory.getAllureResultObject(resultFilePath);
                 changedAttachmentSourcePath = changeAttachmentsPathInResultFile(allureResultObject);
                 //Geänderte Result File mit neuen Pfaden im Ordner allure-result ueberschreiben
-                String newFilePath = resultsDir + Paths.get(resultFilePath).getFileName();
+                String newFilePath = resultsDir + resultFilePath.getFileName();
                 FileOperation.writeBytesToFile(allureResultObject.toString().getBytes(), new File(newFilePath));
-
                 collectAttachmentsFiles(changedAttachmentSourcePath);
                 changedAttachmentSourcePath.clear();
             }
