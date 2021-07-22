@@ -1,6 +1,7 @@
 package ch.raiffeisen.testautomation.framework.rest.allure.connection;
 
 import ch.raiffeisen.testautomation.framework.common.IOUtils.FileOperation;
+import ch.raiffeisen.testautomation.framework.configuration.PropertyResolver;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 

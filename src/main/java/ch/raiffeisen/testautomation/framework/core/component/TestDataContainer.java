@@ -10,6 +10,7 @@ import ch.raiffeisen.testautomation.framework.intefaces.DBDataCollector;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -44,6 +45,10 @@ public class TestDataContainer {
 
     public static Object getTempData(String key) {
         return tempData.get(key);
+    }
+
+    public static String getTempStringData(String key) {
+        return String.valueOf(tempData.get(key));
     }
 
     public static void setTempData(String key, Object object) {
@@ -188,9 +193,9 @@ public class TestDataContainer {
 
     private void loadDBDataWith(String className) {
         try {
-            DBDataCollector dbDataCollector = (DBDataCollector) Class.forName(className).newInstance();
+            DBDataCollector dbDataCollector = (DBDataCollector) Class.forName(className).getDeclaredConstructor().newInstance();
             dataContent = dbDataCollector.getData();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException ex) {
             info("The given Class Name of DB Data Collector may not correct or it does not implement the required interface 'DBDataCollector'!");
             error(ex);
         }

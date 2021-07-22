@@ -367,7 +367,7 @@ public class JSONContainerFactory {
     private static class StartTimeComparator implements Comparator<JSONTestResult> {
         @Override
         public int compare(JSONTestResult result1, JSONTestResult result2) {
-            return new Long(result1.getStart() - result2.getStart()).intValue();
+            return Long.valueOf(result1.getStart() - result2.getStart()).intValue();
         }
     }
 }

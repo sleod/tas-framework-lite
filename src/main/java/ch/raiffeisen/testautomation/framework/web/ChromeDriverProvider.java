@@ -11,6 +11,7 @@ import org.openqa.selenium.remote.*;
 import org.openqa.selenium.remote.http.W3CHttpCommandCodec;
 import org.openqa.selenium.remote.http.W3CHttpResponseCodec;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -20,13 +21,30 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
+import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.trace;
+
 public class ChromeDriverProvider extends WebDriverProvider {
+    private ChromeOptions options;
+
+    public ChromeDriverProvider() {
+        options = null;
+    }
+
+    public ChromeDriverProvider(ChromeOptions options) {
+        this.options = options;
+    }
 
     /**
      * init chrome driver with options
      */
     public void initialize() {
-        ChromeDriver chromeDriver = new ChromeDriver(getChromeOptions());
+        ChromeOptions tempOptions = getChromeOptions();
+        ChromeDriver chromeDriver;
+        if (options == null) {
+            chromeDriver = new ChromeDriver(tempOptions);
+        } else {
+            chromeDriver = new ChromeDriver(options.merge(tempOptions));
+        }
         chromeDriver.manage().window().setPosition(new Point(0, 0));
         chromeDriver.manage().timeouts().implicitlyWait(6, TimeUnit.SECONDS);
         configureWindowSize(chromeDriver);
@@ -35,13 +53,24 @@ public class ChromeDriverProvider extends WebDriverProvider {
 
     private static void configureWindowSize(ChromeDriver driver) {
 
+        int width = 0;
+        int height = 0;
+
         if (isChromeMaximised()) {
-            driver.manage().window().maximize();
+
+            java.awt.Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
+            width = size.width;
+            height = size.height;
         } else {
+
             String[] dimensions = PropertyResolver.getScreenSize().split(",");
-            driver.manage().window().setSize(new Dimension(Integer.parseInt(dimensions[0]),Integer.parseInt(dimensions[1])));
+            width = Integer.parseInt(dimensions[0]);
+            height = Integer.parseInt(dimensions[1]);
 
         }
+
+        driver.manage().window().setSize(new Dimension(width, height));
+        trace("Used screen size width: " + width + " height: " + height);
     }
 
     private static ChromeOptions getChromeOptions() {
@@ -52,7 +81,6 @@ public class ChromeDriverProvider extends WebDriverProvider {
                 .addArguments("--allow-running-insecure-content")
                 .addArguments("--test-type")
                 .addArguments("--lang=de");
-//                .setExperimentalOption("useAutomationExtension", false);
         configureHeadlessChrome(options);
         configurePosition(options);
         return options;

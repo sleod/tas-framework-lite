@@ -6,7 +6,7 @@ import ch.raiffeisen.testautomation.framework.common.logging.SystemLogger;
 import ch.raiffeisen.testautomation.framework.core.component.TestRunResult;
 
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

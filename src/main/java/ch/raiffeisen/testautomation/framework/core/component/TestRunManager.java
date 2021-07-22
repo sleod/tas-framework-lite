@@ -113,7 +113,7 @@ public class TestRunManager {
     public static void initTestCases(List<String> filePaths, List<String> metaFilters) throws IOException {
         Multimap<String, String> coverage = null;//coverage with test case ids in multimap
         List<String> selectedIds = Collections.emptyList();
-        if (PropertyResolver.isTFSFeedbackEnabled()) {//check for feedback to tfs
+        if (PropertyResolver.isTFSSyncEnabled()) {//check for feedback to tfs
             coverage = runnerConfig.getCoverageMap();
             if (runnerConfig.isFullRun()) {//check run config for full run
                 selectedIds = getFullRunTestCaseIds(runnerConfig);
@@ -225,7 +225,7 @@ public class TestRunManager {
      * @return if current test case selected
      */
     private static boolean isSelected(JSONTestCase jsonTestCase, Multimap<String, String> coverage, List<String> selectedIds) {
-        if (!PropertyResolver.isTFSFeedbackEnabled()) {
+        if (!PropertyResolver.isTFSSyncEnabled()) {
             return true;
         } else if (selectedIds == null || selectedIds.isEmpty()) {
             return false;
@@ -259,11 +259,11 @@ public class TestRunManager {
             //for each row of test data, create new test case object
             for (Map<String, Object> testData : testCaseObject.getTestDataContainer().getDataContent()) {
                 TestCaseObject tco = new TestCaseObject(testCaseObject.getTestCase(), Collections.singletonList(testData), " Variante " + index++);
-                if (PropertyResolver.isTFSFeedbackEnabled() && !testData.containsKey("testCaseId")) {
+                if (PropertyResolver.isTFSSyncEnabled() && !testData.containsKey("testCaseId")) {
                     warn("To return result back to TFS the test case id is required in csv or db data. " +
                             "Please set test case id with column name 'testCaseId' for every test data line!");
                 } else {
-                    if (PropertyResolver.isTFSFeedbackEnabled()) {
+                    if (PropertyResolver.isTFSSyncEnabled()) {
                         String testCaseId = testData.get("testCaseId").toString();
                         if (testCaseObject.getTestCase().getCoverage().contains(testCaseId)) {
                             tco.setTestCaseId(testCaseId);
@@ -390,7 +390,8 @@ public class TestRunManager {
                     }
                 }
             }
-            if (PropertyResolver.isTFSFeedbackEnabled()) {
+            //retrieve TFS Configuration ID
+            if (PropertyResolver.isTFSConnectEnabled()) {
                 String configName = PropertyResolver.getTFSRunnerConfigFile();
                 runnerConfig = JSONContainerFactory.getRunnerConfig(configName);
                 //init test plan configuration with given id
@@ -408,10 +409,12 @@ public class TestRunManager {
                     if (!PropertyResolver.getTFSRunnerConfigFile().equals(configName)) {
                         runnerConfig = JSONContainerFactory.getRunnerConfig(PropertyResolver.getTFSRunnerConfigFile());
                     }
-                } else warn("No Test Plan Configuration set, Test Run with local tfs runner config!");
+                } else {
+                    warn("TFS Configuration ID is Empty! Please set the id in properties or tfs runner config if necessary.");
+                }
             }
         } catch (URISyntaxException | IOException ex) {
-            error(ex);
+            throw new RuntimeException("Error while retrieve data from resources!\n" + ex.getMessage());
         }
     }
 
@@ -440,7 +443,7 @@ public class TestRunManager {
             }
             if (!cookies.isEmpty()) {
                 cookies.forEach(cookie -> webDriver.manage().addCookie(cookie));
-            }else {
+            } else {
                 throw new RuntimeException("Failed on reload Cookie from retest Step!");
             }
             if (currentURL != null && !currentURL.isEmpty()) {

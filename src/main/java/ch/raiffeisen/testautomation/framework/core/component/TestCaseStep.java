@@ -213,8 +213,8 @@ public class TestCaseStep extends TestCase {
      * @throws IllegalAccessException exception
      * @throws InstantiationException exception
      */
-    private Object getInstanceOf(Class<?> testObjectClass) throws IllegalAccessException, InstantiationException {
-        Object newInstance = testObjectClass.newInstance();
+    private Object getInstanceOf(Class<?> testObjectClass) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+        Object newInstance = testObjectClass.getDeclaredConstructor().newInstance();
         if (newInstance instanceof AndroidPageObject) {
             AndroidPageObject androidPageObject = (AndroidPageObject) newInstance;
             if (testObjectClass.getDeclaredAnnotation(AndroidActivity.class) != null) {

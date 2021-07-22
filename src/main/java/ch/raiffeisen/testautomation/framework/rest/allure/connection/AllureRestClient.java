@@ -1,10 +1,10 @@
 package ch.raiffeisen.testautomation.framework.rest.allure.connection;
 
 import ch.raiffeisen.testautomation.framework.core.json.deserialization.JSONContainerFactory;
+import jakarta.ws.rs.WebApplicationException;
 import net.sf.json.JSONObject;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +60,10 @@ public class AllureRestClient {
 
         JSONObject transferContainer = transferFileBuilder.prepareFileTransferContainer(resultsPaths);
 
+        if(existProject()){
+            cleanResults();
+        }
+
         Response response = sendResults(transferContainer);
 
         checkResponse(response, RESULT_NOT_SEND_MESSAGE);
@@ -113,6 +117,15 @@ public class AllureRestClient {
         Response response = allureConnector.get("/clean-history", PROJECT_ID_PARAM, (String) allureServiceConfig.get(PROJECT_ID_PARAM));
 
         checkResponse(response, HISTORY_NOT_DELETED_MESSAGE);
+    }
+
+    /**
+     * Abfrage ob Projekt existiert
+     */
+    public boolean existProject() {
+
+        return  allureConnector.get("/projects/" + (String) allureServiceConfig.get(PROJECT_ID_PARAM)).getStatus() == 200;
+
     }
 
     private void checkResponse(Response response, String errorMessage) {

@@ -249,7 +249,7 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
         //default after test: build Report
         ReportBuilder.stopRecordingTest(testRunResult);
         ImageHandler.finishVideoRecording(testRunResult);
-        if (PropertyResolver.isTFSFeedbackEnabled() && TestRunManager.feedbackAfterSingleTest()) {
+        if (PropertyResolver.isTFSSyncEnabled() && TestRunManager.feedbackAfterSingleTest()) {
             TestRunManager.tfsFeedback(Collections.singletonList(this));
         }
         try {

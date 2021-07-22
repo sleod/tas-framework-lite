@@ -238,8 +238,12 @@ public class PropertyResolver {
         return System.getProperty(PropertyKey.REPORT_SERVICE_RUNNER_CONFIG.key(), "driverConfig/reportServiceRunnerConfig.json");
     }
 
-    public static boolean isTFSFeedbackEnabled() {
-        return System.getProperty(PropertyKey.DEFAULT_RUN_TFS_FEEDBACK.key(), "false").equalsIgnoreCase("true");
+    public static boolean isTFSConnectEnabled() {
+        return System.getProperty(PropertyKey.DEFAULT_RUN_TFS_CONNECT.key(), "false").equalsIgnoreCase("true");
+    }
+
+    public static boolean isTFSSyncEnabled() {
+        return System.getProperty(PropertyKey.DEFAULT_RUN_TFS_SYNC.key(), "false").equalsIgnoreCase("true");
     }
 
     public static boolean isRebaseAllureReport() {

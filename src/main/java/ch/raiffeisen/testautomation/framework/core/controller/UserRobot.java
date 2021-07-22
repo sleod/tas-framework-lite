@@ -54,11 +54,11 @@ public class UserRobot {
     public static void leftClickOn(Rectangle elementPosition, boolean doubleClick) throws AWTException {
         Robot robot = new Robot();
         robot.mouseMove(elementPosition.x + 5, elementPosition.y + elementPosition.height / 3);
-        robot.mousePress(InputEvent.BUTTON1_MASK);
-        robot.mouseRelease(InputEvent.BUTTON1_MASK);
+        robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
         if (doubleClick) {
-            robot.mousePress(InputEvent.BUTTON1_MASK);
-            robot.mouseRelease(InputEvent.BUTTON1_MASK);
+            robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+            robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
         }
     }
 
@@ -89,11 +89,11 @@ public class UserRobot {
     public static void rightClickOn(Rectangle elementPosition, boolean doubleClick) throws AWTException {
         Robot robot = new Robot();
         robot.mouseMove(elementPosition.x + 5, elementPosition.y + elementPosition.height / 3);
-        robot.mousePress(InputEvent.BUTTON2_MASK);
-        robot.mouseRelease(InputEvent.BUTTON2_MASK);
+        robot.mousePress(InputEvent.BUTTON2_DOWN_MASK);
+        robot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
         if (doubleClick) {
-            robot.mousePress(InputEvent.BUTTON2_MASK);
-            robot.mouseRelease(InputEvent.BUTTON2_MASK);
+            robot.mousePress(InputEvent.BUTTON2_DOWN_MASK);
+            robot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
         }
     }
 

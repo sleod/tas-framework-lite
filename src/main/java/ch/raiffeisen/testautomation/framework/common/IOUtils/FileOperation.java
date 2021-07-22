@@ -9,6 +9,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -34,7 +35,7 @@ public class FileOperation {
 
     /**
      * @param filePath is absolute path from file to read
-     * @return String of file content in list
+     * @return String of file content in list in utf-8
      */
     @SuppressWarnings({"unchecked", "RedundantSuppression"})
     public static List<String> readFileToStringList(String filePath) {
@@ -53,7 +54,7 @@ public class FileOperation {
      */
     public static String readFileToLinedString(InputStream inputStream) {
         StringBuilder sb = new StringBuilder();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
         try {
             while (reader.ready()) {
                 sb.append(reader.readLine());
@@ -225,14 +226,25 @@ public class FileOperation {
     }
 
     /**
-     * write byte array of content to file
+     * write byte array of content to file in utf-8
      *
      * @param bytes  to be written
      * @param target to local file
      */
     public static void writeBytesToFile(byte[] bytes, File target) throws IOException {
-        Files.write(target.toPath(), bytes);
+        Files.writeString(target.toPath(), new String(bytes), StandardCharsets.UTF_8);
     }
+
+    /**
+     * write String to file with charset UTF-8
+     *
+     * @param text   to be written
+     * @param target to local file
+     */
+    public static void writeStringToFile(String text, File target) throws IOException {
+        Files.writeString(target.toPath(), text, StandardCharsets.UTF_8);
+    }
+
 
     /**
      * read file content to byte array
@@ -337,7 +349,6 @@ public class FileOperation {
      * @return if string match to uuid regex
      */
     public static boolean isUUID(String uuid) {
-
         Pattern p = Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-5][0-9a-fA-F]{3}-[089ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$");
         java.util.regex.Matcher matcher = p.matcher(uuid);
         return matcher.matches();

@@ -48,26 +48,6 @@ public abstract class WebDriverProvider implements ScreenshotTaker, DriverProvid
     @Override
     public abstract void initialize();
 
-//    /**
-//     * load config from file path
-//     */
-//    public synchronized static void loadConfig() {
-//        try {
-//            if (config == null) {
-//                config = JSONContainerFactory.getDriverConfig(getDefaultDriverConfigLocation() + getWebDriverConfig());
-//                PropertyResolver.setDefaultWebDriverName(config.getBrowserName().toLowerCase());
-//                if (config.getChromeDriverBinFile() != null) {
-//                    PropertyResolver.setChromeDriverFileName(config.getChromeDriverBinFile());
-//                }
-//                if (config.getIEBinFile() != null) {
-//                    PropertyResolver.setIEDriverFileName(config.getIEBinFile());
-//                }
-//            }
-//        } catch (IOException ex) {
-//            error(ex);
-//        }
-//    }
-
     /**
      * Take Screenshot of Step
      *

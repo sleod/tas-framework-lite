@@ -16,7 +16,7 @@ public class AviToMp4Converter {
         audio.setCodec("libmp3lame"); // audio coding format
         audio.setBitRate(800000);
         audio.setChannels(1);
-        audio.setSamplingRate(new Integer(22050));
+        audio.setSamplingRate(22050);
         VideoAttributes video = new VideoAttributes();
         video.setCodec("libx264"); // video encoding format
         video.setBitRate(3200000);

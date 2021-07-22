@@ -7,9 +7,9 @@ import org.openqa.selenium.support.ui.*;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
-import static com.codeborne.selenide.Condition.appears;
-import static com.codeborne.selenide.Condition.disappears;
+import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.$;
 
 public class WebOperationUtils {
@@ -68,6 +68,29 @@ public class WebOperationUtils {
     }
 
     /**
+     * Wait until the target web elements text is visible with timeout for 10 secs
+     *
+     * @param driver     web driver
+     * @param webElement the Web Element
+     * @return the Web Element
+     */
+    public static void waitUntilTextIsVisible(WebDriver driver, WebElement webElement, String textToWait) {
+        waitUntilTextIsVisible(driver, webElement, textToWait, 10);
+    }
+
+    /**
+     * Wait until the target web elements text is visible with own timeout
+     *
+     * @param driver     web driver
+     * @param webElement the Web Element
+     * @return the Web Element
+     */
+    public static void waitUntilTextIsVisible(WebDriver driver, WebElement webElement, String textToWait, long timeout) {
+        WebDriverWait wait = new WebDriverWait(driver, timeout);
+        wait.until(ExpectedConditions.textToBePresentInElement(webElement, textToWait));
+    }
+
+    /**
      * wait until element is displayed
      *
      * @param driver     driver
@@ -86,7 +109,7 @@ public class WebOperationUtils {
      * @return SelenideElement
      */
     public static SelenideElement waitUntilVisible(SelenideElement selenideElement) {
-        return selenideElement.should(appears);
+        return selenideElement.should(visible);
     }
 
     /**
@@ -96,7 +119,7 @@ public class WebOperationUtils {
      * @return WebElement expected element
      */
     public static SelenideElement waitUntilVisible(By selector) {
-        return $(selector).should(appears);
+        return $(selector).should(visible);
     }
 
     /**
@@ -108,7 +131,7 @@ public class WebOperationUtils {
      */
     @Deprecated
     public static SelenideElement waitForElementLoad(By selector) {
-        return $(selector).should(appears);
+        return $(selector).should(visible);
     }
 
     /**
@@ -128,7 +151,7 @@ public class WebOperationUtils {
      * @param webElement the SelenideElement Web Element
      */
     public static void waitUntilDisappear(SelenideElement webElement) {
-        webElement.should(disappears);
+        webElement.should(hidden);
     }
 
 
@@ -178,7 +201,7 @@ public class WebOperationUtils {
      * Wait for page load with Selenide Timeout
      */
     public static void waitForPageLoad() {
-        $("body").should(appears);
+        $("body").should(visible);
     }
 
     /**
@@ -243,6 +266,7 @@ public class WebOperationUtils {
             try {
                 Thread.sleep(refreshInterval);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 e.printStackTrace();
             }
         }
@@ -318,5 +342,14 @@ public class WebOperationUtils {
                 .ignoring(StaleElementReferenceException.class)
                 .ignoring(ElementClickInterceptedException.class);
         wait.until(ExpectedConditions.visibilityOfElementLocated(by));
+    }
+
+    public static void waitStep(int sec) {
+        try {
+            TimeUnit.SECONDS.sleep(sec);
+        } catch (Exception ex) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted while webdriver waiting...\n" + ex.getMessage());
+        }
     }
 }

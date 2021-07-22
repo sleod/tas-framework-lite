@@ -162,11 +162,11 @@ public abstract class PerformableTestCases {
         if (!testCaseObjects.isEmpty() && !testCaseObjects.get(0).getTestRunResult().getStepResults().isEmpty()) {
             generateAllureHTMLReport();
             generateMavenTestXMLReport(testCaseObjects);
-            if (PropertyResolver.isTFSFeedbackEnabled() && !TestRunManager.feedbackAfterSingleTest()) {
+            if (PropertyResolver.isTFSSyncEnabled() && !TestRunManager.feedbackAfterSingleTest()) {
                 TestRunManager.tfsFeedback(testCaseObjects);
             } else {
-                if (!PropertyResolver.isTFSFeedbackEnabled()) {
-                    trace("TFS Feedback disabled!");
+                if (!PropertyResolver.isTFSSyncEnabled()) {
+                    trace("TFS Test Case Synchronization is disabled!");
                 }
             }
             if (PropertyResolver.isStoreResultsToDBEnabled()) {
@@ -250,10 +250,10 @@ public abstract class PerformableTestCases {
      * override to set up selenide
      */
     protected void setUpSelenide() {
-//        Configuration.reportsFolder = "test-result/reports";
         Configuration.reportsFolder = StringUtils.chop(PropertyResolver.getDefaultTestCaseReportLocation());
         Configuration.screenshots = false;
         Configuration.timeout = PropertyResolver.getSelenideTimeout();
+        Configuration.savePageSource = false;
     }
 
 }

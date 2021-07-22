@@ -7,7 +7,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.junit.Assert;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

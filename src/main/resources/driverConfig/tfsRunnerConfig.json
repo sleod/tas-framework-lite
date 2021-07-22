@@ -1,14 +1,15 @@
 {
   "runName": "Automated Test Run with ...",
-  "planId": "436601",
-  "suiteId": "471238",
+  "planId": "583674",
+  "suiteId": "681728",
   "configurationId": "",
   "fullRun": true,
   "failureRetest": false,
   "feedbackAfterSingleTest": false,
   "testCaseFiles": {
-    "554491": "GoogleDemo2.json",
-    "556461": "GoogleDemo3.json"
+    "583699": "Demo1.tas",
+    "583676": "Demo2.tas",
+    "681723": "Demo3.tas"
   },
   "selectedTestCaseIds": [
     "554491",

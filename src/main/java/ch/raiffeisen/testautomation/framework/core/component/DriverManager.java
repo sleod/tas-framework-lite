@@ -20,6 +20,7 @@ import ch.raiffeisen.testautomation.framework.web.WebDriverProvider;
 import io.appium.java_client.AppiumDriver;
 import net.sf.json.JSONObject;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.File;
@@ -54,8 +55,20 @@ public class DriverManager {
                 webDriverProvider = installIEDriver();
                 break;
             default:
-                webDriverProvider = installChromeDriver();
+                webDriverProvider = installChromeDriver(null);
         }
+    }
+
+    /**
+     * reset chrome driver with new options
+     *
+     * @param options options
+     */
+    public static void resetChromeDriver(ChromeOptions options) {
+        if (webDriverProvider != null) {
+            webDriverProvider.close();
+        }
+        webDriverProvider = installChromeDriver(options);
     }
 
 
@@ -182,7 +195,7 @@ public class DriverManager {
         return mobileAppDriverProvider.getDriver();
     }
 
-    private static WebDriverProvider installChromeDriver() {
+    private static WebDriverProvider installChromeDriver(ChromeOptions options) {
         try {
             String path = ExternAppController.matchChromeAndDriverVersion().toString();
             driverFile = new File(path);
@@ -192,7 +205,13 @@ public class DriverManager {
         } catch (IOException ex) {
             error(ex);
         }
-        return new ChromeDriverProvider();
+        if (options == null) {
+            return new ChromeDriverProvider();
+        } else {
+            return new ChromeDriverProvider(options);
+        }
+
+
     }
 
     private static WebDriverProvider installIEDriver() {
