@@ -1,24 +1,41 @@
 #### Version Stack
 ==================
 
-* Master:  `1.0.7.01-RELEASE`
-* Develop: `1.0.7.02-SNAPSHOT`
+* Master:  `2.0.01-RELEASE`
+* Develop: `2.0.02-SNAPSHOT`
 
 #### New Features and Changes
 ========================
+Version: 2.0.02-SNAPSHOT
+* Selenide up to 5.23.0
+
+Version: 2.0.01-SNAPSHOT
+* Feature: API for reset Webdriver before test start
+* Optimization: Split tfs feedback setting to connection and syn test case
+* Optimization: warning message and error handling
+* Bug Fix: Check existence before cleanResult in AllureRestClient
+* Excluding: ch.qos.logback from net.sourceforge.tess4j
+* Add language level to maven setting
+* Optimization Selenide Conditions
+* Upgrade dependencies to latest: jackson, jersey
+* Remove jsonSimple lib
+
 Version: 1.0.7.03-Snapshot
 * Dependency Upgrade: 
-  1. java p to openJDK 14.0.1
+  1. java up to openJDK 14.0.1
   2. Junit up to 5.7.2 with dependencyManagement
   3. Appium up to 7.5.1
   4. Allure up to 2.14.0
   5. Selenide up to 5.21.0
+* Optimization: TestDataContainer
 
 Version: 1.0.7.02-Snapshot
 * Optimization: If an error occurs, a screenshot is always taken
 * Feature: new local allure report structure to fix history problem
 * Optimization: upload only result files of current run
 * Bug Fix: executor.json and Trends with wrong run number
+* Bug Fix: Fixing an error in which the number of executed test were not displayed correctly in Allure Report Service
+* Optimization: Since ChromeDriver V90 it is not possible to display the screen in full screen mode now the resolution is determined and set
 
 Version: 1.0.7.01-Snapshot
 * Feature: Add environment.properties to Allure Report Web Service
