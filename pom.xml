@@ -10,8 +10,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.version>3.8.1</maven.compiler.version>
-        <maven.compiler.source>14</maven.compiler.source>
-        <maven.compiler.target>14</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target></maven.compiler.target>
         <maven.plugin.common.version>3.1.0</maven.plugin.common.version>
         <maven.plugin.source.version>3.2.1</maven.plugin.source.version>
         <maven.resource.plugin.version>3.1.0</maven.resource.plugin.version>
@@ -75,12 +75,12 @@
             <groupId>com.codeborne</groupId>
             <artifactId>selenide</artifactId>
             <version>${selenide.version}</version>
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <groupId>org.slf4j</groupId>-->
-<!--                    <artifactId>slf4j-simple</artifactId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
+            <!--            <exclusions>-->
+            <!--                <exclusion>-->
+            <!--                    <groupId>org.slf4j</groupId>-->
+            <!--                    <artifactId>slf4j-simple</artifactId>-->
+            <!--                </exclusion>-->
+            <!--            </exclusions>-->
         </dependency>
         <dependency>
             <groupId>org.jcodec</groupId>
@@ -263,7 +263,7 @@
                 <configuration>
                     <fork>true</fork>
                     <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
+                    <target>${maven.compiler.source}</target>
                     <!-- <executable>D:/Java/x64/jdk1.8.0_111/bin/javac.exe</executable> -->
                 </configuration>
             </plugin>
@@ -371,11 +371,9 @@
 
     <distributionManagement>
         <repository>
-            <id>Test_Services_Snapshot</id>
-            <name>Test_Services_Snapshot</name>
-            <url>http://rchrepository:8081/repository/Test_Services_Snapshot</url>
+            <id>localRepo</id>
+            <name>Local repository</name>
+            <url>file://${user.home}/.m2/repository</url>
         </repository>
     </distributionManagement>
-
-    <!-->http://rchrepository:8080/nexus/content/repositories/Test_Services_Snapshot-->
 </project>

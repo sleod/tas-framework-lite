@@ -233,29 +233,33 @@ public class TestRunManager {
         //load all driver config
         TestType type = TestType.valueOf(jsonTestCase.getType().toUpperCase());
         switch (type) {
-            case WEB_APP -> {
+            case WEB_APP:
                 //init web driver for runs
                 DriverManager.setupWebDriver();
                 //set screenshot taker
                 ScreenCapture.setScreenTaker(DriverManager.getWebDriverProvider());
-            }
-            case REST -> DriverManager.setupRestDriver();
-            case MOBILE_IOS -> {
+                break;
+            case REST:
+                DriverManager.setupRestDriver();
+                break;
+            case MOBILE_IOS:
                 DriverManager.setupMobileAppDriver(type);
                 currentISOAppName = jsonTestCase.getAppName();
                 ScreenCapture.setScreenTaker(DriverManager.getMobileAppDriverProvider());
-            }
-            case MOBILE_ANDROID -> {
+                break;
+            case MOBILE_ANDROID:
                 DriverManager.setupMobileAppDriver(type);
                 currentAppName = jsonTestCase.getAppName();
                 currentAppActivity = jsonTestCase.getActivity();
                 ScreenCapture.setScreenTaker(DriverManager.getMobileAppDriverProvider());
-            }
-            case MOBILE_WEB_APP -> {
+                break;
+            case MOBILE_WEB_APP:
                 DriverManager.setupRemoteWebDriver();
                 ScreenCapture.setScreenTaker(DriverManager.getRemoteWebDriverProvider());
-            }
-            case APP -> DriverManager.setupNonDriver();
+                break;
+            case APP:
+                DriverManager.setupNonDriver();
+                break;
         }
     }
 

@@ -71,6 +71,49 @@
         "File:testData/MyData.json"
       ]
     },
+    "appName": {
+      "type": "string",
+      "description": "Start point of iOS app for mobile testing.",
+      "examples": [
+        "xxx.xxxx.google..."
+      ]
+    },
+    "activity": {
+      "type": "string",
+      "description": "Start point of android app for mobile testing.",
+      "examples": [
+        "xxx.xxx.xxx.xxx.twint..."
+      ]
+    },
+    "seriesNumber": {
+      "type": "string",
+      "description": "Test Series number for execution sequence of test case with meta",
+      "examples": [
+        "seriesNumber:suite.1.case.01",
+        "seriesNumber:suite.1.case.02"
+      ]
+    },
+    "story": {
+      "type": "string",
+      "description": "Story description of the test case.",
+      "examples": [
+        "User tries to login the system with invalid username and invalid password."
+      ]
+    },
+    "epic": {
+      "type": "string",
+      "description": "Epic description of the test case.",
+      "examples": [
+        "Login Tests Epic."
+      ]
+    },
+    "feature": {
+      "type": "string",
+      "description": "Feature description of the test case.",
+      "examples": [
+        "Invalid Login Features."
+      ]
+    },
     "startURL": {
       "type": "string",
       "description": "Start url for the test object.",
