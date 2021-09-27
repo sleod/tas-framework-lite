@@ -329,10 +329,10 @@ public class FileOperation {
     }
 
     /**
-     * get file extension starts with "."
+     * get file extension after last "."
      *
      * @param fileName file name
-     * @return extension
+     * @return extension Returns the string after character '.'
      */
     public static String getFileNameExtension(String fileName) {
         if (fileName.lastIndexOf(".") != -1 && fileName.lastIndexOf(".") != 0) {

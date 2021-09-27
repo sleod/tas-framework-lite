@@ -16,8 +16,7 @@
   "searchText1": "Yellow",
   "searchText2": "Red",
   "searchText3": "Blue",
-  "searchText4": "Grey",
-  "searchText5": "Pink",
+  "searchText4": "Black",
   "searchResultEntry": "Raiffeisen",
   "searchResultEntry1": "Search result",
   "pageTitle": "Google",
@@ -34,7 +33,7 @@
     "text3": "London"
   },
   "searchTextMap": {
-    "iphone": "iphone",
+    "iphone": "iPhone",
     "Monitor": "Monitor",
     "Keyboard": "Keyboard"
   },

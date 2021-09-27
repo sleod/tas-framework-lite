@@ -53,9 +53,9 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
         this.description = testCase.getDescription();
         try {
             initTestObjects(testCase.getTestObjectNames());
-        } catch (IOException | NoSuchFieldException | IllegalAccessException e) {
+        } catch (IOException | NoSuchFieldException | IllegalAccessException ex) {
             warn("Test Case Object initialization failed: " + jsonTestCase.getName());
-            error(e);
+            error(ex);
         }
         testDataContainer = new TestDataContainer(testCase.getTestDataRef(), testCase.getAdditionalTestDataFile());
         initTestSteps(testCase.getSteps());
@@ -64,6 +64,9 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
         parentFolderName = testCase.getPackage();
         if (testCase.getSeriesNumber() != null && !testCase.getSeriesNumber().isEmpty()) {
             seriesNumber = testCase.getSeriesNumber();
+        }
+        if (testCase.getTestCaseId() != null) {
+            setTestCaseId(testCase.getTestCaseId());
         }
     }
 
@@ -91,6 +94,9 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
         parentFolderName = jsonTestCase.getPackage();
         if (testDataContent.get(0).get("seriesNumber") != null && !testDataContent.get(0).get("seriesNumber").toString().isEmpty()) {
             seriesNumber = testDataContent.get(0).get("seriesNumber").toString();
+        }
+        if (testCase.getTestCaseId() != null) {
+            setTestCaseId(testCase.getTestCaseId());
         }
     }
 
@@ -252,11 +258,10 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
         if (PropertyResolver.isTFSSyncEnabled() && TestRunManager.feedbackAfterSingleTest()) {
             TestRunManager.tfsFeedback(Collections.singletonList(this));
         }
-        try {
-            log("TRACE", "Generate Allure Result: {}", getName());
-            ReportBuilder.generateReport(Collections.singletonList(this));
-        } catch (IOException ex) {
-            warn("IO Exception while generate report after test run!\n" + ex.getMessage());
+        log("TRACE", "Generate Allure Result: {}", getName());
+        ReportBuilder.generateReport(Collections.singletonList(this));
+        if (PropertyResolver.isAllureReportService()) {
+            TestRunManager.uploadSingleTestRunReport();
         }
     }
 

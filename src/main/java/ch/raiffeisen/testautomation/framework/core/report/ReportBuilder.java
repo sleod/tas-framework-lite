@@ -33,6 +33,8 @@ import static ch.raiffeisen.testautomation.framework.core.json.deserialization.J
 
 public class ReportBuilder {
 
+    private static final List<File> extraAttachment = new LinkedList<>();
+
     /**
      * startNow to record logs into separate file with test case name as folder
      *
@@ -55,7 +57,6 @@ public class ReportBuilder {
      * @param testRunResult test run result
      */
     public static void stopRecordingTest(TestRunResult testRunResult) {
-//        SystemLogger.removeAppender(testRunResult.getName());
         StringBuilder logContent = new StringBuilder();
         logContent.append(testRunResult.getBegin()).append("\n");
         for (TestStepResult testStepResult : testRunResult.getStepResults()) {
@@ -80,11 +81,15 @@ public class ReportBuilder {
      * @param testCaseObjects test case objects
      * @throws IOException io exception
      */
-    public static void generateReport(List<TestCaseObject> testCaseObjects) throws IOException {
-        if (PropertyResolver.getReportViewType().equalsIgnoreCase("default")) {
-            generateDefaultAllureResults(testCaseObjects);
-        } else if (PropertyResolver.getReportViewType().equalsIgnoreCase("junit")) {
-            generateJunitAllureResults(testCaseObjects);
+    public static void generateReport(List<TestCaseObject> testCaseObjects) {
+        try {
+            if (PropertyResolver.getReportViewType().equalsIgnoreCase("default")) {
+                generateDefaultAllureResults(testCaseObjects);
+            } else if (PropertyResolver.getReportViewType().equalsIgnoreCase("junit")) {
+                generateJunitAllureResults(testCaseObjects);
+            }
+        } catch (IOException ex) {
+            warn("IO Exception while generate report after test run!\n" + ex.getMessage());
         }
     }
 
@@ -105,6 +110,15 @@ public class ReportBuilder {
     }
 
     /**
+     * add extra attachment for single test case run
+     *
+     * @param attachment extra attachment
+     */
+    public static void addExtraAttachment4TestCase(File attachment) {
+        extraAttachment.add(attachment);
+    }
+
+    /**
      * generate default allure results in json files
      *
      * @param testCaseObjects test case objects
@@ -117,8 +131,7 @@ public class ReportBuilder {
             JSONTestResult jsonTestResult = new JSONTestResult(testCaseObject.getTestRunResult());
             jsonTestResult.setHistoryId(buildHistoryId(testCaseObject.getPackage() + "." + testCaseObject.getName()));
             jsonTestResult.setFullName(testCaseObject.getTestCase().getDescription());
-            jsonTestResult.addLabel("suite", testCaseObject.getPackage());
-            jsonTestResult.addLabel("testClass", testCaseObject.getTestRunResult().getName());
+            addLabels(jsonTestResult, testCaseObject);
             for (TestCaseStep testCaseStep : testCaseObject.getSteps()) {
                 //Attachment will be done by construction
                 JSONStepResult jsonStepResult = new JSONStepResult(testCaseStep, logFilePath);
@@ -141,6 +154,11 @@ public class ReportBuilder {
             if (!videoFilePath.isEmpty()) {
                 jsonTestResult.addAttachment(new File(videoFilePath).getName(), "video/mp4", videoFilePath);
             }
+            //attach extra attachments
+            if (!extraAttachment.isEmpty()) {
+                extraAttachment.forEach(file -> jsonTestResult.addAttachment(file.getName(), "text/plain", file.getAbsolutePath()));
+                extraAttachment.clear();
+            }
             allureResults.add(jsonTestResult);
         }
         JSONContainerFactory.regenerateAllureResults(allureResults);
@@ -152,20 +170,38 @@ public class ReportBuilder {
     public static void generateAllureHTMLReport() {
         String resultsPath = PropertyResolver.getAllureResultsDir();
         String reportPath = PropertyResolver.getAllureReportDir();
-        //environment.properties file
-        generateEnvironmentProperties();
-        //executor.json file
-        int currentOrder = generateExecutorJSON();
-        if (PropertyResolver.isAllureReportService()) {
-            //upload to allure report server
-            new ReportBuilderAllureService().generateAllureReportOnService();
-        }
+        int currentOrder = JSONContainerFactory.getCurrentOrder();
         //get last run history data
         restoreHistory(currentOrder - 1);
         ExternAppController.executeCommand("allure generate " + resultsPath + " -o " + reportPath + "run" + currentOrder);
         archiveResults(currentOrder);
         if (PropertyResolver.isRebaseAllureReport()) {
             rebaseExistingAllureResults();
+        }
+    }
+
+    /**
+     * generate environment properties with every thing
+     */
+    public static void generateEnvironmentProperties() {
+        Properties properties = getPropertiesList();
+        SortedProperties propertiesSorted = sortProperties(properties);
+        new File(PropertyResolver.getAllureResultsDir()).mkdirs();
+        String environment = PropertyResolver.getAllureResultsDir() + "environment.properties";
+        FileWriter fileWriter = null;
+        try {
+            fileWriter = new FileWriter(environment);
+            propertiesSorted.store(fileWriter, "Save to environment properties file.");
+        } catch (IOException ex) {
+            warn("IO Exception while generate environment file!\n" + ex.getMessage());
+        } finally {
+            try {
+                if (fileWriter != null) {
+                    fileWriter.close();
+                }
+            } catch (IOException e) {
+                error(e);
+            }
         }
     }
 
@@ -269,29 +305,20 @@ public class ReportBuilder {
         JSONContainerFactory.regenerateAllureResults(allureResults);
     }
 
-    /**
-     * generate environment properties with every thing
-     */
-    private static void generateEnvironmentProperties() {
-        Properties properties = getPropertiesList();
-        SortedProperties propertiesSorted = sortProperties(properties);
-        String environment = PropertyResolver.getAllureResultsDir() + "environment.properties";
-        FileWriter fileWriter = null;
-        try {
-            fileWriter = new FileWriter(environment);
-            propertiesSorted.store(fileWriter, "Save to environment properties file.");
-        } catch (IOException ex) {
-            warn("IO Exception while generate environment file after test run!\n" + ex.getMessage());
-        } finally {
-            try {
-                if (fileWriter != null) {
-                    fileWriter.close();
-                }
-            } catch (IOException e) {
-                error(e);
-            }
+    private static void addLabels(JSONTestResult jsonTestResult, TestCaseObject testCaseObject) {
+        addLabelToResult("suite", testCaseObject.getPackage(), jsonTestResult);
+        addLabelToResult("testClass", testCaseObject.getTestRunResult().getName(), jsonTestResult);
+        addLabelToResult("story", testCaseObject.getTestCase().getStory(), jsonTestResult);
+        addLabelToResult("epic", testCaseObject.getTestCase().getEpic(), jsonTestResult);
+        addLabelToResult("feature", testCaseObject.getTestCase().getFeature(), jsonTestResult);
+    }
+
+    private static void addLabelToResult(String name, String label, JSONTestResult jsonTestResult) {
+        if (label != null && !label.isEmpty()) {
+            jsonTestResult.addLabel(name, label);
         }
     }
+
 
     /**
      * Prueft ob alle Properties ausgegeben werden sollen,

@@ -27,13 +27,13 @@ public class ReportBuilderAllureService {
     public static final String FILE_NAME_NODE = "file_name";
     public static final String RESULTS_NODE = "results";
     public static final String resultsDir = PropertyResolver.getAllureResultsDir() + "upload/";
+    private AllureRestClient restClient;
 
     /**
      * Erzeugt den Report auf dem Allure Webservice
      */
     public void generateAllureReportOnService() {
 
-        AllureRestClient restClient = null;
         try {
             new File(resultsDir).mkdirs();
 
@@ -46,13 +46,42 @@ public class ReportBuilderAllureService {
             restClient.generateReportOnService();
 
         } finally {
-
             FileOperation.deleteFolder(resultsDir);
-
-            if (restClient != null) {
-                restClient.close();
-            }
+            closeClient();
         }
+    }
+
+    public void uploadAllureResults() {
+        try {
+            new File(resultsDir).mkdirs();
+            modifyResultFiles();
+            restClient = initAllureRestClient();
+            restClient.uploadAllureResultFiles();
+        } finally {
+            FileOperation.deleteFolder(resultsDir);
+            closeClient();
+        }
+    }
+
+    public void closeClient() {
+        if (restClient != null) {
+            restClient.close();
+            restClient = null;
+        }
+    }
+
+    public void generateReportOnService() {
+        restClient = initAllureRestClient();
+        restClient.generateReportOnService();
+        closeClient();
+    }
+
+    public void cleanResultsByPresent() {
+        restClient = initAllureRestClient();
+        if (restClient.existProject()) {
+            restClient.cleanResults();
+        }
+        closeClient();
     }
 
     protected AllureRestClient initAllureRestClient() {

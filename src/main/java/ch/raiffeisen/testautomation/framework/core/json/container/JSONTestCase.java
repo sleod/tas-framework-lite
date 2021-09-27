@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Object Container Class of JSON Test Case
  */
-public class JSONTestCase extends JSONContainer{
+public class JSONTestCase extends JSONContainer {
     @JsonProperty
     private String name;
     @JsonProperty
@@ -46,6 +46,12 @@ public class JSONTestCase extends JSONContainer{
     private List<JSONTestCaseStep> steps;
     @JsonProperty
     private String additionalTestDataFile;
+    @JsonProperty
+    private String story;
+    @JsonProperty
+    private String epic;
+    @JsonProperty
+    private String feature;
 
     @JsonIgnore
     private String parentFolderName;
@@ -219,4 +225,36 @@ public class JSONTestCase extends JSONContainer{
         this.seriesNumber = seriesNumber;
     }
 
+    public String getStory() {
+        return story;
+    }
+
+    public void setStory(String story) {
+        this.story = story;
+    }
+
+    public String getEpic() {
+        return epic;
+    }
+
+    public void setEpic(String epic) {
+        this.epic = epic;
+    }
+
+    public String getFeature() {
+        return feature;
+    }
+
+    public void setFeature(String feature) {
+        this.feature = feature;
+    }
+
+    public void addCoverage(String testCaseId) {
+        if (coverage.isEmpty()) {
+            coverage = new LinkedList<>();
+        }
+        if (!coverage.contains(testCaseId)) {
+            coverage.add(testCaseId);
+        }
+    }
 }

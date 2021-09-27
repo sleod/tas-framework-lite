@@ -1,6 +1,8 @@
 package ch.raiffeisen.testautomation.framework.core.component;
 
 import ch.raiffeisen.testautomation.framework.configuration.PropertyResolver;
+import ch.raiffeisen.testautomation.framework.core.json.deserialization.JSONContainerFactory;
+import ch.raiffeisen.testautomation.framework.core.report.ReportBuilder;
 import ch.raiffeisen.testautomation.framework.core.runner.JUnitReportingRunner;
 import com.codeborne.selenide.Configuration;
 import org.apache.commons.lang3.StringUtils;
@@ -18,6 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static ch.raiffeisen.testautomation.framework.common.logging.SystemLogger.*;
+import static ch.raiffeisen.testautomation.framework.core.json.deserialization.JSONContainerFactory.generateExecutorJSON;
 import static ch.raiffeisen.testautomation.framework.core.report.ReportBuilder.generateAllureHTMLReport;
 import static ch.raiffeisen.testautomation.framework.core.report.ReportBuilder.generateMavenTestXMLReport;
 
@@ -31,6 +34,7 @@ public abstract class PerformableTestCases {
         try {
             TestRunManager.retrieveResources(getTestRunPropertiesPath());
             TestRunManager.setPerformer(this);
+            TestRunManager.cleanResultsByPresent();
             TestRunManager.initTestCases(TestRunManager.filePaths(getFileBaseDir(), includeFilePatterns(), excludeFilePatterns()), getMetaFilters());
             sortSequenceTestCases();
             TestRunManager.loadGlobalTestData();
@@ -43,13 +47,16 @@ public abstract class PerformableTestCases {
 
     protected void sortSequenceTestCases() {
         if (sequenceCaseRunners != null && !sequenceCaseRunners.isEmpty()) {
-            sequenceCaseRunners.forEach((key, value) -> {
+            int seqNumber = 0;
+            for (Map.Entry<String, SequenceCaseRunner> entry : sequenceCaseRunners.entrySet()) {
+                SequenceCaseRunner value = entry.getValue();
                 List<TestCaseObject> valueList = value.getAllCases();
+                seqNumber++;
                 for (int i = 0; i < valueList.size(); i++) {
                     TestCaseObject testCaseObject = valueList.get(i);
-                    testCaseObject.setName(testCaseObject.getTestCase().getName() + " variante " + (i + 1));
+                    testCaseObject.setName(testCaseObject.getTestCase().getName() + " - Sequence " + seqNumber + " variante " + (i + 1));
                 }
-            });
+            }
         }
     }
 
@@ -57,8 +64,12 @@ public abstract class PerformableTestCases {
      * standard BeforeClass that will be used by jUnit framework
      */
     @BeforeClass
-    public static void beforeClass() {
+    public static void beforeTests() {
         info("Starting Test Run...");
+        //environment.properties file
+        ReportBuilder.generateEnvironmentProperties();
+        //executor.json file
+        JSONContainerFactory.generateExecutorJSON();
     }
 
     /**
@@ -68,7 +79,8 @@ public abstract class PerformableTestCases {
     public void run() {
         if (!PropertyResolver.isMultiThreadingEnabled()) {
             //first served: single cases
-            testCaseObjects.stream().filter(testCaseObject -> testCaseObject.getSeriesNumber() == null || testCaseObject.getSeriesNumber().isEmpty()).forEach(TestCaseObject::run);
+            testCaseObjects.stream().filter(testCaseObject -> testCaseObject.getSeriesNumber() == null
+                    || testCaseObject.getSeriesNumber().isEmpty()).forEach(TestCaseObject::run);
             //sequenced cases
             if (!getSequenceCaseRunners().isEmpty()) {
                 getSequenceCaseRunners().values().forEach(SequenceCaseRunner::run);
@@ -77,7 +89,8 @@ public abstract class PerformableTestCases {
             ExecutorService executor = Executors.newFixedThreadPool(PropertyResolver.getExecutionThreads());
             try {
                 //first served: single cases
-                testCaseObjects.stream().filter(testCaseObject -> testCaseObject.getSeriesNumber() == null || testCaseObject.getSeriesNumber().isEmpty()).forEach(executor::submit);
+                testCaseObjects.stream().filter(testCaseObject -> testCaseObject.getSeriesNumber() == null
+                        || testCaseObject.getSeriesNumber().isEmpty()).forEach(executor::submit);
                 //sequenced cases
                 if (!getSequenceCaseRunners().isEmpty()) {
                     getSequenceCaseRunners().values().forEach(executor::submit);
@@ -160,6 +173,7 @@ public abstract class PerformableTestCases {
     protected static void endingTests() {
         DriverManager.closeDriver();
         if (!testCaseObjects.isEmpty() && !testCaseObjects.get(0).getTestRunResult().getStepResults().isEmpty()) {
+            TestRunManager.generateReportOnService();
             generateAllureHTMLReport();
             generateMavenTestXMLReport(testCaseObjects);
             if (PropertyResolver.isTFSSyncEnabled() && !TestRunManager.feedbackAfterSingleTest()) {
@@ -256,4 +270,21 @@ public abstract class PerformableTestCases {
         Configuration.savePageSource = false;
     }
 
+    /**
+     * override to set up filter for CSV test data selection
+     *
+     * @return map of filter : <column, value>
+     */
+    protected Map<String, String> getCSVTestDataSelectionFilter() {
+        return Collections.emptyMap();
+    }
+
+    /**
+     * override to set up filter for CSV test data exclusion
+     *
+     * @return map of filter : <column, value>
+     */
+    protected Map<String, String> getCSVTestDataExclusionFilter() {
+        return Collections.emptyMap();
+    }
 }

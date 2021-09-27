@@ -26,6 +26,7 @@ public class JSONContainerFactory {
     public static final String BUILD_NAME_KEY = "buildName";
     public static final String REPORT_URL = "reportUrl";
     public static final String REPORT_NAME = "reportName";
+    private static int currentOrder;
 
 
     /**
@@ -207,11 +208,9 @@ public class JSONContainerFactory {
     }
 
     /**
-     * Generate executor json
-     *
-     * @return current build / run number
+     * Generate executor json and set current order of run
      */
-    public static int generateExecutorJSON() {
+    public static void generateExecutorJSON() {
         JSONObject executor = new JSONObject();
         String url = System.getProperty(MAIN_BUILD_URL_KEY, "http://localhost:63342/framework/target/allure-report/");
         int buildOrder = 1;
@@ -237,8 +236,13 @@ public class JSONContainerFactory {
         } catch (IOException ex) {
             error(ex);
         }
-        return buildOrder;
+        currentOrder = buildOrder;
     }
+
+    public static int getCurrentOrder() {
+        return currentOrder;
+    }
+
 
     public static JSONObject getAllureResultObject(Path path) {
         String content = FileOperation.readFileToLinedString(path.toString());

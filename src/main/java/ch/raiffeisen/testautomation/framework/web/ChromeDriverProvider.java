@@ -43,7 +43,7 @@ public class ChromeDriverProvider extends WebDriverProvider {
         if (options == null) {
             chromeDriver = new ChromeDriver(tempOptions);
         } else {
-            chromeDriver = new ChromeDriver(options.merge(tempOptions));
+            chromeDriver = new ChromeDriver(tempOptions.merge(options));
         }
         chromeDriver.manage().window().setPosition(new Point(0, 0));
         chromeDriver.manage().timeouts().implicitlyWait(6, TimeUnit.SECONDS);

@@ -8,6 +8,11 @@
 ========================
 Version: 2.0.02-SNAPSHOT
 * Selenide up to 5.23.0
+* Bug Fix: Chrome Option Merge fixed
+* Feature: 775832 Java Framework: Extra Attachment for Test Case
+* Feature: 775834 Java Framework: Single Test Data Filter für Test Case with CSV Data
+* Optimization: show sequence Number in Runner
+* Feature: 765287 Java Framework - Allure JUnit 5 Engine
 
 Version: 2.0.01-SNAPSHOT
 * Feature: API for reset Webdriver before test start
