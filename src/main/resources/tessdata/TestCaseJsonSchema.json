@@ -1,5 +1,5 @@
 {
-  "id": "https://www.raiffeisen.ch/testautomation/testcase/schema#",
+  "id": "qa/testautomation/testcase/schema#",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "RCH Test Framework - Test Case Schema",
   "type": "object",

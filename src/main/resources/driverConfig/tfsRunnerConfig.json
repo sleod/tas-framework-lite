@@ -16,11 +16,11 @@
     "556461"
   ],
   "tfsConfig": {
-    "host": "https://tfs-prod.service.raiffeisen.ch:8081/",
-    "organization": "tfs",
-    "collection": "RCH",
-    "project": "ap.testtools",
-    "pat": "vebyjjig3v7txr7eiq3he3aqbyvilqqllmwdf5d56fz64um5axua",
-    "apiVersion": "5.0"
+    "host": "",
+    "organization": "",
+    "collection": "",
+    "project": "",
+    "pat": "",
+    "apiVersion": ""
   }
 }

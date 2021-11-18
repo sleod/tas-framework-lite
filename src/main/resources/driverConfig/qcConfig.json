@@ -1,5 +1,5 @@
 {
-  "host": "http://vaafist916.ad.raiffeisen.ch:8080/qcbin",
+  "host": "http://.ad.ch:8080/qcbin",
   "domain": "DEFAULT",
   "project": "TEST_Automation_S2_2018",
   "testplan.rootfolder": "Subject/Trash",

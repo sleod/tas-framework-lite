@@ -1,6 +1,6 @@
 {
   "allureServiceConfig": {
-    "host": "https://vlx01193.server.raiffeisen.ch/allure/allure-docker-service",
+    "host": "https://xxxxxxx/allure/allure-docker-service",
     "project_id": "test-automation-upload-test-1",
     "force_project_creation": "true",
     "execution_name": "Automated Test",
