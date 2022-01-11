@@ -7,8 +7,6 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.Appender;
-import org.apache.logging.log4j.core.Filter;
-import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.FileAppender;
 import org.apache.logging.log4j.core.appender.RollingFileAppender;
@@ -112,7 +110,7 @@ public class SystemLogger {
         final Appender appender = WriterAppender.createAppender(layout, null, writer, appenderRef, false, true);
         appender.start();
         config.addAppender(appender);
-        updateLoggers(appender, config, appenderLevel);
+        updateAllLoggers(appender, config, appenderLevel);
         context.updateLoggers(config);
         return appender;
     }
@@ -129,7 +127,7 @@ public class SystemLogger {
         Appender appender = buildFileAppender(config, buildLayout(config, checkPattern(pattern)), fileName, appenderRef);
         appender.start();
         config.addAppender(appender);
-        updateLogger(appender, config, LOGGER_NAME, appenderLevel);
+        updateLogger(appender, config, appenderLevel);
         context.updateLoggers(config);
     }
 
@@ -140,7 +138,7 @@ public class SystemLogger {
      * @param fileName    rolling file name
      * @param filePattern file pattern for rolling
      */
-    public static void addRollingFileAppender(String logPattern, String fileName, String filePattern, String appanderRef, String appenderLevel) {
+    public static void addRollingFileAppender(String logPattern, String fileName, String filePattern, String appenderRef, String appenderLevel) {
         final LoggerContext context = (LoggerContext) LogManager.getContext(false);
         final Configuration config = context.getConfiguration();
 
@@ -151,8 +149,8 @@ public class SystemLogger {
 
         RollingFileAppender appender = RollingFileAppender.newBuilder()
                 .setConfiguration(config)
-                .withName(appanderRef)
-                .withLayout(layout)
+                .setName(appenderRef)
+                .setLayout(layout)
                 .withFileName(fileName)
                 .withFilePattern(filePattern)
                 .withPolicy(SizeBasedTriggeringPolicy.createPolicy("10MB"))
@@ -160,7 +158,7 @@ public class SystemLogger {
 
         appender.start();
         config.addAppender(appender);
-        updateLogger(appender, config, LOGGER_NAME, appenderLevel);
+        updateLogger(appender, config, appenderLevel);
         context.updateLoggers(config);
     }
 
@@ -177,7 +175,7 @@ public class SystemLogger {
         final Configuration config = context.getConfiguration();
         AppenderRef ref = AppenderRef.createAppenderRef("File", level, null);
         AppenderRef[] refs = new AppenderRef[]{ref};
-        Layout layout = buildLayout(config, checkPattern(pattern));
+        PatternLayout layout = buildLayout(config, checkPattern(pattern));
         Appender appender = buildFileAppender(config, layout, fileName, appenderRef);
         LoggerConfig loggerConfig = LoggerConfig.createLogger(false, level, "SystemLogger", "true", refs, null, config, null);
         loggerConfig.addAppender(appender, level, null);
@@ -194,12 +192,11 @@ public class SystemLogger {
      * @param appenderRef appender name
      * @return return appender
      */
-    @SuppressWarnings("unchecked")
-    public static Appender buildFileAppender(final Configuration config, Layout layout, String fileName, String appenderRef) {
+    public static Appender buildFileAppender(final Configuration config, PatternLayout layout, String fileName, String appenderRef) {
         return FileAppender.newBuilder()
                 .setConfiguration(config)
-                .withName(appenderRef)
-                .withLayout(layout)
+                .setName(appenderRef)
+                .setLayout(layout)
                 .withFileName(fileName)
                 .build();
     }
@@ -211,7 +208,7 @@ public class SystemLogger {
      * @param pattern default Pattern in case log Pattern null: "%d{ISO8601} [%t] %-5level: %msg%n%throwable"
      * @return layout
      */
-    public static Layout buildLayout(final Configuration config, String pattern) {
+    public static PatternLayout buildLayout(final Configuration config, String pattern) {
         return PatternLayout.newBuilder()
                 .withConfiguration(config)
                 .withPattern(checkPattern(pattern))
@@ -255,27 +252,23 @@ public class SystemLogger {
      * @param appender new appender to add
      * @param config   current config
      */
-    private static void updateLoggers(final Appender appender, final Configuration config, String lv) {
+    private static void updateAllLoggers(final Appender appender, final Configuration config, String lv) {
         final Level level = Level.getLevel(lv);
-        final Filter filter = null;
         for (final LoggerConfig loggerConfig : config.getLoggers().values()) {
-            loggerConfig.addAppender(appender, level, filter);
+            loggerConfig.addAppender(appender, level, null);
         }
-        config.getRootLogger().addAppender(appender, level, filter);
+        config.getRootLogger().addAppender(appender, level, null);
     }
 
     /**
      * update to named LOGGER
-     *
-     * @param appender   new appender to add
+     *  @param appender   new appender to add
      * @param config     current config
-     * @param loggerName target LOGGER
      */
-    private static void updateLogger(final Appender appender, final Configuration config, String loggerName, String lv) {
+    private static void updateLogger(final Appender appender, final Configuration config, String lv) {
         final Level level = Level.getLevel(lv);
-        final Filter filter = null;
-        LoggerConfig loggerConfig = config.getLoggerConfig(loggerName);
-        loggerConfig.addAppender(appender, level, filter);
+        LoggerConfig loggerConfig = config.getLoggerConfig(SystemLogger.LOGGER_NAME);
+        loggerConfig.addAppender(appender, level, null);
     }
 
 }

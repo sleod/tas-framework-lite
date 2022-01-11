@@ -165,20 +165,20 @@
           "testObject"
         ]
       }
-    },
-    "required": [
-      "meta",
-      "name",
-      "type",
-      "description",
-      "source",
-      "testCaseId",
-      "requirement",
-      "reference",
-      "screenshotLevel",
-      "testDataRef",
-      "startURL",
-      "steps"
-    ]
-  }
+    }
+  },
+  "required": [
+    "meta",
+    "name",
+    "type",
+    "description",
+    "source",
+    "testCaseId",
+    "requirement",
+    "reference",
+    "screenshotLevel",
+    "testDataRef",
+    "startURL",
+    "steps"
+  ]
 }

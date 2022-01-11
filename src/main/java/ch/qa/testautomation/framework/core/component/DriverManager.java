@@ -1,6 +1,5 @@
 package ch.qa.testautomation.framework.core.component;
 
-
 import ch.qa.testautomation.framework.common.enumerations.TestType;
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;

@@ -7,6 +7,7 @@ import ch.qa.testautomation.framework.common.utils.ZipUtils;
 import ch.qa.testautomation.framework.core.json.container.JSONRunnerConfig;
 import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.framework.rest.TFS.connection.TFSRestClient;
+import io.github.bonigarcia.wdm.WebDriverManager;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -21,9 +22,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 public class ExternAppController {
 
-    private static final String matchPattern = "(\\d+)[\\.](\\d+)[\\.](\\d+)[\\.](\\d+)";
+    private static final String matchPattern = "(\\d+)[.](\\d+)[.](\\d+)[.](\\d+)";
     private static final Pattern pattern = Pattern.compile(matchPattern);
     private static final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
@@ -189,7 +191,7 @@ public class ExternAppController {
             while ((line = reader.readLine()) != null) {
                 output.append(line).append("\n");
             }
-            SystemLogger.trace("Output: " + output.toString());
+            SystemLogger.trace("Output: " + output);
         } catch (IOException | InterruptedException ex) {
             SystemLogger.error(ex);
         }
@@ -210,7 +212,7 @@ public class ExternAppController {
                 output.append(line).append("\n");
             }
             int exitCode = process.waitFor();
-            SystemLogger.trace("Output: " + output.toString());
+            SystemLogger.trace("Output: " + output);
         } catch (IOException | InterruptedException ex) {
             SystemLogger.error(ex);
         }
@@ -228,14 +230,15 @@ public class ExternAppController {
         String folderPath = PropertyResolver.getDefaultWebDriverBinLocation();
         String driverDir = FileLocator.getProjectBaseDir() + "/src/main/resources/" + folderPath;
         new File(driverDir).mkdirs();
+        setUpChromeDriver(driverDir);
         List<Path> paths = FileLocator.listRegularFilesRecursiveMatchedToName(driverDir, 3, "chromedriver");
         Path driverPath = null;
         if (!paths.isEmpty()) {
             driverPath = checkPaths(paths, chromeVersion);
         }
         if (paths.isEmpty() || driverPath == null) {
-            SystemLogger.warn("No File matched to current chrome browser! Try to download from TFS source!");
-            String folder = downloadChromeDrivers();
+            SystemLogger.warn("No File matched to current chrome browser! Try to download chrome driver!");
+            String folder = downloadChromeDriversFromTFS();
             paths = FileLocator.listRegularFilesRecursiveMatchedToName(folder, 3, "chromedriver");
             driverPath = checkPaths(paths, chromeVersion);
         }
@@ -271,6 +274,13 @@ public class ExternAppController {
     }
 
     /**
+     * download chrome driver
+     */
+    private static void setUpChromeDriver(String driverDir) {
+        WebDriverManager.chromedriver().cachePath(driverDir).avoidOutputTree().setup();
+    }
+
+    /**
      * get current chrome version
      *
      * @return version in string
@@ -301,7 +311,7 @@ public class ExternAppController {
      * @return folder of drivers
      * @throws IOException io exception
      */
-    public static String downloadChromeDrivers() throws IOException {
+    public static String downloadChromeDriversFromTFS() throws IOException {
         JSONRunnerConfig runnerConfig = JSONContainerFactory.loadRunnerConfig(PropertyResolver.getTFSRunnerConfigFile());
         Map<String, String> config = runnerConfig.getTfsConfig();
         TFSRestClient tfsRestClient = new TFSRestClient(config.get("host"), config.get("pat"), config.get("organization"),

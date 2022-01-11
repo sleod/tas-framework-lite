@@ -14,7 +14,7 @@
   "reference": "",
   "screenshotLevel": "ERROR",
   "testDataRef": "File:google-testData.json",
-  "additionalTestDataFile": "File:testData/google-testData.json",
+  "additionalTestDataFile": "File:testData/google-testData.csv",
   "startURL": "",
   "steps": [
     {
