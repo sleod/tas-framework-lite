@@ -1,0 +1,51 @@
+{
+  "meta": [
+    "@demo1.2",
+    "@all"
+  ],
+  "name": "Google Demo Test Case 2",
+  "type": "web_app",
+  "description": "Demo Test Case 2 with error and comment",
+  "source": "TFS",
+  "testCaseId": "583676",
+  "requirement": "",
+  "reference": "",
+  "screenshotLevel": "ERROR",
+  "testDataRef": "File:google-testData.json",
+  "startURL": "https://www.google.ch",
+  "seriesNumber": "",
+  "steps": [
+    {
+      "name": "Check Fields Present",
+      "testObject": "Google Home Page"
+    },
+    {
+      "name": "Check Page Title ää",
+      "testObject": "Google Home Page",
+      "using": "pageTitle1",
+      "stopOnError": false,
+      "takeScreenshot": true,
+      "comment": "Dieser Testfall muss fehlschlagen"
+    },
+    {
+      "name": "Search Text",
+      "testObject": "Google Home Page"
+    },
+    {
+      "name": "Check First Entry of Search Result",
+      "testObject": "Search Result Page"
+    },
+    {
+      "name": "Search Text Twice",
+      "testObject": "Google Home Page"
+    },
+    {
+      "name": "Search Text Triple",
+      "testObject": "Google Home Page"
+    },
+    {
+      "name": "Search List",
+      "testObject": "Google Home Page"
+    }
+  ]
+}

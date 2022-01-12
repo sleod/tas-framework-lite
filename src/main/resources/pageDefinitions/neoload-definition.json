@@ -1,0 +1,18 @@
+{
+  "username_inputfield": {
+    "how": "id",
+    "using": "login-username"
+  },
+  "password_inputfield": {
+    "how": "id",
+    "using": "login-password"
+  },
+  "login_button": {
+    "how": "id",
+    "using": "login-login-button"
+  },
+  "logout_button": {
+    "how": "id",
+    "using": "menu-item-log-out"
+  }
+}
