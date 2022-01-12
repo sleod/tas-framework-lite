@@ -5,7 +5,7 @@
 * [Selenide vs Selenium](Selenide-vs-Selenium.md)
 * [Selenide API](https://selenide.org/documentation.html)
   * [Screenshots](https://selenide.org/documentation/screenshots.html)
-  * [Ajax](Selenide-vs-Selenium.md#Ajax)
+  * [Ajax](Selenide-vs-Selenium.md#5-ajax-support-waiting-for-some-event-to-happen)
 * [Code snippets](Snippets.md)
 * [Workarounds for Internet Explorer](InternetExplorer.md)
 * [How Selenide creates WebDriver](How-Selenide-creates-WebDriver.md)
