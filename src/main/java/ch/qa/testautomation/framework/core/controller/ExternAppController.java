@@ -230,7 +230,6 @@ public class ExternAppController {
         String folderPath = PropertyResolver.getDefaultWebDriverBinLocation();
         String driverDir = FileLocator.getProjectBaseDir() + "/src/main/resources/" + folderPath;
         new File(driverDir).mkdirs();
-        setUpChromeDriver(driverDir);
         List<Path> paths = FileLocator.listRegularFilesRecursiveMatchedToName(driverDir, 3, "chromedriver");
         Path driverPath = null;
         if (!paths.isEmpty()) {
@@ -238,6 +237,7 @@ public class ExternAppController {
         }
         if (paths.isEmpty() || driverPath == null) {
             SystemLogger.warn("No File matched to current chrome browser! Try to download chrome driver!");
+            setUpChromeDriver(driverDir);
             String folder = downloadChromeDriversFromTFS();
             paths = FileLocator.listRegularFilesRecursiveMatchedToName(folder, 3, "chromedriver");
             driverPath = checkPaths(paths, chromeVersion);
