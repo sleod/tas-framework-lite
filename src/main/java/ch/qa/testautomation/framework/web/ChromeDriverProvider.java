@@ -8,8 +8,9 @@ import org.openqa.selenium.Point;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.*;
-import org.openqa.selenium.remote.http.W3CHttpCommandCodec;
-import org.openqa.selenium.remote.http.W3CHttpResponseCodec;
+import org.openqa.selenium.remote.codec.w3c.W3CHttpCommandCodec;
+import org.openqa.selenium.remote.codec.w3c.W3CHttpResponseCodec;
+
 
 import java.awt.*;
 import java.io.File;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
@@ -44,7 +46,7 @@ public class ChromeDriverProvider extends WebDriverProvider {
             chromeDriver = new ChromeDriver(tempOptions.merge(options));
         }
         chromeDriver.manage().window().setPosition(new Point(0, 0));
-        chromeDriver.manage().timeouts().implicitlyWait(6, TimeUnit.SECONDS);
+        chromeDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(6));
         configureWindowSize(chromeDriver);
         setDriver(chromeDriver);
     }

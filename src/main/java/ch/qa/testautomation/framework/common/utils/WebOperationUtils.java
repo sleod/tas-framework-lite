@@ -86,7 +86,7 @@ public class WebOperationUtils {
      * @return the Web Element
      */
     public static void waitUntilTextIsVisible(WebDriver driver, WebElement webElement, String textToWait, long timeout) {
-        WebDriverWait wait = new WebDriverWait(driver, timeout);
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
         wait.until(ExpectedConditions.textToBePresentInElement(webElement, textToWait));
     }
 
@@ -99,7 +99,7 @@ public class WebOperationUtils {
      * @author Andrej Bagoutdinov
      */
     public static WebElement waitUntilVisibleTimeout(WebDriver driver, WebElement webElement, long timeout) {
-        return (new WebDriverWait(driver, timeout)).until(ExpectedConditions.visibilityOf(webElement));
+        return (new WebDriverWait(driver, Duration.ofSeconds(timeout))).until(ExpectedConditions.visibilityOf(webElement));
     }
 
     /**
@@ -142,7 +142,7 @@ public class WebOperationUtils {
      * @return true if the element disappeared
      */
     public static boolean waitUntilDisappear(WebDriver driver, WebElement webElement) {
-        return (new WebDriverWait(driver, timeout)).until(ExpectedConditions.invisibilityOf(webElement));
+        return (new WebDriverWait(driver, Duration.ofSeconds(timeout))).until(ExpectedConditions.invisibilityOf(webElement));
     }
 
     /**
@@ -211,7 +211,7 @@ public class WebOperationUtils {
      * @return true if page loaded
      */
     public static boolean waitForPageLoad(WebDriver driver) {
-        Wait<WebDriver> wait = new WebDriverWait(driver, timeout);
+        Wait<WebDriver> wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("Body")));
         return true;
     }
@@ -224,7 +224,7 @@ public class WebOperationUtils {
      * @return WebElement expected element
      */
     public static WebElement waitForElementLoad(WebDriver driver, By selector) {
-        Wait<WebDriver> wait = new WebDriverWait(driver, timeout);
+        Wait<WebDriver> wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
         wait.until(ExpectedConditions.presenceOfElementLocated(selector));
         return driver.findElement(selector);
     }
@@ -238,7 +238,7 @@ public class WebOperationUtils {
      * @return true case the page with body showed
      */
     public static WebElement waitForPageLoadByClickability(WebDriver driver, WebElement webElement, int timeOut) {
-        return (new WebDriverWait(driver, timeOut)).until(ExpectedConditions.elementToBeClickable(webElement));
+        return (new WebDriverWait(driver, Duration.ofSeconds(timeout))).until(ExpectedConditions.elementToBeClickable(webElement));
     }
 
     /**
@@ -303,7 +303,7 @@ public class WebOperationUtils {
      * @author Andrej Bagoutdinov
      */
     public static void checkIfUrlContains(WebDriver driver, long timeout, String partOfText) {
-        WebDriverWait wait = new WebDriverWait(driver, timeout);
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
         ExpectedCondition<Boolean> urlIsCorrect = arg0 -> driver.getCurrentUrl().contains(partOfText);
         wait.until(urlIsCorrect);
     }

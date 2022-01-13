@@ -187,7 +187,7 @@ public class DriverManager {
         return restDriverProvider.getDriver(host, encodedKey);
     }
 
-    public static AppiumDriver<?> getAppDriver() {
+    public static AppiumDriver getAppDriver() {
         return mobileAppDriverProvider.getDriver();
     }
 

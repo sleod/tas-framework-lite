@@ -6,6 +6,7 @@ import org.openqa.selenium.Point;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.ie.InternetExplorerOptions;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 public class IEDriverProvider extends WebDriverProvider {
@@ -26,7 +27,7 @@ public class IEDriverProvider extends WebDriverProvider {
         Dimension di = new Dimension(Integer.parseInt(size[0]), Integer.parseInt(size[1]));
         ieDriver.manage().window().setPosition(po);
         ieDriver.manage().window().setSize(di);
-        ieDriver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+        ieDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
         if (isIEMaximised()){
             ieDriver.manage().window().maximize();
         }

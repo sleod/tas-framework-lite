@@ -4,13 +4,13 @@ import ch.qa.testautomation.framework.core.component.TestRunManager;
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.core.json.container.JSONDriverConfig;
 import io.appium.java_client.ios.IOSDriver;
-import io.appium.java_client.ios.IOSElement;
 import org.openqa.selenium.Platform;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -27,12 +27,12 @@ public class IOSDriverProvider extends MobileAppDriverProvider {
     }
 
     @Override
-    public IOSDriver<IOSElement> getDriver() {
+    public IOSDriver getDriver() {
         if (driver == null) {
             initialize();
         }
         //noinspection unchecked
-        return (IOSDriver<IOSElement>) driver;
+        return (IOSDriver) driver;
     }
 
     @Override
@@ -56,8 +56,8 @@ public class IOSDriverProvider extends MobileAppDriverProvider {
                 }
                 try {
                     SystemLogger.trace("Try to connect: " + hubURL);
-                    driver = new IOSDriver<IOSElement>(new URL(hubURL), capabilities);
-                    driver.manage().timeouts().implicitlyWait(180, TimeUnit.SECONDS);
+                    driver = new IOSDriver(new URL(hubURL), capabilities);
+                    driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(180));
                 } catch (MalformedURLException | WebDriverException e) {
                     if (driver != null) {
                         driver.quit();

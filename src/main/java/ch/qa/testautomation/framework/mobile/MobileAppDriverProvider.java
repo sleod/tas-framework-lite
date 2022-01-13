@@ -17,7 +17,7 @@ import static ch.qa.testautomation.framework.common.logging.ScreenCapture.getScr
 public abstract class MobileAppDriverProvider implements DriverProvider, ScreenshotTaker {
 
     protected String hubURL;
-    protected AppiumDriver<?> driver = null;
+    protected AppiumDriver driver = null;
     protected DesiredCapabilities capabilities = null;
     protected List<JSONDriverConfig> configs;
 
@@ -32,7 +32,7 @@ public abstract class MobileAppDriverProvider implements DriverProvider, Screens
 
     @Override
     @SuppressWarnings("unchecked")
-    public AppiumDriver<?> getDriver() {
+    public AppiumDriver getDriver() {
         if (this.driver == null) {
             initialize();
         }

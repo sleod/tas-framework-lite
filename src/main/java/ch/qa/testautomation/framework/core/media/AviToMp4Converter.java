@@ -5,6 +5,9 @@ import java.util.Date;
 
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ws.schild.jave.*;
+import ws.schild.jave.encode.AudioAttributes;
+import ws.schild.jave.encode.EncodingAttributes;
+import ws.schild.jave.encode.VideoAttributes;
 
 public class AviToMp4Converter {
     public void AviToMp4(String oldPath, String newPath) {
@@ -22,7 +25,8 @@ public class AviToMp4Converter {
         video.setBitRate(3200000);
         video.setFrameRate(15); // small digital set, the video will Caton
         EncodingAttributes attrs = new EncodingAttributes();
-        attrs.setFormat("mp4");
+        attrs.setInputFormat("avi");
+        attrs.setOutputFormat("mp4");
         attrs.setAudioAttributes(audio);
         attrs.setVideoAttributes(video);
         Encoder encoder = new Encoder();

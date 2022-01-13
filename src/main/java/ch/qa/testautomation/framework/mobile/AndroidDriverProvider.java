@@ -4,13 +4,13 @@ import ch.qa.testautomation.framework.core.component.TestRunManager;
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.core.json.container.JSONDriverConfig;
 import io.appium.java_client.android.AndroidDriver;
-import io.appium.java_client.android.AndroidElement;
 import org.openqa.selenium.Platform;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -27,11 +27,11 @@ public class AndroidDriverProvider extends MobileAppDriverProvider {
 
     @SuppressWarnings("unchecked")
     @Override
-    public AndroidDriver<AndroidElement> getDriver() {
+    public AndroidDriver getDriver() {
         if (driver == null) {
             initialize();
         }
-        return (AndroidDriver<AndroidElement>) driver;
+        return (AndroidDriver) driver;
     }
 
     @Override
@@ -61,8 +61,8 @@ public class AndroidDriverProvider extends MobileAppDriverProvider {
                     capabilities.asMap().forEach((key, value) -> SystemLogger.trace("Capability: " + key + " -> " + value));
                 }
                 try {
-                    driver = new AndroidDriver<AndroidElement>(new URL(hubURL), capabilities);
-                    driver.manage().timeouts().implicitlyWait(180, TimeUnit.SECONDS);
+                    driver = new AndroidDriver(new URL(hubURL), capabilities);
+                    driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(180));
                     break;
                 } catch (MalformedURLException | WebDriverException e) {
                     if (driver != null) {

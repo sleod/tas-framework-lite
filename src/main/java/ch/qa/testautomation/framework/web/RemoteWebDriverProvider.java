@@ -15,9 +15,9 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class RemoteWebDriverProvider implements DriverProvider, ScreenshotTaker {
 
@@ -86,34 +86,9 @@ public class RemoteWebDriverProvider implements DriverProvider, ScreenshotTaker 
                     platform = Platform.valueOf(config.getPlatformName().toUpperCase());
                     hubURL = config.getHubURL();
                     if (capabilities == null) {
-                        switch (browserName) {
-                            case FIREFOX:
-                                capabilities = DesiredCapabilities.firefox();
-                                break;
-                            case CHROME:
-                                capabilities = new DesiredCapabilities();
-                                break;
-                            case ANDROID:
-                                capabilities = DesiredCapabilities.android();
-                                break;
-                            case IPAD:
-                                capabilities = DesiredCapabilities.ipad();
-                                break;
-                            case IPHONE:
-                                capabilities = DesiredCapabilities.iphone();
-                                break;
-                            case EDGE:
-                                capabilities = DesiredCapabilities.edge();
-                                break;
-                            case IE:
-                                capabilities = DesiredCapabilities.internetExplorer();
-                                break;
-                            case SAFARI:
-                                capabilities = DesiredCapabilities.safari();
-                                break;
-                        }
-                        capabilities.setBrowserName(config.getBrowserName());
-                        capabilities.setCapability("platformName", config.getPlatformName());
+                        capabilities = new DesiredCapabilities();
+                        capabilities.setBrowserName(browserName.value());
+                        capabilities.setCapability("platformName", platform.name());
                         if (grdnUUID != null && !grdnUUID.isEmpty()) {
                             capabilities.setCapability("grdn_uuid", grdnUUID);
                         } else if (realDeviceUuid != null && !realDeviceUuid.isEmpty()) {
@@ -125,7 +100,7 @@ public class RemoteWebDriverProvider implements DriverProvider, ScreenshotTaker 
                     }
                     try {
                         driver = new RemoteWebDriver(new URL(hubURL), capabilities);
-                        driver.manage().timeouts().implicitlyWait(180, TimeUnit.SECONDS);
+                        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(180));
                         break;
                     } catch (MalformedURLException | WebDriverException e) {
                         if (driver != null) {
