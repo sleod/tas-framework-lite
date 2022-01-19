@@ -11,8 +11,15 @@ import java.util.*;
  * configured only for mysql and oracle now
  */
 public class DBConnector {
+    @Deprecated
+    public static List<Map<String, Object>> connectAndExcute(String dbType, String host, String user, String port,
+                                                             String dbName, String password, String sql) {
+        return connectAndExecute(dbType, host, user, port, dbName, password, sql, true);
+    }
 
-    public static List<Map<String, Object>> connectAndExcute(String dbType, String host, String user, String port, String dbName, String password, String sql) {
+
+    public static List<Map<String, Object>> connectAndExecute(String dbType, String host, String user, String port,
+                                                              String dbName, String password, String sql, boolean traceInfo) {
         Connection connect = null;
         List<Map<String, Object>> results = new ArrayList<>();
         String url = "";
@@ -23,11 +30,17 @@ public class DBConnector {
                     Class.forName("com.mysql.jdbc.Driver");
                     url = "jdbc:mysql://" + host;
                     break;
-                case "oracle":
+                case "oracle-SID":
                     // Load driver
                     Class.forName("oracle.jdbc.OracleDriver");
-                    // Setup the connection with the DB
+                    // Setup the connection of DB with SID
                     url = "jdbc:oracle:thin:@" + host + ":" + port + ":" + dbName;
+                    break;
+                case "oracle-SN":
+                    // Load driver
+                    Class.forName("oracle.jdbc.OracleDriver");
+                    // Setup the connection of DB with Service Name
+                    url = "jdbc:oracle:thin:@" + host + ":" + port + "/" + dbName;
                     break;
                 case "mssql":
                     Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
@@ -47,7 +60,7 @@ public class DBConnector {
             // Result set get the result of the SQL query
             ResultSet resultSet = statement.executeQuery(sql);
             SystemLogger.trace("Execute SQL: " + sql);
-            results = writeResultSet(resultSet);
+            results = writeResultSet(resultSet, traceInfo);
         } catch (ClassNotFoundException | SQLException e) {
             SystemLogger.error(e);
         } finally {
@@ -69,11 +82,13 @@ public class DBConnector {
      * @return list of rows in map
      * @throws SQLException sql exception
      */
-    private static List<Map<String, Object>> writeResultSet(ResultSet resultSet) throws SQLException {
+    private static List<Map<String, Object>> writeResultSet(ResultSet resultSet, boolean traceInfo) throws SQLException {
         List<Map<String, Object>> results = new ArrayList<>(resultSet.getRow());
         // ResultSet is initially before the first data set
         while (resultSet.next()) {
-            SystemLogger.trace("Table Line: ----------------------------------------");
+            if (traceInfo) {
+                SystemLogger.trace("Table Line: ----------------------------------------");
+            }
             // It is possible to get the columns via name
             // also possible to get the columns via the column number
             // which starts at 1
@@ -84,7 +99,9 @@ public class DBConnector {
             for (int i = 1; i <= columns; i++) {
                 String colName = rsmd.getColumnName(i);
                 row.put(colName, resultSet.getString(colName));
-                SystemLogger.trace("Column: " + colName + ": " + row.get(colName));
+                if (traceInfo) {
+                    SystemLogger.trace("Column: " + colName + ": " + row.get(colName));
+                }
             }
             results.add(row);
         }

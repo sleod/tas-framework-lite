@@ -289,8 +289,8 @@ public class TestDataContainer {
     private void loadDBContent(String testDataRef) {
         String sql = FileOperation.readFileToLinedString(testDataRef);
         JSONObject config = JSONContainerFactory.getConfig(PropertyResolver.getDBConfigFile());
-        dataContent = DBConnector.connectAndExcute(config.getString("type"), config.getString("host"),
-                config.getString("user"), config.getString("port"), config.getString("instance.name"), config.getString("password"), sql);
+        dataContent = DBConnector.connectAndExecute(config.getString("type"), config.getString("host"),
+                config.getString("user"), config.getString("port"), config.getString("instance.name"), config.getString("password"), sql, true);
     }
 
     //todo: define xml content loader
