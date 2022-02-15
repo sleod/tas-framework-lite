@@ -366,4 +366,23 @@ public class ExternAppController {
     public static Rectangle findSubImageOnScreen(BufferedImage subImage, int subWidth, int subHeight, double allowedPixelFailsPercent, int allowedPixelColorDifference) throws AWTException {
         return FindImageInImage.findSubImage(subImage, subWidth, subHeight, UserRobot.captureMainFullScreen(), screenSize.width, screenSize.height, allowedPixelFailsPercent, allowedPixelColorDifference);
     }
+
+    /**
+     * find edge driver file
+     *
+     * @return path
+     */
+    public static Path findEdgeDriver() {
+        //scan driver infolder
+        String folderPath = PropertyResolver.getDefaultWebDriverBinLocation();
+        String driverFileName = PropertyResolver.getEdgeDriverFileName();
+        String driverDir = FileLocator.getProjectBaseDir() + "/src/main/resources/" + folderPath;
+        new File(driverDir).mkdirs();
+        List<Path> paths = FileLocator.listRegularFilesRecursiveMatchedToName(driverDir, 3, driverFileName);
+        if (!paths.isEmpty()) {
+            return paths.get(0);
+        } else {
+            throw new RuntimeException("No matched driver for current test browser was found.");
+        }
+    }
 } 

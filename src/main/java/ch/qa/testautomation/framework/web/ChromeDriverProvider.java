@@ -3,7 +3,6 @@ package ch.qa.testautomation.framework.web;
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import org.openqa.selenium.Capabilities;
-import org.openqa.selenium.Dimension;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -11,8 +10,6 @@ import org.openqa.selenium.remote.*;
 import org.openqa.selenium.remote.codec.w3c.W3CHttpCommandCodec;
 import org.openqa.selenium.remote.codec.w3c.W3CHttpResponseCodec;
 
-
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -21,10 +18,9 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
 
 public class ChromeDriverProvider extends WebDriverProvider {
-    private ChromeOptions options;
+    private final ChromeOptions options;
 
     public ChromeDriverProvider() {
         options = null;
@@ -47,30 +43,8 @@ public class ChromeDriverProvider extends WebDriverProvider {
         }
         chromeDriver.manage().window().setPosition(new Point(0, 0));
         chromeDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(6));
-        configureWindowSize(chromeDriver);
+        configureWindowSize(chromeDriver, isChromeMaximised());
         setDriver(chromeDriver);
-    }
-
-    private static void configureWindowSize(ChromeDriver driver) {
-
-        int width = 0;
-        int height = 0;
-
-        if (isChromeMaximised()) {
-
-            java.awt.Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
-            width = size.width;
-            height = size.height;
-        } else {
-
-            String[] dimensions = PropertyResolver.getScreenSize().split(",");
-            width = Integer.parseInt(dimensions[0]);
-            height = Integer.parseInt(dimensions[1]);
-
-        }
-
-        driver.manage().window().setSize(new Dimension(width, height));
-        SystemLogger.trace("Used screen size width: " + width + " height: " + height);
     }
 
     private static ChromeOptions getChromeOptions() {
@@ -87,7 +61,7 @@ public class ChromeDriverProvider extends WebDriverProvider {
     }
 
     public static boolean isHeadlessChrome() {
-        return PropertyResolver.useHeadlessChrome();
+        return PropertyResolver.useHeadlessMode();
     }
 
     public static boolean isChromeMaximised() {

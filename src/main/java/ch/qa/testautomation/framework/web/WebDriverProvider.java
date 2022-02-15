@@ -4,19 +4,20 @@ import ch.qa.testautomation.framework.common.logging.ScreenCapture;
 import ch.qa.testautomation.framework.common.logging.Screenshot;
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.common.utils.WindowsUtils;
+import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.component.TestStepMonitor;
-import ch.qa.testautomation.framework.core.json.container.JSONDriverConfig;
 import ch.qa.testautomation.framework.intefaces.DriverProvider;
 import ch.qa.testautomation.framework.intefaces.ScreenshotTaker;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
+import java.awt.*;
 import java.util.LinkedHashMap;
 import java.util.Objects;
 
 public abstract class WebDriverProvider implements ScreenshotTaker, DriverProvider {
-    private static LinkedHashMap<String, WebDriver> drivers = new LinkedHashMap<>();
-    private static JSONDriverConfig config = null;
+    private static final LinkedHashMap<String, WebDriver> drivers = new LinkedHashMap<>();
+
 
     public void setDriver(WebDriver driver) {
         drivers.put(Thread.currentThread().getName(), driver);
@@ -58,4 +59,21 @@ public abstract class WebDriverProvider implements ScreenshotTaker, DriverProvid
         RemoteWebDriver driver = (RemoteWebDriver) drivers.get(Thread.currentThread().getName());
         return ScreenCapture.getScreenshot(testStepMonitor, driver);
     }
+
+    public static void configureWindowSize(WebDriver driver, boolean useMaxSize) {
+        int width;
+        int height;
+        if (useMaxSize) {
+            java.awt.Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
+            width = size.width;
+            height = size.height;
+        } else {
+            String[] dimensions = PropertyResolver.getScreenSize().split(",");
+            width = Integer.parseInt(dimensions[0]);
+            height = Integer.parseInt(dimensions[1]);
+        }
+        driver.manage().window().setSize(new org.openqa.selenium.Dimension(width, height));
+        SystemLogger.trace("Used screen size width: " + width + " height: " + height);
+    }
+
 }

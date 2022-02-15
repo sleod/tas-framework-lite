@@ -11,6 +11,9 @@ import java.util.*;
  * configured only for mysql and oracle now
  */
 public class DBConnector {
+    /**
+     * @deprecated use {@link DBConnector#connectAndExecute(String, String, String, String, String, String, String, boolean)}
+     */
     @Deprecated
     public static List<Map<String, Object>> connectAndExcute(String dbType, String host, String user, String port,
                                                              String dbName, String password, String sql) {
@@ -76,7 +79,7 @@ public class DBConnector {
     }
 
     /**
-     * use to write db resultset into list of map
+     * use to write db result-set into list of map
      *
      * @param resultSet db result set
      * @return list of rows in map

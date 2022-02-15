@@ -110,8 +110,8 @@ public class PropertyResolver {
         return System.getProperty(PropertyKey.WEBDRIVER_CHROME_DRIVER.key());
     }
 
-    public static void setWebDriverIEProperty(String path) {
-        setProperty(PropertyKey.WEBDRIVER_IE_DRIVER.key(), path);
+    public static void setWebDriverEdgeProperty(String path) {
+        setProperty(PropertyKey.WEBDRIVER_EDGE_DRIVER.key(), path);
     }
 
     public static String getWebDriverName() {
@@ -130,12 +130,12 @@ public class PropertyResolver {
         return System.getProperty("os.name").toLowerCase().contains("windows");
     }
 
-    public static String getIEDriverFileName() {
-        return System.getProperty(PropertyKey.WEBDRIVER_IE_FILENAME.key(), "IEDriverServer.exe");
+    public static String getEdgeDriverFileName() {
+        return System.getProperty(PropertyKey.WEBDRIVER_EDGE_FILENAME.key(), "msedgedirver");
     }
 
-    public static void setIEDriverFileName(String fileName) {
-        setProperty(PropertyKey.WEBDRIVER_IE_FILENAME.key(), fileName);
+    public static void setEdgeDriverFileName(String fileName) {
+        setProperty(PropertyKey.WEBDRIVER_EDGE_FILENAME.key(), fileName);
     }
 
     public static String getChromeDriverFileName() {
@@ -180,7 +180,7 @@ public class PropertyResolver {
         return System.getProperty(PropertyKey.TEST_DRIVER_MOBILE_CONFIG.key());
     }
 
-    public static boolean useHeadlessChrome() {
+    public static boolean useHeadlessMode() {
         return System.getProperty(PropertyKey.USE_HEADLESS_CHROME.key(), "false").equalsIgnoreCase("true");
     }
 
@@ -194,11 +194,6 @@ public class PropertyResolver {
 
     public static String getScreenSize() {
         return System.getProperty(PropertyKey.SCREEN_SIZE.key(), "1920,1080");
-    }
-
-
-    public static boolean keepIECache() {
-        return System.getProperty(PropertyKey.DRIVER_IE_KEEP_CACHE.key(), "false").equalsIgnoreCase("true");
     }
 
     public static String getDemoModeHighLightColor() {

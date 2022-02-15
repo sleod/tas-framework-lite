@@ -7,14 +7,13 @@ import ch.qa.testautomation.framework.core.controller.ExternAppController;
 import ch.qa.testautomation.framework.mobile.AndroidDriverProvider;
 import ch.qa.testautomation.framework.mobile.IOSDriverProvider;
 import ch.qa.testautomation.framework.mobile.MobileAppDriverProvider;
-import ch.qa.testautomation.framework.common.IOUtils.FileLocator;
 import ch.qa.testautomation.framework.common.utils.WebOperationUtils;
 import ch.qa.testautomation.framework.core.json.container.JSONDriverConfig;
 import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.framework.rest.RestDriverProvider;
 import ch.qa.testautomation.framework.rest.RestfulDriver;
 import ch.qa.testautomation.framework.web.ChromeDriverProvider;
-import ch.qa.testautomation.framework.web.IEDriverProvider;
+import ch.qa.testautomation.framework.web.EdgeDriverProvider;
 import ch.qa.testautomation.framework.web.RemoteWebDriverProvider;
 import ch.qa.testautomation.framework.web.WebDriverProvider;
 import io.appium.java_client.AppiumDriver;
@@ -48,7 +47,7 @@ public class DriverManager {
                 webDriverProvider = installFirefoxDriver();
                 break;
             case "ie":
-                webDriverProvider = installIEDriver();
+                webDriverProvider = installEdgeDriver();
                 break;
             default:
                 webDriverProvider = installChromeDriver(null);
@@ -206,20 +205,19 @@ public class DriverManager {
         } else {
             return new ChromeDriverProvider(options);
         }
-
-
     }
 
-    private static WebDriverProvider installIEDriver() {
+    private static WebDriverProvider installEdgeDriver() {
         if (PropertyResolver.isWindows()) {
-            String path = FileLocator.findResource(PropertyResolver.getDefaultWebDriverBinLocation() + PropertyResolver.getIEDriverFileName()).toString();
+            String path = ExternAppController.findEdgeDriver().toString();
             driverFile = new File(path);
             driverFile.setExecutable(true);
-            PropertyResolver.setWebDriverIEProperty(driverFile.getPath());
+            PropertyResolver.setWebDriverEdgeProperty(driverFile.getPath());
+            PropertyResolver.setEdgeDriverFileName(driverFile.getName());
         } else {
             throw new RuntimeException("IE Driver can not be run in non windows OS!");
         }
-        return new IEDriverProvider();
+        return new EdgeDriverProvider();
     }
 
     private static WebDriverProvider installFirefoxDriver() {
