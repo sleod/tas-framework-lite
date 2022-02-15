@@ -28,9 +28,9 @@ public class WebAppTestCases extends PerformableTestCases {
      */
     @BeforeTest
     public static void beforeTest() {
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("headless");
-        DriverManager.resetChromeDriver(options);
+//        ChromeOptions options = new ChromeOptions();
+//        options.addArguments("headless");
+//        DriverManager.resetChromeDriver(options);
     }
 
     /**
@@ -39,9 +39,9 @@ public class WebAppTestCases extends PerformableTestCases {
      */
     @AfterTest
     public static void afterTest() {
-        DriverManager.closeDriver();
-        DriverManager.setupWebDriver();
-        TestRunManager.addExtraAttachment4TestCase("C:/output/test.log");
+//        DriverManager.closeDriver();
+//        DriverManager.setupWebDriver();
+//        TestRunManager.addExtraAttachment4TestCase("C:/output/test.log");
     }
 
     /**
