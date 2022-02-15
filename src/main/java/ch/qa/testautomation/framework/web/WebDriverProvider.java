@@ -16,7 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.Objects;
 
 public abstract class WebDriverProvider implements ScreenshotTaker, DriverProvider {
-    private static final LinkedHashMap<String, WebDriver> drivers = new LinkedHashMap<>();
+    private static LinkedHashMap<String, WebDriver> drivers = new LinkedHashMap<>();
 
 
     public void setDriver(WebDriver driver) {
