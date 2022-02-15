@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ch.qa.testautomation</groupId>
     <artifactId>framework</artifactId>
-    <version>3.0.0-qa-RELEASE</version>
+    <version>3.0.1-qa-RELEASE</version>
     <name>testautomation-framework</name>
 
     <properties>
@@ -12,9 +12,10 @@
         <maven.compiler.version>3.8.1</maven.compiler.version>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-        <maven.plugin.common.version>3.1.0</maven.plugin.common.version>
+        <maven.plugin.jar.version>3.2.2</maven.plugin.jar.version>
+        <maven.plugin.assembly.version>3.3.0</maven.plugin.assembly.version>
         <maven.plugin.source.version>3.2.1</maven.plugin.source.version>
-        <maven.resource.plugin.version>3.1.0</maven.resource.plugin.version>
+        <maven.plugin.resource.version>3.2.0</maven.plugin.resource.version>
         <maven.surefire.version>3.0.0-M5</maven.surefire.version>
         <allure.version>2.17.2</allure.version>
         <aspectj.version>1.9.7</aspectj.version>
@@ -32,6 +33,7 @@
         <jira.client.version>0.5</jira.client.version>
         <log4j.version>2.17.1</log4j.version>
         <ms.sqlserver.version>9.4.1.jre8</ms.sqlserver.version>
+        <oracle.jdbc.version>21.1.0.0</oracle.jdbc.version>
         <poi.version>5.0.0</poi.version>
         <reflection.version>0.10.2</reflection.version>
         <spring.version>5.3.14</spring.version>
@@ -246,7 +248,11 @@
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
             <version>${ms.sqlserver.version}</version>
-            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.oracle.database.jdbc</groupId>
+            <artifactId>ojdbc11</artifactId>
+            <version>${oracle.jdbc.version}</version>
         </dependency>
         <dependency>
             <groupId>org.aspectj</groupId>
@@ -341,7 +347,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>${maven.resource.plugin.version}</version>
+                <version>${maven.plugin.resource.version}</version>
                 <executions>
                     <execution>
                         <id>copy-resources</id>
@@ -368,7 +374,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>${maven.plugin.common.version}</version>
+                <version>${maven.plugin.jar.version}</version>
                 <configuration>
                     <excludes>
                         <exclude>**/*.exe</exclude>
@@ -376,37 +382,37 @@
                     </excludes>
                 </configuration>
             </plugin>
-            <!--            <plugin>
-                            <groupId>org.apache.maven.plugins</groupId>
-                            <artifactId>maven-assembly-plugin</artifactId>
-                            <version>${maven.plugin.common.version}</version>
-                            <configuration>
-                                <descriptorRefs>
-                                    <descriptorRef>jar-with-dependencies</descriptorRef>
-                                </descriptorRefs>
-                                <appendAssemblyId>false</appendAssemblyId>
-                                <archive>
-                                    <manifest>
-                                        <mainClass>PerformableTestCases</mainClass>
-                                    </manifest>
-                                    <manifestEntries>
-                                        <Project-Version>${project.version}</Project-Version>
-                                        <Build-Date>${maven.build.timestamp}</Build-Date>
-                                        <Project-Name>${project.artifactId}_${project.version}</Project-Name>
-                                    </manifestEntries>
-                                </archive>
-                            </configuration>
-                            <executions>
-                                <execution>
-                                    <id>make-assembly</id>
-                                    <phase>package</phase>
-                                    <goals>
-                                        <goal>single</goal>
-                                    </goals>
-                                </execution>
-                            </executions>
-                        </plugin>
-            -->
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-assembly-plugin</artifactId>-->
+<!--                <version>${maven.plugin.assembly.version}</version>-->
+<!--                <configuration>-->
+<!--                    <descriptorRefs>-->
+<!--                        <descriptorRef>jar-with-dependencies</descriptorRef>-->
+<!--                    </descriptorRefs>-->
+<!--                    <appendAssemblyId>false</appendAssemblyId>-->
+<!--                    <archive>-->
+<!--                        <manifest>-->
+<!--                            <mainClass>PerformableTestCases</mainClass>-->
+<!--                        </manifest>-->
+<!--                        <manifestEntries>-->
+<!--                            <Project-Version>${project.version}</Project-Version>-->
+<!--                            <Build-Date>${maven.build.timestamp}</Build-Date>-->
+<!--                            <Project-Name>${project.artifactId}_${project.version}</Project-Name>-->
+<!--                        </manifestEntries>-->
+<!--                    </archive>-->
+<!--                </configuration>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>make-assembly</id>-->
+<!--                        <phase>package</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>single</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
