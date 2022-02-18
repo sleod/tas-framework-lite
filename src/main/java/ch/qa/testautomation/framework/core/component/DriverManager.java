@@ -198,6 +198,7 @@ public class DriverManager {
             PropertyResolver.setChromeDriverPath(driverFile.getPath());
             PropertyResolver.setChromeDriverFileName(driverFile.getName());
         } catch (IOException ex) {
+            SystemLogger.warn("Install Chrome driver failed!");
             SystemLogger.error(ex);
         }
         if (options == null) {
@@ -215,7 +216,7 @@ public class DriverManager {
             PropertyResolver.setWebDriverEdgeProperty(driverFile.getPath());
             PropertyResolver.setEdgeDriverFileName(driverFile.getName());
         } else {
-            throw new RuntimeException("IE Driver can not be run in non windows OS!");
+            throw new RuntimeException("Edge Driver can not be run in non windows OS!");
         }
         return new EdgeDriverProvider();
     }
