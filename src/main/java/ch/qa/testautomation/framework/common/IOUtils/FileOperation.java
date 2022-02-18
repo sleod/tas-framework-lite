@@ -360,4 +360,13 @@ public class FileOperation {
             warn("IOException while moving file " + srcFile + " to " + tarFile + "!\n" + ex.getMessage());
         }
     }
+    
+    public static void copyFileTo(Path srcFile, Path tarFile){
+        try {
+            Files.copy(srcFile, tarFile, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException ex) {
+            warn("IOException while moving file " + srcFile + " to " + tarFile + "!\n" + ex.getMessage());
+            error(ex);
+        }
+    }
 }
