@@ -1,6 +1,7 @@
 package ch.qa.testautomation.framework.rest.TFS.connection;
 
 import ch.qa.testautomation.framework.common.enumerations.TestStatus;
+import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.common.utils.SafeCase;
 import ch.qa.testautomation.framework.common.utils.TimeUtils;
 import ch.qa.testautomation.framework.core.component.TestRunResult;
@@ -334,6 +335,7 @@ public class TFSRestClient {
         Response response = tfsConnector.downloadItemsInFolderAsZip(path, folder);
         if (response.getStatus() == 200) {
             targetFile.getParentFile().mkdirs();
+            SystemLogger.trace("Write to target: " + targetFile.getAbsolutePath());
             Files.copy(response.readEntity(InputStream.class), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } else {
             throw new RuntimeException("Fail to download files from path! Response Code: " + response.getStatus());
