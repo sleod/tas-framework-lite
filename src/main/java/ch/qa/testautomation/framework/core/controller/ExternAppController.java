@@ -1,5 +1,6 @@
 package ch.qa.testautomation.framework.core.controller;
 
+import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.common.IOUtils.FileLocator;
@@ -7,7 +8,6 @@ import ch.qa.testautomation.framework.common.utils.ZipUtils;
 import ch.qa.testautomation.framework.core.json.container.JSONRunnerConfig;
 import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.framework.rest.TFS.connection.TFSRestClient;
-import io.github.bonigarcia.wdm.WebDriverManager;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
