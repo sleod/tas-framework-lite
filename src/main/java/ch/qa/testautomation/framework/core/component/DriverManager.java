@@ -43,10 +43,7 @@ public class DriverManager {
             case "safari":
                 webDriverProvider = installSafariDriver();
                 break;
-            case "firefox":
-                webDriverProvider = installFirefoxDriver();
-                break;
-            case "ie":
+            case "edge":
                 webDriverProvider = installEdgeDriver();
                 break;
             default:
@@ -219,11 +216,6 @@ public class DriverManager {
             throw new RuntimeException("Edge Driver can not be run in non windows OS!");
         }
         return new EdgeDriverProvider();
-    }
-
-    private static WebDriverProvider installFirefoxDriver() {
-        //todo: firefox driver install
-        return null;
     }
 
     private static WebDriverProvider installSafariDriver() {
