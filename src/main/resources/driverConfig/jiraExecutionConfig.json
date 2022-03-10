@@ -1,0 +1,11 @@
+{
+  "runName": "Automated Test Run with ...",
+  "testPlanId": "",
+  "testExecutionId": "",
+  "fullRun": true,
+  "failureRetest": false,
+  "selectedTestCaseIds": [
+    "TEST-xxx",
+    "TEST-yyy"
+  ]
+}

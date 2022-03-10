@@ -174,8 +174,10 @@ public abstract class PerformableTestCases {
         DriverManager.closeDriver();
         if (!testCaseObjects.isEmpty() && !testCaseObjects.get(0).getTestRunResult().getStepResults().isEmpty()) {
             TestRunManager.generateReportOnService();
+            //generate allure html report on server
+            TestRunManager.generateReportOnService();
+            //generate allure html report locally
             generateAllureHTMLReport();
-            generateMavenTestXMLReport(testCaseObjects);
             if (!PropertyResolver.isTFSSyncEnabled()) {
                 trace("TFS Test Case Synchronization is disabled!");
             }

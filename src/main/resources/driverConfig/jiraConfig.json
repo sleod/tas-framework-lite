@@ -1,5 +1,17 @@
 {
   "user": "",
   "password": "",
-  "host": ""
+  "host": "https://jira.rch.cloud",
+  "pat": "NTQzMzk2OTU4MjA3OuNob0I0Z4+HnUD66Y/bIw6UvNIG",
+  "customFields": {
+    "execution": {
+      "tests": "customfield_10216"
+    },
+    "test": {
+      "testType": "customfield_10201",
+      "testSteps": "customfield_10205",
+      "testSets": "customfield_10208",
+      "testPlans": "customfield_10210"
+    }
+  }
 }

@@ -85,8 +85,6 @@ public class ReportBuilder {
         try {
             if (PropertyResolver.getReportViewType().equalsIgnoreCase("default")) {
                 generateDefaultAllureResults(testCaseObjects);
-            } else if (PropertyResolver.getReportViewType().equalsIgnoreCase("junit")) {
-                generateJunitAllureResults(testCaseObjects);
             }
         } catch (IOException ex) {
             warn("IO Exception while generate report after test run!\n" + ex.getMessage());
@@ -214,12 +212,12 @@ public class ReportBuilder {
         ObjectMapper mapper = new ObjectMapper();
         try {
             for (String filePath : getAllureResults()) {
-                JsonNode result =  mapper.readTree(FileOperation.readFileToLinedString(filePath));
+                JsonNode result = mapper.readTree(FileOperation.readFileToLinedString(filePath));
                 String historyId = result.get("historyId").asText();
                 String rebaseHisId = buildHistoryId(result.get("labels").get(0).get("value").asText() + "." + result.get("name").asText());
                 if (!rebaseHisId.equals(historyId)) {
                     historyContent = historyContent.replace(historyId, rebaseHisId);
-                    ((ObjectNode)result).put("historyId", rebaseHisId);
+                    ((ObjectNode) result).put("historyId", rebaseHisId);
                 }
                 rebasedAllureResults.add(result);
             }
@@ -268,42 +266,6 @@ public class ReportBuilder {
         } catch (IOException ex) {
             warn("IO Exception while restore history file after test run!\n" + ex.getMessage());
         }
-    }
-
-    /**
-     * generate allure results in json files for allure report
-     *
-     * @param testCaseObjects test cases
-     */
-    private static void generateJunitAllureResults(List<TestCaseObject> testCaseObjects) {
-        List<JSONTestResult> allureResults = new LinkedList<>();
-        String attachType = "image/" + PropertyResolver.getDefaultScreenshotFormat().toLowerCase();
-        testCaseObjects.forEach(testCaseObject -> testCaseObject.getTestRunResult().getStepResults().forEach(stepResult -> {
-            JSONTestResult jsonTestResult = new JSONTestResult(stepResult.getName(), testCaseObject.getName() + "@" + stepResult.getName(),
-                    testCaseObject.getDescription(), stepResult.getStatus().text(), stepResult.getStart(), stepResult.getStop(), "finished",
-                    testCaseObject.getName() + " #" + stepResult.getStepOrder());
-            jsonTestResult.addLabel("suite", testCaseObject.getName());
-            jsonTestResult.addLabel("testClass", stepResult.getName());
-            jsonTestResult.addLabel("testMethod", stepResult.getTestMethod());
-            jsonTestResult.setStatusDetails("known", true);
-            jsonTestResult.setStatusDetails("muted", false);
-            jsonTestResult.setStatusDetails("flaky", false);
-            if (stepResult.getStatus().equals(TestStatus.FAIL) || stepResult.getStatus().equals(TestStatus.BROKEN)) {
-                jsonTestResult.setStatusDetails("message", stepResult.getTestFailure().getMessage());
-                jsonTestResult.setStatusDetails("trace", stepResult.getTestFailure().getTrace());
-            } else {
-                jsonTestResult.setStatusDetails("message", "Log Info: ");
-                jsonTestResult.setStatusDetails("trace", stepResult.getInfo());
-            }
-            for (Screenshot screenshot : stepResult.getScreenshots()) {
-                jsonTestResult.addAttachment(screenshot.getTestCaseName(), attachType, screenshot.getScreenshotFile().getAbsolutePath());
-                if (screenshot.hasPageFile()) {
-                    jsonTestResult.addAttachment(screenshot.getTestCaseName(), "text/html", screenshot.getPageFile().getAbsolutePath());
-                }
-            }
-            allureResults.add(jsonTestResult);
-        }));
-        JSONContainerFactory.regenerateAllureResults(allureResults);
     }
 
     private static void addLabels(JSONTestResult jsonTestResult, TestCaseObject testCaseObject) {

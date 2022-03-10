@@ -1,6 +1,0 @@
-{
-  "platformName": "ios",
-  "browserName": "Safari",
-  "realDeviceUuid": "b67db23c-594f-c938-fe60-060fa5aede0d",
-  "hubURL": "http://192.168.206.22/selenium/wd/hub"
-}
