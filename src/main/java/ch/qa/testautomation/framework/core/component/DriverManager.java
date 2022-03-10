@@ -1,23 +1,23 @@
 package ch.qa.testautomation.framework.core.component;
 
+
 import ch.qa.testautomation.framework.common.enumerations.TestType;
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
+import ch.qa.testautomation.framework.common.utils.WebOperationUtils;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.controller.ExternAppController;
+import ch.qa.testautomation.framework.core.json.container.JSONDriverConfig;
+import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.framework.mobile.AndroidDriverProvider;
 import ch.qa.testautomation.framework.mobile.IOSDriverProvider;
 import ch.qa.testautomation.framework.mobile.MobileAppDriverProvider;
-import ch.qa.testautomation.framework.common.utils.WebOperationUtils;
-import ch.qa.testautomation.framework.core.json.container.JSONDriverConfig;
-import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.framework.rest.RestDriverProvider;
 import ch.qa.testautomation.framework.rest.RestfulDriver;
 import ch.qa.testautomation.framework.web.ChromeDriverProvider;
 import ch.qa.testautomation.framework.web.EdgeDriverProvider;
 import ch.qa.testautomation.framework.web.RemoteWebDriverProvider;
 import ch.qa.testautomation.framework.web.WebDriverProvider;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.appium.java_client.AppiumDriver;
-import net.sf.json.JSONObject;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -25,6 +25,9 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.*;
+import static ch.qa.testautomation.framework.configuration.PropertyResolver.*;
 
 /**
  * Utility class to manage drivers that will be used for further testing
@@ -48,6 +51,7 @@ public class DriverManager {
                 break;
             default:
                 webDriverProvider = installChromeDriver(null);
+                break;
         }
     }
 
@@ -65,16 +69,16 @@ public class DriverManager {
 
 
     public static void setupRestDriver() {
-        JSONObject restConfig = JSONContainerFactory.getConfig(PropertyResolver.getRESTConfigFile());
-        restDriverProvider = new RestDriverProvider(restConfig.getString("user"), restConfig.getString("password"), restConfig.getString("host"));
+        JsonNode restConfig = JSONContainerFactory.getConfig(getRESTConfigFile());
+        restDriverProvider = new RestDriverProvider(restConfig.get("user").asText(), restConfig.get("password").asText(), restConfig.get("host").asText());
     }
 
     public static void setupRemoteWebDriver() {
         try {
-            List<JSONDriverConfig> configs = JSONContainerFactory.getDriverConfigs(PropertyResolver.getDefaultDriverConfigLocation(), PropertyResolver.getRemoteWebDriverConfig());
+            List<JSONDriverConfig> configs = JSONContainerFactory.getDriverConfigs(getDefaultDriverConfigLocation(), getRemoteWebDriverConfig());
             remoteWebDriverProvider = new RemoteWebDriverProvider(configs);
         } catch (IOException e) {
-            SystemLogger.error(e);
+            error(e);
         }
     }
 
@@ -84,7 +88,7 @@ public class DriverManager {
 
     public static void setupMobileAppDriver(TestType type) {
         try {
-            List<JSONDriverConfig> configs = JSONContainerFactory.getDriverConfigs(PropertyResolver.getDefaultDriverConfigLocation(), PropertyResolver.getMobileAppDriverConfig());
+            List<JSONDriverConfig> configs = JSONContainerFactory.getDriverConfigs(getDefaultDriverConfigLocation(), getMobileAppDriverConfig());
             if (type.equals(TestType.MOBILE_IOS)) {
                 mobileAppDriverProvider = new IOSDriverProvider(configs);
             } else if (type.equals(TestType.MOBILE_ANDROID)) {
@@ -93,7 +97,7 @@ public class DriverManager {
                 throw new RuntimeException("Type of Mobile App Test is undefined!");
             }
         } catch (IOException e) {
-            SystemLogger.error(e);
+            error(e);
         }
     }
 
@@ -123,7 +127,7 @@ public class DriverManager {
      * close driver
      */
     public static void closeDriver() {
-        SystemLogger.info("Try to close driver...");
+        info("Try to close driver...");
         if (restDriverProvider != null) {
             restDriverProvider.close();
         }
@@ -179,7 +183,7 @@ public class DriverManager {
         return restDriverProvider.getDriver(host, user, password);
     }
 
-    public static RestfulDriver getRestDriverwithParam(String host, String encodedKey) {
+    public static RestfulDriver getRestDriverWithParam(String host, String encodedKey) {
         return restDriverProvider.getDriver(host, encodedKey);
     }
 
@@ -192,11 +196,11 @@ public class DriverManager {
             String path = ExternAppController.matchChromeAndDriverVersion().toString();
             driverFile = new File(path);
             driverFile.setExecutable(true);
-            PropertyResolver.setChromeDriverPath(driverFile.getPath());
+            setChromeDriverPath(driverFile.getPath());
             PropertyResolver.setChromeDriverFileName(driverFile.getName());
         } catch (IOException ex) {
-            SystemLogger.warn("Install Chrome driver failed!");
-            SystemLogger.error(ex);
+            warn("Install Chrome driver failed!");
+            error(ex);
         }
         if (options == null) {
             return new ChromeDriverProvider();
@@ -206,12 +210,12 @@ public class DriverManager {
     }
 
     private static WebDriverProvider installEdgeDriver() {
-        if (PropertyResolver.isWindows()) {
+        if (isWindows()) {
             String path = ExternAppController.findEdgeDriver().toString();
             driverFile = new File(path);
             driverFile.setExecutable(true);
-            PropertyResolver.setWebDriverEdgeProperty(driverFile.getPath());
-            PropertyResolver.setEdgeDriverFileName(driverFile.getName());
+            setWebDriverEdgeProperty(driverFile.getPath());
+            setEdgeDriverFileName(driverFile.getName());
         } else {
             throw new RuntimeException("Edge Driver can not be run in non windows OS!");
         }

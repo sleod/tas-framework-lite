@@ -23,6 +23,9 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.UUID;
 
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.error;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.warn;
+
 
 public class ImageHandler {
 
@@ -128,8 +131,8 @@ public class ImageHandler {
                 file.delete();
             }
         } catch (IOException ex) {
-            SystemLogger.warn("Video Generation Failed!");
-            SystemLogger.error(ex);
+            warn("Video Generation Failed!");
+            error(ex);
         }
         imageStore.get(tid).clear();
     }

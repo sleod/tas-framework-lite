@@ -1,7 +1,5 @@
 package ch.qa.testautomation.framework.common.utils;
 
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.*;
@@ -9,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.*;
 
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.error;
 import static java.time.temporal.TemporalAdjusters.lastDayOfYear;
 
 
@@ -40,7 +39,7 @@ public class TimeUtils {
         try {
             date = simpleDateFormat.parse(dateString);
         } catch (ParseException e) {
-            SystemLogger.error(e);
+            error(e);
         }
         return date;
     }
@@ -58,7 +57,7 @@ public class TimeUtils {
         try {
             date = simpleDateFormat.parse(dateString).toInstant();
         } catch (ParseException e) {
-            SystemLogger.error(e);
+            error(e);
         }
         return date;
     }

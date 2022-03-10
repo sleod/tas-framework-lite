@@ -1,10 +1,10 @@
 package ch.qa.testautomation.framework.mobile;
 
-import ch.qa.testautomation.framework.intefaces.DriverProvider;
-import ch.qa.testautomation.framework.intefaces.ScreenshotTaker;
 import ch.qa.testautomation.framework.common.logging.Screenshot;
 import ch.qa.testautomation.framework.core.component.TestStepMonitor;
 import ch.qa.testautomation.framework.core.json.container.JSONDriverConfig;
+import ch.qa.testautomation.framework.intefaces.DriverProvider;
+import ch.qa.testautomation.framework.intefaces.ScreenshotTaker;
 import io.appium.java_client.AppiumDriver;
 import org.openqa.selenium.Platform;
 import org.openqa.selenium.remote.DesiredCapabilities;

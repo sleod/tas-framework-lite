@@ -10,12 +10,13 @@ import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.json.container.JSONRunnerConfig;
 import ch.qa.testautomation.framework.core.json.container.JSONTestCase;
 import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
-import ch.qa.testautomation.framework.core.report.allure.ReportBuilderAllureService;
 import ch.qa.testautomation.framework.core.report.ReportBuilder;
+import ch.qa.testautomation.framework.core.report.allure.ReportBuilderAllureService;
 import ch.qa.testautomation.framework.rest.TFS.connection.QUERY_OPTION;
 import ch.qa.testautomation.framework.rest.TFS.connection.TFSRestClient;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.openqa.selenium.Cookie;
 import org.openqa.selenium.WebDriver;
 
@@ -66,20 +67,37 @@ public class TestRunManager {
      *
      * @param filePath file path
      */
-    public static void addExtraAttachment4TestCase(String filePath) {
-        List<String> extensions = Arrays.asList("txt", "csv", "log");
+    public static void addExtraAttachment4TestCasePlain(String filePath) {
+
+        List<String> extensions = asList("txt", "csv", "log", "out");
         if (extensions.contains(FileOperation.getFileNameExtension(filePath))) {
+
             File attachment = new File(filePath);
             if (attachment.exists()) {
                 ReportBuilder.addExtraAttachment4TestCase(attachment);
             } else {
-                warn("The file extension is not allowed for attachment! Only allowed extensions: "
-                        + extensions.stream().map(String::valueOf).collect(Collectors.joining(",")));
+                warn("Extra Attachment File does not exist! ->" + filePath);
             }
+        } else {
+
+            warn("The file extension is not allowed for attachment! Only allowed extensions: "
+                    + extensions.stream().map(String::valueOf).collect(Collectors.joining(",")));
+        }
+    }
+
+    /**
+     * allow add extra attachment for single test case
+     *
+     * @param filePath file path
+     */
+    public static void addExtraAttachment4TestCase(String filePath) {
+
+        File attachment = new File(filePath);
+        if (attachment.exists()) {
+            ReportBuilder.addExtraAttachment4TestCase(attachment);
         } else {
             warn("Extra Attachment File does not exist! ->" + filePath);
         }
-
     }
 
     /**
@@ -134,10 +152,8 @@ public class TestRunManager {
      * @param metaFilters meta filters
      */
     public static void initTestCases(List<String> filePaths, List<String> metaFilters) throws IOException {
-//        Multimap<String, String> coverage = null;//coverage with test case ids in multimap
         List<String> selectedIds = Collections.emptyList();
         if (PropertyResolver.isTFSSyncEnabled()) {//check for feedback to tfs
-//            coverage = runnerConfig.getCoverageMap();
             if (runnerConfig.isFullRun()) {//check run config for full run
                 selectedIds = getFullRunTestCaseIds(runnerConfig);
             } else if (runnerConfig.isFailureRetest()) {//check run config for retest run
@@ -148,7 +164,7 @@ public class TestRunManager {
             if (selectedIds.isEmpty()) {
                 throw new RuntimeException("Fail on get test case id from TFS, Response list is empty!");
             }
-        }
+        }//todo: add cluster for jira selected ids
         if (filePaths.isEmpty()) {
             throw new RuntimeException("There is no json test case in defined folder! ->" + PropertyResolver.getDefaultTestCaseLocation());
         }
@@ -271,7 +287,7 @@ public class TestRunManager {
      * @return if current test case selected
      */
     private static boolean isSelected(String id, List<String> selectedIds) {
-        if (!PropertyResolver.isTFSSyncEnabled()) {
+        if (!PropertyResolver.isTFSSyncEnabled() && !PropertyResolver.isJIRASyncEnabled()) {
             return true;
         } else if (selectedIds == null || selectedIds.isEmpty()) {
             warn("List of Selected IDs is Empty!");
@@ -297,21 +313,21 @@ public class TestRunManager {
                 if (!isFiltered(testData)) {
                     continue;
                 }
-                if (PropertyResolver.isTFSSyncEnabled()
+                if ((PropertyResolver.isTFSSyncEnabled() || PropertyResolver.isJIRASyncEnabled())
                         && !testData.containsKey("testCaseId")
                         && testData.get("testCaseId") != null
                         && !testData.get("testCaseId").toString().isEmpty()) {
                     throw new RuntimeException("To return result back to TFS the test case id is required in csv or db data. " +
                             "Please set test case id with column name 'testCaseId' for every test data line! Or set the value with '-' to avoid execution.");
                 } else {
-                    if (PropertyResolver.isTFSSyncEnabled()) {
+                    if (PropertyResolver.isTFSSyncEnabled() || PropertyResolver.isJIRASyncEnabled()) {
                         String testCaseId = testData.get("testCaseId").toString();
                         if (!testCaseId.equalsIgnoreCase("-")) {//avoid execution with '-'
                             new_tco.setTestCaseId(testCaseId);
                             testCaseObject.getTestCase().addCoverage(testCaseId);
                             addNormCase(normCases, new_tco);
                         } else {
-                            trace(new_tco.getName() + " is ignored.");
+                            trace(new_tco.getName() + " is ignored because of '-' value in testCaseId.");
                         }
                     } else {
                         addNormCase(normCases, new_tco);
@@ -321,7 +337,7 @@ public class TestRunManager {
             return normCases;
         } else {
             ArrayList<TestCaseObject> singleList = new ArrayList<>(1);
-            if (PropertyResolver.isTFSSyncEnabled()) {
+            if (PropertyResolver.isTFSSyncEnabled() || PropertyResolver.isJIRASyncEnabled()) {
                 if ((testCaseObject.getTestCaseId() == null
                         || testCaseObject.getTestCaseId().isEmpty())) {
                     throw new RuntimeException("To return result back to TFS the test case id is required. " +
@@ -415,27 +431,31 @@ public class TestRunManager {
         String suiteId = runnerConfig.getSuiteId();
         String planId = runnerConfig.getPlanId();
         String runName = runnerConfig.getRunName();
-        JSONObject testRun = restClient.createTestRun(runName, planId, suiteId, new ArrayList<>(testRunResultMap.keySet()));
-        String tfsRunId = testRun.getString("id");
+        JsonNode testRun = restClient.createTestRun(runName, planId, suiteId, new ArrayList<>(testRunResultMap.keySet()));
+        String tfsRunId = testRun.get("id").asText();
         //update test run with test run result
-        JSONObject results = restClient.updateTestRunResults(tfsRunId, testRunResultMap);
-        JSONArray values = results.getJSONArray("value");
+        JsonNode results = restClient.updateTestRunResults(tfsRunId, testRunResultMap);
+        ArrayNode values = (ArrayNode) results.get("value");
         //upload log file and screenshots as attachments
         for (int i = 0; i < testCaseObjects.size(); i++) {
             TestCaseObject testCaseObject = testCaseObjects.get(i);
             String stream = FileOperation.encodeFileToBase64(new File(testCaseObject.getTestRunResult().getLogFilePath()));
-            JSONObject singleResult = (JSONObject) values.get(i);
-            restClient.attachmentToTestResult(tfsRunId, singleResult.getString("id"), "Report.log", "Default Report", stream);
+            ObjectNode singleResult = (ObjectNode) values.get(i);
+            restClient.attachmentToTestResult(tfsRunId, singleResult.get("id").asText(), "Report.log", "Default Report", stream);
             if (testCaseObject.getTestRunResult().getStatus().equals(TestStatus.FAIL)) {
                 //upload screenshot
                 testCaseObject.getTestRunResult().getAttachments().forEach(attachmentFile -> {
                     String fileStream = FileOperation.encodeFileToBase64(attachmentFile);
-                    restClient.attachmentToTestResult(tfsRunId, singleResult.getString("id"), attachmentFile.getName(), "Screenshots", fileStream);
+                    restClient.attachmentToTestResult(tfsRunId, singleResult.get("id").asText(), attachmentFile.getName(), "Screenshots", fileStream);
                 });
             }
         }
         //create a tfs test run with test points
         restClient.setTestRunState(tfsRunId, "completed", TimeUtils.getISOTimestamp());
+    }
+
+    public static void jiraFeedback(List<TestCaseObject> testCaseObjects) {
+        //todo: analog to tfs case
     }
 
     /**
@@ -462,7 +482,7 @@ public class TestRunManager {
                     }
                 }
             }
-            //retrieve TFS Configuration ID
+            //retrieve TFS Configuration ID and set to runtime property
             if (PropertyResolver.isTFSConnectEnabled()) {
                 String configName = PropertyResolver.getTFSRunnerConfigFile();
                 runnerConfig = JSONContainerFactory.getRunnerConfig(configName);
@@ -587,10 +607,6 @@ public class TestRunManager {
         } else {
             warn("No global test data file detected. Please ignore this message if no global test data is required.");
         }
-    }
-
-    public static boolean feedbackAfterSingleTest() {
-        return runnerConfig.feedbackAfterSingleTest();
     }
 
 }

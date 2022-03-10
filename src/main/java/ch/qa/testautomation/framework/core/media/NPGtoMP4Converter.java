@@ -1,6 +1,5 @@
 package ch.qa.testautomation.framework.core.media;
 
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import org.jcodec.api.awt.AWTSequenceEncoder;
 import org.jcodec.common.io.NIOUtils;
 import org.jcodec.common.io.SeekableByteChannel;
@@ -16,6 +15,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.error;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.warn;
 import static java.util.Arrays.asList;
 
 public class NPGtoMP4Converter {
@@ -42,8 +43,8 @@ public class NPGtoMP4Converter {
                 convertImageFiles(asList(files), videoFilePath, fps);
             }
         } catch (IOException ex) {
-            SystemLogger.warn("Generate video failed!");
-            SystemLogger.error(ex);
+            warn("Generate video failed!");
+            error(ex);
         }
     }
 

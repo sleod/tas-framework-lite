@@ -1,14 +1,17 @@
 package ch.qa.testautomation.framework.rest.allure.connection;
 
 import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
-import ch.qa.testautomation.framework.core.report.allure.ReportBuilderAllureService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.ws.rs.WebApplicationException;
-import net.sf.json.JSONObject;
-
 import jakarta.ws.rs.core.Response;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static ch.qa.testautomation.framework.core.report.allure.ReportBuilderAllureService.resultsDir;
 
 /**
  * Liefert Methoden um mit dem Allure Service zu kommunizieren
@@ -27,20 +30,22 @@ public class AllureRestClient {
     public static final String FORCE_PROJECT_CREATION_PARAM = "force_project_creation";
     private final TransferFileBuilder transferFileBuilder;
     private final AllureServiceConnector allureConnector;
-    private final JSONObject allureServiceConfig;
+    private final ObjectNode allureServiceConfig;
 
-    public AllureRestClient(JSONObject allureServiceConfig) {
+    public AllureRestClient(ObjectNode allureServiceConfig) {
 
         checkExistsProjectId(allureServiceConfig);
 
         this.allureServiceConfig = allureServiceConfig;
-        this.allureConnector = new AllureServiceConnector(allureServiceConfig);
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, String> result = mapper.convertValue(allureServiceConfig, new TypeReference<>(){});
+        this.allureConnector = new AllureServiceConnector(result);
         this.transferFileBuilder = new TransferFileBuilder();
     }
 
-    private void checkExistsProjectId(JSONObject allureServiceConfig) {
+    private void checkExistsProjectId(ObjectNode allureServiceConfig) {
 
-        if ("".equals( allureServiceConfig.get(PROJECT_ID_PARAM))) {
+        if (allureServiceConfig.get(PROJECT_ID_PARAM).toString().isEmpty()) {
             throw new IllegalArgumentException(PROJECT_ID_IS_NOT_DEFINED);
         }
     }
@@ -55,9 +60,9 @@ public class AllureRestClient {
      */
     public void uploadAllureResultFiles() {
 
-        List<String> resultsPaths = JSONContainerFactory.getAllureResults4Upload(ReportBuilderAllureService.resultsDir);
+        List<String> resultsPaths = JSONContainerFactory.getAllureResults4Upload(resultsDir);
 
-        JSONObject transferContainer = transferFileBuilder.prepareFileTransferContainer(resultsPaths);
+        ObjectNode transferContainer = transferFileBuilder.prepareFileTransferContainer(resultsPaths);
 
         if(existProject()){
             cleanResults();
@@ -74,10 +79,10 @@ public class AllureRestClient {
     public void generateReportOnService() {
 
         Map<String, String> params = new HashMap<>();
-        params.put(PROJECT_ID_PARAM, (String) allureServiceConfig.get(PROJECT_ID_PARAM));
-        params.put(EXECUTION_NAME_PARAM, (String) allureServiceConfig.get(EXECUTION_NAME_PARAM));
-        params.put(EXECUTION_FROM_PARAM, (String) allureServiceConfig.get(EXECUTION_FROM_PARAM));
-        params.put(EXECUTION_TYPE_PARAM, (String) allureServiceConfig.get(EXECUTION_TYPE_PARAM));
+        params.put(PROJECT_ID_PARAM, allureServiceConfig.get(PROJECT_ID_PARAM).asText());
+        params.put(EXECUTION_NAME_PARAM, allureServiceConfig.get(EXECUTION_NAME_PARAM).asText());
+        params.put(EXECUTION_FROM_PARAM, allureServiceConfig.get(EXECUTION_FROM_PARAM).asText());
+        params.put(EXECUTION_TYPE_PARAM, allureServiceConfig.get(EXECUTION_TYPE_PARAM).asText());
 
         Response response = allureConnector.get("/generate-report", params);
 
@@ -86,14 +91,12 @@ public class AllureRestClient {
 
     /**
      * Sendet den Transfer Container
-     *
-     * @param transferContainer
      */
-    private Response sendResults(JSONObject transferContainer) {
+    private Response sendResults(ObjectNode transferContainer) {
 
         Map<String, String> params = new HashMap<>();
-        params.put(PROJECT_ID_PARAM, (String) allureServiceConfig.get(PROJECT_ID_PARAM));
-        params.put(FORCE_PROJECT_CREATION_PARAM, (String) allureServiceConfig.get(FORCE_PROJECT_CREATION_PARAM));
+        params.put(PROJECT_ID_PARAM, allureServiceConfig.get(PROJECT_ID_PARAM).asText());
+        params.put(FORCE_PROJECT_CREATION_PARAM, allureServiceConfig.get(FORCE_PROJECT_CREATION_PARAM).asText());
 
         return allureConnector.post("/send-results", transferContainer.toString(), params);
     }
@@ -103,7 +106,7 @@ public class AllureRestClient {
      */
     public void cleanResults() {
 
-        Response response = allureConnector.get("/clean-results", PROJECT_ID_PARAM, (String) allureServiceConfig.get(PROJECT_ID_PARAM));
+        Response response = allureConnector.get("/clean-results", PROJECT_ID_PARAM, allureServiceConfig.get(PROJECT_ID_PARAM).asText());
 
         checkResponse(response, RESULT_NOT_DELETED_MESSAGE);
     }
@@ -113,7 +116,7 @@ public class AllureRestClient {
      */
     public void cleanHistory() {
 
-        Response response = allureConnector.get("/clean-history", PROJECT_ID_PARAM, (String) allureServiceConfig.get(PROJECT_ID_PARAM));
+        Response response = allureConnector.get("/clean-history", PROJECT_ID_PARAM, allureServiceConfig.get(PROJECT_ID_PARAM).asText());
 
         checkResponse(response, HISTORY_NOT_DELETED_MESSAGE);
     }
@@ -123,7 +126,7 @@ public class AllureRestClient {
      */
     public boolean existProject() {
 
-        return  allureConnector.get("/projects/" + (String) allureServiceConfig.get(PROJECT_ID_PARAM)).getStatus() == 200;
+        return  allureConnector.get("/projects/" + allureServiceConfig.get(PROJECT_ID_PARAM).asText()).getStatus() == 200;
 
     }
 

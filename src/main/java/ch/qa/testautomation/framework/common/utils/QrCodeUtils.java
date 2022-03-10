@@ -1,6 +1,5 @@
 package ch.qa.testautomation.framework.common.utils;
 
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.MultiFormatReader;
 import com.google.zxing.Result;
@@ -12,6 +11,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Base64;
+
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.error;
 
 /**
  * @author UEX13996
@@ -35,7 +36,7 @@ public class QrCodeUtils {
              qrCodeResult = new MultiFormatReader().decode(binaryBitmap);
 
         }catch (Exception e){
-           SystemLogger.error(e);
+           error(e);
         }
         return qrCodeResult.getText();    }
 
@@ -62,7 +63,7 @@ public class QrCodeUtils {
             try {
                 imageOutFile.close();
             } catch (IOException e) {
-                SystemLogger.error(e);
+                error(e);
             }
         }
     }

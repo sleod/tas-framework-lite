@@ -1,7 +1,7 @@
 package ch.qa.testautomation.framework.common.logging;
 
-import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.common.utils.TimeUtils;
+import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.component.TestStepResult;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -110,7 +110,7 @@ public class SystemLogger {
         final Appender appender = WriterAppender.createAppender(layout, null, writer, appenderRef, false, true);
         appender.start();
         config.addAppender(appender);
-        updateAllLoggers(appender, config, appenderLevel);
+        updateLoggers(appender, config, appenderLevel);
         context.updateLoggers(config);
         return appender;
     }
@@ -138,7 +138,7 @@ public class SystemLogger {
      * @param fileName    rolling file name
      * @param filePattern file pattern for rolling
      */
-    public static void addRollingFileAppender(String logPattern, String fileName, String filePattern, String appenderRef, String appenderLevel) {
+    public static void addRollingFileAppender(String logPattern, String fileName, String filePattern, String appanderRef, String appenderLevel) {
         final LoggerContext context = (LoggerContext) LogManager.getContext(false);
         final Configuration config = context.getConfiguration();
 
@@ -149,7 +149,7 @@ public class SystemLogger {
 
         RollingFileAppender appender = RollingFileAppender.newBuilder()
                 .setConfiguration(config)
-                .setName(appenderRef)
+                .setName(appanderRef)
                 .setLayout(layout)
                 .withFileName(fileName)
                 .withFilePattern(filePattern)
@@ -252,7 +252,7 @@ public class SystemLogger {
      * @param appender new appender to add
      * @param config   current config
      */
-    private static void updateAllLoggers(final Appender appender, final Configuration config, String lv) {
+    private static void updateLoggers(final Appender appender, final Configuration config, String lv) {
         final Level level = Level.getLevel(lv);
         for (final LoggerConfig loggerConfig : config.getLoggers().values()) {
             loggerConfig.addAppender(appender, level, null);

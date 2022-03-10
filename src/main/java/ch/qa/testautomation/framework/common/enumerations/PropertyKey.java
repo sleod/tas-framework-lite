@@ -1,10 +1,8 @@
 package ch.qa.testautomation.framework.common.enumerations;
 
-import ch.qa.testautomation.framework.configuration.PropertyResolver;
-
 /**
  * enum of property keys which contain in DefaultTestRunProperties.properties.
- * they will be used in {@link PropertyResolver}
+ * they will be used in {@link ch.qa.testautomation.framework.configuration.PropertyResolver}
  */
 public enum PropertyKey {
     DEFAULT_TESTCASE_REPORT_DIR("default.testcase.report.location"),
@@ -22,6 +20,8 @@ public enum PropertyKey {
     DEFAULT_RUN_MODE_DEBUG("default.run.mode.debug"),
     DEFAULT_RUN_TFS_CONNECT("default.run.tfs.connect"),
     DEFAULT_RUN_TFS_SYNC("default.run.tfs.sync"),
+    DEFAULT_RUN_JIRA_CONNECT("default.run.jira.connect"),
+    DEFAULT_RUN_JIRA_SYNC("default.run.jira.sync"),
     DEFAULT_RESULTS_DB_STORE("default.results.db.store"),
     DEFAULT_GENERATE_VIDEO("default.generate.video"),
     DEFAULT_VIDEO_FPS("default.video.fps"),
@@ -50,13 +50,23 @@ public enum PropertyKey {
     TEST_DRIVER_MOBILE_CONFIG("test.driver.mobile.config"),
     DEMO_MODE_ENABLED("test.mode.demo"), DEMO_MODE_SLEEP("test.mode.demo.sleep"), DEMO_MODE_COLOR("test.mode.demo.color"),
     RETRY_MODE_ENABLED("test.mode.retry"), RETRY_OVER_STEPS("retry.over.steps"), SELENIDE_CONFIGURATION_TIMEOUT("selenide.configuration.timeout"),
-    TEST_DB_CONFIG("test.db.config"), TEST_QC_CONFIG("test.qc.config"), TEST_REST_CONFIG("test.rest.config"), TEST_JIRA_CONFIG("test.jira.config"),
-    JIRA_CUSTOMFIELD_CONFIG("jira.customfield.config"), DEFAULT_VIDEO_FORMAT("default.video.format"),
+    DB_CONFIG("db.config"), QC_CONFIG("qc.config"), REST_CONFIG("rest.config"), JIRA_CONFIG("jira.config"),
+    JIRA_EXEC_CONFIG("jira.execution.config"), DEFAULT_VIDEO_FORMAT("default.video.format"),
     DEFAULT_EXECUTION_MULTI_THREADING("default.execution.multi.threading"), DEFAULT_EXECUTION_THREADS("default.execution.threads"),
     EXECUTION_REMOTE_SELENIUM_HUB("execution.remote.selenium.hub"), TEST_ENVIRONMENT("test.environment"),
-    RUNNER_MARKUP_OBJECTID_ENABLED("runner.markup.objectid.enabled"), DEFAULT_DOWNLOAD_LOCATION("default.download.directory");
+    RUNNER_MARKUP_OBJECTID_ENABLED("runner.markup.objectid.enabled"), DEFAULT_DOWNLOAD_LOCATION("default.download.directory"),
+    RUNTIME_DB_USER("runtime.db.user"),
+    RUNTIME_DB_HOST("runtime.db.host"),
+    RUNTIME_DB_TYPE("runtime.db.type"),
+    RUNTIME_DB_PORT("runtime.db.port"),
+    RUNTIME_DB_PASSWORD("runtime.db.password"),
+    RUNTIME_DB_SNAME("runtime.db.sname"),
+    RUNTIME_REST_HOST("runtime.rest.host"),
+    RUNTIME_REST_USER("runtime.rest.user"),
+    RUNTIME_REST_PASSWORD("runtime.rest.password"),
+    RUNTIME_REST_PAT("runtime.rest.pat");
 
-    private String key;
+    private final String key;
 
     PropertyKey(String value) {
         key = value;

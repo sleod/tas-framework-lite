@@ -1,8 +1,6 @@
 package ch.qa.testautomation.framework.web;
 
-import ch.qa.testautomation.framework.common.logging.ScreenCapture;
 import ch.qa.testautomation.framework.common.logging.Screenshot;
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.common.utils.WindowsUtils;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.component.TestStepMonitor;
@@ -15,23 +13,25 @@ import java.awt.*;
 import java.util.LinkedHashMap;
 import java.util.Objects;
 
+import static ch.qa.testautomation.framework.common.logging.ScreenCapture.getScreenshot;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
+
 public abstract class WebDriverProvider implements ScreenshotTaker, DriverProvider {
     private static LinkedHashMap<String, WebDriver> drivers = new LinkedHashMap<>();
 
-
     public void setDriver(WebDriver driver) {
         drivers.put(Thread.currentThread().getName(), driver);
-        SystemLogger.trace("Save driver for: " + Thread.currentThread().getName());
+        trace("Save driver for: " + Thread.currentThread().getName());
     }
 
     @SuppressWarnings("unchecked")
     public WebDriver getDriver() {
         String tid = Thread.currentThread().getName();
         if (drivers.get(tid) == null) {
-            SystemLogger.trace("Init driver for: " + tid);
+            trace("Init driver for: " + tid);
             initialize();
         } else {
-            SystemLogger.trace("Get driver for: " + tid);
+            trace("Get driver for: " + tid);
         }
         return drivers.get(tid);
     }
@@ -57,14 +57,14 @@ public abstract class WebDriverProvider implements ScreenshotTaker, DriverProvid
     @Override
     public synchronized Screenshot takeScreenShot(TestStepMonitor testStepMonitor) {
         RemoteWebDriver driver = (RemoteWebDriver) drivers.get(Thread.currentThread().getName());
-        return ScreenCapture.getScreenshot(testStepMonitor, driver);
+        return getScreenshot(testStepMonitor, driver);
     }
 
     public static void configureWindowSize(WebDriver driver, boolean useMaxSize) {
         int width;
         int height;
         if (useMaxSize) {
-            java.awt.Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
+            Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
             width = size.width;
             height = size.height;
         } else {
@@ -73,7 +73,6 @@ public abstract class WebDriverProvider implements ScreenshotTaker, DriverProvid
             height = Integer.parseInt(dimensions[1]);
         }
         driver.manage().window().setSize(new org.openqa.selenium.Dimension(width, height));
-        SystemLogger.trace("Used screen size width: " + width + " height: " + height);
+        trace("Used screen size width: " + width + " height: " + height);
     }
-
 }

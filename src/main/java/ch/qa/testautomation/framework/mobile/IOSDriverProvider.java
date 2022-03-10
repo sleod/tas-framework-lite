@@ -1,7 +1,7 @@
 package ch.qa.testautomation.framework.mobile;
 
-import ch.qa.testautomation.framework.core.component.TestRunManager;
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
+import ch.qa.testautomation.framework.core.component.TestRunManager;
 import ch.qa.testautomation.framework.core.json.container.JSONDriverConfig;
 import io.appium.java_client.ios.IOSDriver;
 import org.openqa.selenium.Platform;
@@ -12,7 +12,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static ch.qa.testautomation.framework.common.logging.SystemLogger.error;
 
@@ -31,7 +30,6 @@ public class IOSDriverProvider extends MobileAppDriverProvider {
         if (driver == null) {
             initialize();
         }
-        //noinspection unchecked
         return (IOSDriver) driver;
     }
 

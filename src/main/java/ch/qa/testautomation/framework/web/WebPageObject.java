@@ -32,7 +32,7 @@ public abstract class WebPageObject extends SingleTestObject {
      * Some fields can be displayed later after some action
      */
     @Deprecated
-    public void checkFields() {
-    }
+    public void checkFields() {}
 
 }
+

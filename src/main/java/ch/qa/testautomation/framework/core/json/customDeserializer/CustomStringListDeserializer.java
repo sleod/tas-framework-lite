@@ -22,7 +22,7 @@ public class CustomStringListDeserializer extends StdDeserializer<List<String>> 
 
     @Override
     public List<String> deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
-        return new ObjectMapper().readValue(jsonParser, new TypeReference<List<String>>() {
+        return new ObjectMapper().readValue(jsonParser, new TypeReference<>() {
         });
     }
 }

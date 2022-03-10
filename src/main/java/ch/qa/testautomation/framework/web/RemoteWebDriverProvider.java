@@ -1,9 +1,7 @@
 package ch.qa.testautomation.framework.web;
 
 import ch.qa.testautomation.framework.common.enumerations.BrowserName;
-import ch.qa.testautomation.framework.common.logging.ScreenCapture;
 import ch.qa.testautomation.framework.common.logging.Screenshot;
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.core.component.TestStepMonitor;
 import ch.qa.testautomation.framework.core.json.container.JSONDriverConfig;
 import ch.qa.testautomation.framework.intefaces.DriverProvider;
@@ -18,6 +16,10 @@ import java.net.URL;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
+
+import static ch.qa.testautomation.framework.common.logging.ScreenCapture.getScreenshot;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.error;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
 
 public class RemoteWebDriverProvider implements DriverProvider, ScreenshotTaker {
 
@@ -88,7 +90,7 @@ public class RemoteWebDriverProvider implements DriverProvider, ScreenshotTaker 
                     if (capabilities == null) {
                         capabilities = new DesiredCapabilities();
                         capabilities.setBrowserName(browserName.value());
-                        capabilities.setCapability("platformName", platform.name());
+                        capabilities.setCapability("platformName", config.getPlatformName());
                         if (grdnUUID != null && !grdnUUID.isEmpty()) {
                             capabilities.setCapability("grdn_uuid", grdnUUID);
                         } else if (realDeviceUuid != null && !realDeviceUuid.isEmpty()) {
@@ -96,7 +98,7 @@ public class RemoteWebDriverProvider implements DriverProvider, ScreenshotTaker 
                         } else {
                             throw new RuntimeException("grdnUUID or realDeviceUuid not set!!");
                         }
-                        capabilities.toJson().forEach((key, value) -> SystemLogger.trace("Capability: " + key + " -> " + value));
+                        capabilities.toJson().forEach((key, value) -> trace("Capability: " + key + " -> " + value));
                     }
                     try {
                         driver = new RemoteWebDriver(new URL(hubURL), capabilities);
@@ -106,7 +108,7 @@ public class RemoteWebDriverProvider implements DriverProvider, ScreenshotTaker 
                         if (driver != null) {
                             driver.close();
                         }
-                        SystemLogger.error(e);
+                        error(e);
                     }
                 }
             }
@@ -115,6 +117,6 @@ public class RemoteWebDriverProvider implements DriverProvider, ScreenshotTaker 
 
     @Override
     public Screenshot takeScreenShot(TestStepMonitor testStepMonitor) {
-        return ScreenCapture.getScreenshot(testStepMonitor, driver);
+        return getScreenshot(testStepMonitor, driver);
     }
 }

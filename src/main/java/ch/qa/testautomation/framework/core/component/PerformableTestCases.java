@@ -20,6 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static ch.qa.testautomation.framework.common.logging.SystemLogger.*;
+import static ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory.generateExecutorJSON;
 import static ch.qa.testautomation.framework.core.report.ReportBuilder.generateAllureHTMLReport;
 import static ch.qa.testautomation.framework.core.report.ReportBuilder.generateMavenTestXMLReport;
 
@@ -175,17 +176,16 @@ public abstract class PerformableTestCases {
             TestRunManager.generateReportOnService();
             generateAllureHTMLReport();
             generateMavenTestXMLReport(testCaseObjects);
-            if (PropertyResolver.isTFSSyncEnabled() && !TestRunManager.feedbackAfterSingleTest()) {
-                TestRunManager.tfsFeedback(testCaseObjects);
-            } else {
-                if (!PropertyResolver.isTFSSyncEnabled()) {
-                    trace("TFS Test Case Synchronization is disabled!");
-                }
+            if (!PropertyResolver.isTFSSyncEnabled()) {
+                trace("TFS Test Case Synchronization is disabled!");
             }
             if (PropertyResolver.isStoreResultsToDBEnabled()) {
                 TestRunManager.storeResultsToDB(testCaseObjects);
             } else {
                 trace("Result Storage in DB disabled!");
+            }
+            if (!PropertyResolver.isJIRASyncEnabled()) {
+                trace("JIRA Test Case Synchronization is disabled!");
             }
         } else {
             throw new RuntimeException("No test case found with meta filter or not selected!");

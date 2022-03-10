@@ -15,6 +15,10 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.warn;
+import static java.lang.Integer.MAX_VALUE;
+
 public class FileLocator {
 
     /**
@@ -68,7 +72,7 @@ public class FileLocator {
             throw new RuntimeException("Error by list files with name <" + name + "> in folder " + sDir + " --> " + e.getMessage());
         }
         if (paths.isEmpty()) {
-            SystemLogger.warn("File <" + name + "> was not found in folder " + sDir);
+            warn("File <" + name + "> was not found in folder " + sDir);
         }
         return paths;
     }
@@ -103,14 +107,24 @@ public class FileLocator {
      * @throws IOException ex
      */
     public static List<Path> walkThrough(Path path) throws IOException {
+        return  walkThrough(path, MAX_VALUE);
+    }
+
+    /**
+     * walk through folder and get files only
+     *
+     * @param path folder path
+     * @return list of path of files only
+     * @throws IOException ex
+     */
+    public static List<Path> walkThrough(Path path, int maxDepth) throws IOException {
         List<Path> paths = new LinkedList<>();
-        Stream<Path> walk = Files.walk(path);
+        Stream<Path> walk = Files.walk(path, maxDepth);
         for (Iterator<Path> it = walk.iterator(); it.hasNext(); ) {
             Path filePath = it.next();
-//            SystemLogger.trace("Found Path: " + filePath.toString());
             if (!Files.isDirectory(filePath)) {
                 paths.add(filePath);
-//              SystemLogger.trace("Found File: " + filePath.toString());
+              SystemLogger.trace("Found File: " + filePath);
             }
         }
         return paths;
@@ -152,10 +166,10 @@ public class FileLocator {
     public static Path findLocalResource(String relativePath) {
         Path path = findResource(relativePath);
         if (!path.toString().contains("jar!")) {
-            SystemLogger.trace("Found Local Path: " + relativePath);
+            trace("Found Local Path: " + relativePath);
             return path;
         } else {
-            SystemLogger.warn("Local Path: " + relativePath + " can not be found!");
+            warn("Local Path: " + relativePath + " can not be found!");
             return null;
         }
     }

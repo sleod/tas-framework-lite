@@ -4,7 +4,9 @@ import java.io.File;
 import java.util.Date;
 
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
-import ws.schild.jave.*;
+import ws.schild.jave.Encoder;
+import ws.schild.jave.EncoderException;
+import ws.schild.jave.MultimediaObject;
 import ws.schild.jave.encode.AudioAttributes;
 import ws.schild.jave.encode.EncodingAttributes;
 import ws.schild.jave.encode.VideoAttributes;

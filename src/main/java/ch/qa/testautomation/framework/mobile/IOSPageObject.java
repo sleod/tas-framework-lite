@@ -6,7 +6,6 @@ import io.appium.java_client.pagefactory.AppiumFieldDecorator;
 import org.openqa.selenium.support.PageFactory;
 
 public abstract class IOSPageObject extends MobileTestObject {
-    @SuppressWarnings("unchecked")
     protected IOSDriver driver = (IOSDriver) DriverManager.getAppDriver();
 
     public IOSPageObject() {

@@ -3,9 +3,9 @@ package ch.qa.testautomation.framework.core.component;
 import ch.qa.testautomation.framework.common.enumerations.TestStatus;
 import ch.qa.testautomation.framework.common.enumerations.TestType;
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
-import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.common.utils.AnnotationReflector;
 import ch.qa.testautomation.framework.common.utils.AnnotationUtils;
+import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.annotations.AfterTest;
 import ch.qa.testautomation.framework.core.annotations.BeforeTest;
 import ch.qa.testautomation.framework.core.annotations.TestObject;
@@ -23,6 +23,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.*;
 
 public class TestCaseObject extends TestSuite implements Runnable, Comparable<TestCaseObject> {
 
@@ -52,8 +54,8 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
         try {
             initTestObjects(testCase.getTestObjectNames());
         } catch (IOException | NoSuchFieldException | IllegalAccessException ex) {
-            SystemLogger.warn("Test Case Object initialization failed: " + jsonTestCase.getName());
-            SystemLogger.error(ex);
+            warn("Test Case Object initialization failed: " + jsonTestCase.getName());
+            error(ex);
         }
         testDataContainer = new TestDataContainer(testCase.getTestDataRef(), testCase.getAdditionalTestDataFile());
         initTestSteps(testCase.getSteps());
@@ -82,8 +84,8 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
         try {
             initTestObjects(testCase.getTestObjectNames());
         } catch (IOException | NoSuchFieldException | IllegalAccessException e) {
-            SystemLogger.warn("Test Case Object initialization failed: " + jsonTestCase.getName());
-            SystemLogger.error(e);
+            warn("Test Case Object initialization failed: " + jsonTestCase.getName());
+            error(e);
         }
         testDataContainer = new TestDataContainer(testDataContent, testCase.getAdditionalTestDataFile());
         initTestSteps(testCase.getSteps());
@@ -247,16 +249,19 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
      */
     private void afterTest() {
         testStepMonitor.afterTest(); // finish last test step and also the test case
-        SystemLogger.log("INFO", "Finish Test Case: {}", getName());
+        log("INFO", "Finish Test Case: {}", getName());
         invokeWithAnnotation(AfterTest.class);
         testRunResult.stopNow("Test Case Ends: " + getName());
         //default after test: build Report
         ReportBuilder.stopRecordingTest(testRunResult);
         ImageHandler.finishVideoRecording(testRunResult);
-        if (PropertyResolver.isTFSSyncEnabled() && TestRunManager.feedbackAfterSingleTest()) {
+        if (PropertyResolver.isTFSSyncEnabled()) {
             TestRunManager.tfsFeedback(Collections.singletonList(this));
         }
-        SystemLogger.log("TRACE", "Generate Allure Result: {}", getName());
+        if (PropertyResolver.isJIRAConnectEnabled()) {
+            TestRunManager.jiraFeedback(Collections.singletonList(this));
+        }
+        log("TRACE", "Generate Allure Result: {}", getName());
         ReportBuilder.generateReport(Collections.singletonList(this));
         if (PropertyResolver.isAllureReportService()) {
             TestRunManager.uploadSingleTestRunReport();
@@ -272,7 +277,7 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
         ImageHandler.prepareVideoRecording(testRunResult);
         testStepMonitor.beforeTest(getObjectId()); // prepare test step monitor
         testRunResult.startNow("Test Case Begin: " + getName());
-        SystemLogger.log("INFO", "Start Test Case: {}", getName());
+        log("INFO", "Start Test Case: {}", getName());
         invokeWithAnnotation(BeforeTest.class);
         if (testCase.getType().contains("web_app")) {
             String url = testCase.getStartURL();
@@ -299,9 +304,9 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
                 try {
                     methods.get(0).invoke(TestRunManager.getPerformer());
                 } catch (IllegalAccessException ex) {
-                    SystemLogger.error(ex);
+                    error(ex);
                 } catch (InvocationTargetException ex) {
-                    SystemLogger.error(ex.getTargetException());
+                    error(ex.getTargetException());
                 }
             }
         }
@@ -354,8 +359,8 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
                 int orderThis = Integer.parseInt(keyThis.substring(keyThis.lastIndexOf(".") + 1));
                 result = orderThis - orderIn;
             } catch (NumberFormatException ex) {
-                SystemLogger.warn("Order Number has Wrong format: " + keyThis + ", " + keyIn);
-                SystemLogger.error(ex);
+                warn("Order Number has Wrong format: " + keyThis + ", " + keyIn);
+                error(ex);
             }
         }
         return result;

@@ -1,10 +1,10 @@
 package ch.qa.testautomation.framework.core.controller;
 
+import ch.qa.testautomation.framework.common.IOUtils.FileLocator;
 import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
-import ch.qa.testautomation.framework.configuration.PropertyResolver;
-import ch.qa.testautomation.framework.common.IOUtils.FileLocator;
 import ch.qa.testautomation.framework.common.utils.ZipUtils;
+import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.json.container.JSONRunnerConfig;
 import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.framework.rest.TFS.connection.TFSRestClient;
@@ -343,7 +343,7 @@ public class ExternAppController {
     }
 
     private static String downloadFromTFS(String folder) throws IOException {
-        JSONRunnerConfig runnerConfig = JSONContainerFactory.loadRunnerConfig(PropertyResolver.getTFSRunnerConfigFile());
+        JSONRunnerConfig runnerConfig = JSONContainerFactory.getRunnerConfig(PropertyResolver.getTFSRunnerConfigFile());
         Map<String, String> config = runnerConfig.getTfsConfig();
         TFSRestClient tfsRestClient = new TFSRestClient(config.get("host"), config.get("pat"), config.get("organization"),
                 config.get("collection"), "ap.testtools", config.get("apiVersion"));
@@ -399,6 +399,4 @@ public class ExternAppController {
     public static Rectangle findSubImageOnScreen(BufferedImage subImage, int subWidth, int subHeight, double allowedPixelFailsPercent, int allowedPixelColorDifference) throws AWTException {
         return FindImageInImage.findSubImage(subImage, subWidth, subHeight, UserRobot.captureMainFullScreen(), screenSize.width, screenSize.height, allowedPixelFailsPercent, allowedPixelColorDifference);
     }
-
-
 } 

@@ -9,16 +9,23 @@ import ch.qa.testautomation.framework.core.annotations.AndroidActivity;
 import ch.qa.testautomation.framework.core.annotations.StopOnError;
 import ch.qa.testautomation.framework.core.annotations.TestObject;
 import ch.qa.testautomation.framework.core.annotations.TestStep;
-import ch.qa.testautomation.framework.mobile.AndroidPageObject;
 import ch.qa.testautomation.framework.core.assertion.KnownIssueException;
 import ch.qa.testautomation.framework.core.json.container.JSONTestCaseStep;
+import ch.qa.testautomation.framework.mobile.AndroidPageObject;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import junit.framework.TestCase;
-import net.sf.json.JSONArray;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 
 public class TestCaseStep extends TestCase {
@@ -32,7 +39,7 @@ public class TestCaseStep extends TestCase {
     private TestStepResult testStepResult;
     private boolean takeScreenshot = false;
     private boolean stopOnError = false;
-
+    private final ObjectMapper mapper = new ObjectMapper();
 
     public TestCaseStep(int orderNumber, String screenshotLevel, JSONTestCaseStep jStep, Class<TestObject> testObjectClass, TestDataContainer testDataContainer) {
         super("Step " + orderNumber + ". " + testObjectClass.getDeclaredAnnotation(TestObject.class).name() + "@" + jStep.getName());
@@ -144,31 +151,62 @@ public class TestCaseStep extends TestCase {
                     } else {
                         parameter = testDataContainer.getParameter(using, parameterRowNum);
                     }
-                    if (parameter instanceof JSONArray) {
-                        invokeMethod(runMethod, instance, Arrays.asList(((JSONArray) parameter).toArray()));
-                    } else {
-                        if (using.length() > 7 && using.substring(using.length() - 7).equalsIgnoreCase("@base64")) {
-                            parameter = PropertyResolver.decodeBase64(parameter.toString());
+                    if (parameter instanceof ArrayNode) {
+                        ArrayNode arrayNode = (ArrayNode) parameter;
+                        //TODO Achtung!! Das ist ein ganz schlimmer Hack
+                        //Es ist nicht ganz klar wie man bei einem Parameter unterscheidet ob dieser nur einen String enthält
+                        //oder ein Array der weitere Maps/Objekte  beinhaltet
+                        Iterator<JsonNode> elements = arrayNode.elements();
+                        JsonNode elementNode = elements.next();
+                        if (elementNode.isValueNode()) {
+                            List<String> textNodeValues = mapper.convertValue(arrayNode, new TypeReference<>(){});
+                            invokeMethod(runMethod, instance, textNodeValues);
+                        } else {
+                            List<Map<String, Object>> objectNodesValues = mapper.convertValue(arrayNode, new TypeReference<List<Map<String, Object>>>() {});
+                            invokeMethod(runMethod, instance, objectNodesValues);
                         }
-                        invokeMethod(runMethod, instance, parameter);
+
+                    } else {
+                        if (using.contains("@base64")) {
+                            parameter = PropertyResolver.decodeBase64(((TextNode) parameter).asText());
+                        }
+                        if (parameter instanceof TextNode) {
+                            invokeMethod(runMethod, instance, ((TextNode) parameter).asText());
+                        } else if (parameter instanceof ObjectNode) {
+                            Map<String, Object> parameterList = mapper.convertValue(parameter, new TypeReference<>(){});
+                            invokeMethod(runMethod, instance, parameterList);
+                        } else {
+                            invokeMethod(runMethod, instance, parameter);
+                        }
                     }
                 } else {
                     Object[] parameters;
+                    //String Array zerlegen
                     if (using.contains("[") || using.contains(",")) {
                         String[] usingKeys = using.replace("[", "").replace("]", "").split(",");
                         parameters = new Object[usingKeys.length];
                         for (int index = 0; index < usingKeys.length; index++) {
-                            parameters[index] = testDataContainer.getParameter(usingKeys[index].trim(), parameterRowNum);
+                            //Key Werte welche im Array mitgegeben werden nun aus dem TestdataContainer auslesen
+                            Object valueObject = testDataContainer.getParameter(usingKeys[index].trim(), parameterRowNum);
+                            if (valueObject instanceof TextNode) {
+                                parameters[index] = ((TextNode) valueObject).asText();
+                            } else if (valueObject instanceof ObjectNode) {
+                                Map<String, Object> parameterMap = mapper.convertValue(valueObject, new TypeReference<>() {});
+                                parameters[index] = parameterMap;
+                            } else {
+                                parameters[index] = valueObject;
+                            }
                         }
+                        invokeMethod(runMethod, instance, parameters);
                     } else {
                         Object parameter = testDataContainer.getParameter(using, parameterRowNum);
-                        if (parameter instanceof JSONArray) {
-                            parameters = ((JSONArray) parameter).toArray();
+                        if (parameter instanceof ArrayNode) {
+                            parameters = mapper.convertValue(parameter, new TypeReference<>() {});
+                            invokeMethod(runMethod, instance, parameters);
                         } else {
                             throw new RuntimeException("Given test data does not match to required parameters!");
                         }
                     }
-                    invokeMethod(runMethod, instance, parameters);
                 }
             }
         } catch (Throwable throwable) {

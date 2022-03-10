@@ -1,7 +1,7 @@
 package ch.qa.testautomation.framework.configuration;
 
-import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.IOUtils.FileLocator;
+import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.enumerations.PropertyKey;
 import org.apache.commons.lang3.EnumUtils;
 
@@ -131,7 +131,7 @@ public class PropertyResolver {
     }
 
     public static String getEdgeDriverFileName() {
-        return System.getProperty(PropertyKey.WEBDRIVER_EDGE_FILENAME.key(), "msedgedirver");
+        return System.getProperty(PropertyKey.WEBDRIVER_EDGE_FILENAME.key(), "msedgedriver");
     }
 
     public static void setEdgeDriverFileName(String fileName) {
@@ -213,8 +213,14 @@ public class PropertyResolver {
         return System.getProperty(PropertyKey.DEFAULT_PAGE_CONFIG_LOCATION.key(), "pageDefinitions/");
     }
 
-    public static String getJiraCustomFieldConfig() {
-        return System.getProperty(PropertyKey.JIRA_CUSTOMFIELD_CONFIG.key(), "driverConfig/jiraCustomFieldConfig.json");
+    public static String getJiraConfigFile() {
+        String filename = System.getProperty(PropertyKey.JIRA_CONFIG.key(), "jiraConfig.json");
+        return getDefaultDriverConfigLocation() + filename;
+    }
+
+    public static String getJiraExecConfigFile() {
+        String filename = System.getProperty(PropertyKey.JIRA_EXEC_CONFIG.key(), "jiraExecutionConfig.json");
+        return getDefaultDriverConfigLocation() + filename;
     }
 
     public static boolean stopRunOnError() {
@@ -226,11 +232,13 @@ public class PropertyResolver {
     }
 
     public static String getTFSRunnerConfigFile() {
-        return System.getProperty(PropertyKey.TFS_RUNNER_CONFIG.key(), "driverConfig/tfsRunnerConfig.json");
+        String filename = System.getProperty(PropertyKey.TFS_RUNNER_CONFIG.key(), "tfsRunnerConfig.json");
+        return getDefaultDriverConfigLocation() + filename;
     }
 
     public static String getReportServiceRunnerConfigFile() {
-        return System.getProperty(PropertyKey.REPORT_SERVICE_RUNNER_CONFIG.key(), "driverConfig/reportServiceRunnerConfig.json");
+        String filename = System.getProperty(PropertyKey.REPORT_SERVICE_RUNNER_CONFIG.key(), "reportServiceRunnerConfig.json");
+        return getDefaultDriverConfigLocation() + filename;
     }
 
     public static boolean isTFSConnectEnabled() {
@@ -241,11 +249,19 @@ public class PropertyResolver {
         return System.getProperty(PropertyKey.DEFAULT_RUN_TFS_SYNC.key(), "false").equalsIgnoreCase("true");
     }
 
+    public static boolean isJIRAConnectEnabled() {
+        return System.getProperty(PropertyKey.DEFAULT_RUN_JIRA_CONNECT.key(), "false").equalsIgnoreCase("true");
+    }
+
+    public static boolean isJIRASyncEnabled() {
+        return System.getProperty(PropertyKey.DEFAULT_RUN_JIRA_SYNC.key(), "false").equalsIgnoreCase("true");
+    }
+
     public static boolean isRebaseAllureReport() {
         return System.getProperty(PropertyKey.ALLURE_REPORT_REBASE.key(), "false").equalsIgnoreCase("true");
     }
 
-    public static boolean showAllEnviromentVariables() {
+    public static boolean showAllEnvironmentVariables() {
         return System.getProperty(PropertyKey.ALLURE_REPORT_ALL_ENVIRONMENT_VARIABLES.key(), "false").equalsIgnoreCase("true");
     }
 
@@ -295,19 +311,18 @@ public class PropertyResolver {
     }
 
     public static String getQCConfigFile() {
-        return System.getProperty(PropertyKey.TEST_QC_CONFIG.key(), "driverConfig/qcConfig.json");
+        String filename = System.getProperty(PropertyKey.QC_CONFIG.key(), "qcConfig.json");
+        return getDefaultDriverConfigLocation() + filename;
     }
 
     public static String getDBConfigFile() {
-        return System.getProperty(PropertyKey.TEST_DB_CONFIG.key(), "driverConfig/dbConfig.json");
-    }
-
-    public static String getJIRAConfigFile() {
-        return System.getProperty(PropertyKey.TEST_JIRA_CONFIG.key(), "driverConfig/jiraConfig.json");
+        String filename = System.getProperty(PropertyKey.DB_CONFIG.key(), "dbConfig.json");
+        return getDefaultDriverConfigLocation() + filename;
     }
 
     public static String getRESTConfigFile() {
-        return System.getProperty(PropertyKey.TEST_REST_CONFIG.key(), "driverConfig/restConfig.json");
+        String filename = System.getProperty(PropertyKey.REST_CONFIG.key(), "restConfig.json");
+        return getDefaultDriverConfigLocation() + filename;
     }
 
     public static String getDefaultVideoFormat() {
@@ -377,5 +392,45 @@ public class PropertyResolver {
     public static int getSelenideTimeout() {
         String timeout = System.getProperty(PropertyKey.SELENIDE_CONFIGURATION_TIMEOUT.key(), "5");
         return Integer.parseInt(timeout) * 1000;
+    }
+
+    public static String getRuntimeDBUser() {
+        return System.getProperty(PropertyKey.RUNTIME_DB_USER.key(), "");
+    }
+
+    public static String getRuntimeDBHost() {
+        return System.getProperty(PropertyKey.RUNTIME_DB_HOST.key(), "");
+    }
+
+    public static String getRuntimeDBPassword() {
+        return System.getProperty(PropertyKey.RUNTIME_DB_PASSWORD.key(), "");
+    }
+
+    public static String getRuntimeDBPort() {
+        return System.getProperty(PropertyKey.RUNTIME_DB_PORT.key(), "");
+    }
+
+    public static String getRuntimeDBType() {
+        return System.getProperty(PropertyKey.RUNTIME_DB_TYPE.key(), "");
+    }
+
+    public static String getRuntimeDBSName() {
+        return System.getProperty(PropertyKey.RUNTIME_DB_SNAME.key(), "");
+    }
+
+    public static String getRuntimeRestUser() {
+        return System.getProperty(PropertyKey.RUNTIME_REST_USER.key(), "");
+    }
+
+    public static String getRuntimeRestPassword() {
+        return System.getProperty(PropertyKey.RUNTIME_REST_PASSWORD.key(), "");
+    }
+
+    public static String getRuntimeRestPAT() {
+        return System.getProperty(PropertyKey.RUNTIME_REST_PAT.key(), "");
+    }
+
+    public static String getRuntimeRestHost() {
+        return System.getProperty(PropertyKey.RUNTIME_REST_HOST.key(), "");
     }
 }

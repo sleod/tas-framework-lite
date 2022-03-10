@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ch.qa.testautomation</groupId>
     <artifactId>framework</artifactId>
-    <version>3.0.2-qa-RELEASE</version>
+    <version>3.6.02-qa-SNAPSHOT</version>
     <name>testautomation-framework</name>
 
     <properties>
@@ -13,33 +13,31 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <maven.plugin.jar.version>3.2.2</maven.plugin.jar.version>
-        <maven.plugin.assembly.version>3.3.0</maven.plugin.assembly.version>
         <maven.plugin.source.version>3.2.1</maven.plugin.source.version>
         <maven.plugin.resource.version>3.2.0</maven.plugin.resource.version>
         <maven.surefire.version>3.0.0-M5</maven.surefire.version>
         <allure.version>2.17.2</allure.version>
-        <aspectj.version>1.9.7</aspectj.version>
+        <aspectj.version>1.9.8</aspectj.version>
         <appium.version>8.0.0-beta2</appium.version>
         <commons-exec.version>1.3</commons-exec.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <junit.version>5.8.2</junit.version>
         <junit-platform.version>1.8.2</junit-platform.version>
         <jsoup.version>1.14.3</jsoup.version>
-        <jersey.version>3.0.3</jersey.version>
+        <jersey.version>3.0.4</jersey.version>
         <jdom2.version>2.0.6.1</jdom2.version>
         <jcoded.version>0.2.5</jcoded.version>
         <jackson.version>2.13.1</jackson.version>
         <jakarta.version>2.0.1</jakarta.version>
-        <jira.client.version>0.5</jira.client.version>
         <log4j.version>2.17.1</log4j.version>
-        <ms.sqlserver.version>9.4.1.jre8</ms.sqlserver.version>
+        <ms.sqlserver.version>10.2.0.jre8</ms.sqlserver.version>
         <oracle.jdbc.version>21.1.0.0</oracle.jdbc.version>
         <poi.version>5.0.0</poi.version>
         <reflection.version>0.10.2</reflection.version>
-        <spring.version>5.3.14</spring.version>
-        <selenide.version>6.1.2</selenide.version>
-        <slf4j.version>1.7.32</slf4j.version>
-        <tess4j.version>5.1.0</tess4j.version>
+        <spring.version>5.3.15</spring.version>
+        <selenide.version>6.3.0</selenide.version>
+        <slf4j.version>1.7.36</slf4j.version>
+        <tess4j.version>5.1.1</tess4j.version>
         <zxing.version>3.4.1</zxing.version>
     </properties>
 
@@ -79,11 +77,6 @@
             <version>2.4.6</version>
         </dependency>
         <!--End Temporal Dependencies for screen recorder-->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
@@ -157,7 +150,7 @@
             <artifactId>reflections</artifactId>
             <version>${reflection.version}</version>
             <exclusions>
-                <exclusion>
+                <exclusion>  <!-- declare the exclusion here -->
                     <groupId>com.google.guava</groupId>
                     <artifactId>guava</artifactId>
                 </exclusion>
@@ -243,6 +236,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.microsoft.sqlserver/mssql-jdbc -->
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
@@ -302,21 +296,6 @@
             <artifactId>javase</artifactId>
             <version>${zxing.version}</version>
         </dependency>
-        <dependency>
-            <groupId>net.rcarz</groupId>
-            <artifactId>jira-client</artifactId>
-            <version>${jira.client.version}</version>
-            <exclusions>
-                <exclusion>  <!-- declare the exclusion here -->
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-                <exclusion>  <!-- declare the exclusion here -->
-                    <groupId>org.apache.httpcomponents</groupId>
-                    <artifactId>httpclient</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
     </dependencies>
     <build>
         <finalName>${project.artifactId}-${project.version}</finalName>
@@ -328,7 +307,7 @@
                 <configuration>
                     <fork>true</fork>
                     <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.source}</target>
+                    <target>${maven.compiler.target}</target>
                     <!-- <executable>D:/Java/x64/jdk1.8.0_111/bin/javac.exe</executable> -->
                 </configuration>
             </plugin>
@@ -339,8 +318,9 @@
                 <configuration>
                     <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
                     <testFailureIgnore>true</testFailureIgnore>
-                    <testSourceDirectory>${basedir}/src/test/java/testFramework/</testSourceDirectory>
-                    <testClassesDirectory>${project.build.directory}/test-classes/</testClassesDirectory>
+                    <includes>
+                        <include>**/ch/qa/testautomation/framework/**/*Test.java</include>
+                    </includes>
                 </configuration>
             </plugin>
             <plugin>
@@ -381,37 +361,37 @@
                     </excludes>
                 </configuration>
             </plugin>
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-assembly-plugin</artifactId>-->
-<!--                <version>${maven.plugin.assembly.version}</version>-->
-<!--                <configuration>-->
-<!--                    <descriptorRefs>-->
-<!--                        <descriptorRef>jar-with-dependencies</descriptorRef>-->
-<!--                    </descriptorRefs>-->
-<!--                    <appendAssemblyId>false</appendAssemblyId>-->
-<!--                    <archive>-->
-<!--                        <manifest>-->
-<!--                            <mainClass>PerformableTestCases</mainClass>-->
-<!--                        </manifest>-->
-<!--                        <manifestEntries>-->
-<!--                            <Project-Version>${project.version}</Project-Version>-->
-<!--                            <Build-Date>${maven.build.timestamp}</Build-Date>-->
-<!--                            <Project-Name>${project.artifactId}_${project.version}</Project-Name>-->
-<!--                        </manifestEntries>-->
-<!--                    </archive>-->
-<!--                </configuration>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <id>make-assembly</id>-->
-<!--                        <phase>package</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>single</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--            </plugin>-->
-
+            <!--            <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-assembly-plugin</artifactId>
+                            <version>${maven.plugin.common.version}</version>
+                            <configuration>
+                                <descriptorRefs>
+                                    <descriptorRef>jar-with-dependencies</descriptorRef>
+                                </descriptorRefs>
+                                <appendAssemblyId>false</appendAssemblyId>
+                                <archive>
+                                    <manifest>
+                                        <mainClass>ch.raiffeisen.testautomation.framework.core.component.PerformableTestCases</mainClass>
+                                    </manifest>
+                                    <manifestEntries>
+                                        <Project-Version>${project.version}</Project-Version>
+                                        <Build-Date>${maven.build.timestamp}</Build-Date>
+                                        <Project-Name>${project.artifactId}_${project.version}</Project-Name>
+                                    </manifestEntries>
+                                </archive>
+                            </configuration>
+                            <executions>
+                                <execution>
+                                    <id>make-assembly</id>
+                                    <phase>package</phase>
+                                    <goals>
+                                        <goal>single</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                        </plugin>
+            -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -434,6 +414,39 @@
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>integration-test</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <printSummary>true</printSummary>
+                            <!--                            <trimStackTrace>false</trimStackTrace>-->
+                            <!--                            <argLine>-Xms256m -Xmx1536m -noverify -XX:TieredStopAtLevel=1 -Duser.language=de -Duser.country=CH -Djava.awt.headless=true</argLine>-->
+                            <!--                            &lt;!&ndash; Nightly build fuehrt alle Tests aus &ndash;&gt;-->
+                            <includes>
+                                <include>**/ch/raiffeisen/testautomation/scenarios/WebAppTestCasesScenario.java
+                                </include>
+                            </includes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+    </profiles>
+
+    <!--    <distributionManagement>-->
+    <!--        <repository>-->
+    <!--            <id>Test_Services_Release</id>-->
+    <!--            <name>Test_Services_Release</name>-->
+    <!--            <url>http://rchrepository:8081/repository/Test_Services_Release</url>-->
+    <!--        </repository>-->
+    <!--    </distributionManagement>-->
+
     <distributionManagement>
         <repository>
             <id>localRepo</id>
@@ -441,4 +454,7 @@
             <url>file://${user.home}/.m2/repository</url>
         </repository>
     </distributionManagement>
+
+
+    <!-->http://rchrepository:8080/nexus/content/repositories/Test_Services_Snapshot-->
 </project>

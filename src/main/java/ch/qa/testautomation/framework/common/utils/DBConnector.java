@@ -21,6 +21,19 @@ public class DBConnector {
     }
 
 
+    /**
+     * Connect to DB and execute statement
+     *
+     * @param dbType    type of db, like mysql, oracle-SID, oracle-SN, mssql
+     * @param host      host
+     * @param user      username
+     * @param port      port
+     * @param dbName    dbname or service name or service id
+     * @param password  password
+     * @param sql       sql statement
+     * @param traceInfo true or false to decide showing information or not
+     * @return list of map represent the result table
+     */
     public static List<Map<String, Object>> connectAndExecute(String dbType, String host, String user, String port,
                                                               String dbName, String password, String sql, boolean traceInfo) {
         Connection connect = null;

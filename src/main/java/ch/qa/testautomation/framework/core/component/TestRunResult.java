@@ -2,13 +2,14 @@ package ch.qa.testautomation.framework.core.component;
 
 import ch.qa.testautomation.framework.common.enumerations.TestStatus;
 import ch.qa.testautomation.framework.common.logging.Screenshot;
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import junit.framework.TestResult;
 
 import java.io.File;
 import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
+
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.getSimpleCustomInfo;
 
 public class TestRunResult extends TestResult {
     private TestStatus status = TestStatus.NO_RUN;
@@ -87,12 +88,12 @@ public class TestRunResult extends TestResult {
 
     public void startNow(String logText) {
         startTime = Instant.now().toEpochMilli();
-        begin = SystemLogger.getSimpleCustomInfo("INFO", logText);
+        begin = getSimpleCustomInfo("INFO", logText);
     }
 
     public void stopNow(String logText) {
         stopTime = Instant.now().toEpochMilli();
-        end = SystemLogger.getSimpleCustomInfo("INFO", logText);
+        end = getSimpleCustomInfo("INFO", logText);
     }
 
     public long getStart() {

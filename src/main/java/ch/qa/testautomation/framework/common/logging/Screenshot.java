@@ -2,8 +2,8 @@ package ch.qa.testautomation.framework.common.logging;
 
 import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.enumerations.ImageFormat;
-import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.common.utils.TimeUtils;
+import ch.qa.testautomation.framework.configuration.PropertyResolver;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -13,6 +13,8 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.error;
 
 
 /**
@@ -49,7 +51,7 @@ public class Screenshot {
                     pageFile = writePageFile(pageSource, PropertyResolver.getDefaultTestCaseReportLocation());
                 }
             } catch (IOException ex) {
-                SystemLogger.error(ex);
+                error(ex);
             }
         }
         return pageFile;

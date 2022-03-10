@@ -1,6 +1,5 @@
 package ch.qa.testautomation.framework.common.utils;
 
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import io.appium.java_client.pagefactory.AndroidFindBy;
 import io.appium.java_client.pagefactory.iOSXCUITFindBy;
 import org.openqa.selenium.support.FindBy;
@@ -10,6 +9,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Map;
+
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
 
 /**
  * Changes the annotation value for the given key of the given annotation to newValue and returns
@@ -55,7 +56,7 @@ public class AnnotationUtils {
         String how = config.get("how");
         String using = config.get("using");
         memberValues.put(how, using);
-        SystemLogger.trace("modified field annotation to: " + how + " = " + using);
+        trace("modified field annotation to: " + how + " = " + using);
     }
 
     /**

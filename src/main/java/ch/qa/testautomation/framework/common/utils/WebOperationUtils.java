@@ -1,5 +1,6 @@
 package ch.qa.testautomation.framework.common.utils;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
@@ -9,7 +10,10 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selectors.byText;
+import static com.codeborne.selenide.Selectors.withText;
 import static com.codeborne.selenide.Selenide.$;
 
 public class WebOperationUtils {
@@ -83,7 +87,6 @@ public class WebOperationUtils {
      *
      * @param driver     web driver
      * @param webElement the Web Element
-     * @return the Web Element
      */
     public static void waitUntilTextIsVisible(WebDriver driver, WebElement webElement, String textToWait, long timeout) {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
@@ -351,5 +354,19 @@ public class WebOperationUtils {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Interrupted while webdriver waiting...\n" + ex.getMessage());
         }
+    }
+
+    /**
+     * Prüft ob im übergebenem Element der exakte Text existiert
+     */
+    protected SelenideElement existsExactTextInElement(SelenideElement elementContainer, String valueToCheck) {
+        return elementContainer.find(byText(valueToCheck)).should(Condition.exist);
+    }
+
+    /**
+     * Prüft ob im übergebenem Element der Text enthalten ist
+     */
+    protected SelenideElement existsContainsTextInElement(SelenideElement elementContainer, String valueToCheck) {
+        return elementContainer.find(withText(valueToCheck)).should(Condition.exist);
     }
 }

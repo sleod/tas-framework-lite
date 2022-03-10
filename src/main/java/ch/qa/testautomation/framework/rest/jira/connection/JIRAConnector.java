@@ -1,4 +1,4 @@
-package ch.qa.testautomation.framework.rest.TFS.connection;
+package ch.qa.testautomation.framework.rest.jira.connection;
 
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.intefaces.RestDriver;
@@ -17,47 +17,71 @@ import java.util.stream.Collectors;
 import static ch.qa.testautomation.framework.common.logging.SystemLogger.log;
 import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
 
-public class TFSConnector implements RestDriver {
+public class JIRAConnector implements RestDriver {
 
     private WebTarget webTarget;
     private Response response;
     private Client client;
     private final String host;
-    private final String basic;
-    private final String apiVersion;
+    private final String authHeader;
     private final MediaType mediaType = MediaType.APPLICATION_JSON_TYPE;
 
     /**
-     * construct connector with host, apiVersion and personalToken
+     * construct connector with host and personalToken
      *
-     * @param host          host: "https://tfs-prod.service.qa.ch:8081/"
-     * @param personalToken personalToken
-     * @param apiVersion    api-version of tfs for post, put and update
+     * @param host     host: "https://tfs-prod.service.qa.ch:8081/"
+     * @param patToken personalToken
      */
-    public TFSConnector(String host, String personalToken, String apiVersion) {
-        if (personalToken == null || personalToken.isEmpty()) {
-            throw new RuntimeException("Personal Access Token must be provided for TFS Connection!");
-        }
+    public JIRAConnector(String host, String patToken) {
+        secureParameter(host, "Host of Endpoint");
+        secureParameter(patToken, "Personal Access Token");
         this.host = host;
-        this.basic = "Basic " + PropertyResolver.encodeBase64(":" + personalToken);
-        this.apiVersion = apiVersion;
+        this.authHeader = "Bearer " + patToken;
+        initialize();
+    }
+
+    /**
+     * construct connector with basic authorization
+     *
+     * @param host     host: "https://tfs-prod.service.qa.ch:8081/"
+     * @param user     user for Basic Authorization
+     * @param password password for Basic Authorization
+     */
+    public JIRAConnector(String host, String user, String password) {
+        secureParameter(host, "Host of Endpoint");
+        secureParameter(user, "User for Basic Authorization");
+        secureParameter(password, "Password for Basic Authorization");
+        this.host = host;
+        this.authHeader = "Basic " + PropertyResolver.encodeBase64(user + ":" + password);
         initialize();
     }
 
     /**
      * Constructor with config in map
      *
-     * @param tfsConfig map of configs
+     * @param jiraConfig map of configs
      */
-    public TFSConnector(Map<String, String> tfsConfig) {
-        String personalToken = tfsConfig.get("pat");
-        if (personalToken == null || personalToken.isEmpty()) {
-            throw new RuntimeException("Personal Access Token must be provided for TFS Connection!");
+    public JIRAConnector(Map<String, String> jiraConfig) {
+        String patToken = jiraConfig.get("pat");
+        String user = jiraConfig.get("user");
+        String password = jiraConfig.get("password");
+        String host = jiraConfig.get("host");
+        secureParameter(host, "Host of Endpoint");
+        this.host = host;
+        if (patToken != null && !patToken.isEmpty()) {
+            this.authHeader = "Bearer " + patToken;
+        } else if (user != null && !user.isEmpty() && password != null && !password.isEmpty()) {
+            this.authHeader = "Basic " + PropertyResolver.encodeBase64(user + ":" + password);
+        } else {
+            throw new RuntimeException("Personal Access Token or User and Password must be provided for Rest Connection!");
         }
-        this.host = tfsConfig.get("host");
-        this.basic = "Basic " + PropertyResolver.encodeBase64(":" + personalToken);
-        this.apiVersion = tfsConfig.get("apiVersion");
         initialize();
+    }
+
+    private void secureParameter(String param, String paramName) {
+        if (param == null || param.isEmpty()) {
+            throw new RuntimeException(paramName + " must not be null or empty!");
+        }
     }
 
     @Override
@@ -85,23 +109,13 @@ public class TFSConnector implements RestDriver {
         return response.getCookies().values().stream().map(cookie -> cookie.getName() + "=" + cookie.getValue()).collect(Collectors.joining(";"));
     }
 
-    public Response downloadItemsInFolderAsZip(String path, String folder) {
-        trace("Request GET: " + path);
-        response = webTarget.path(path)
-                .queryParam("path", folder)
-                .request(MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                .header("Authorization", basic)
-                .header("Accept", "application/zip")
-                .get();
-        return response;
-    }
 
     @Override
     public Response get(String path) {
         trace("Request GET: " + path);
         response = webTarget.path(path)
                 .request(mediaType)
-                .header("Authorization", basic)
+                .header("Authorization", authHeader)
                 .get();
         return response;
     }
@@ -112,7 +126,7 @@ public class TFSConnector implements RestDriver {
         response = webTarget.path(path)
                 .queryParam("query", URLEncoder.encode(query, StandardCharsets.UTF_8))
                 .request(mediaType)
-                .header("Authorization ", basic)
+                .header("Authorization ", authHeader)
                 .get();
         return response;
     }
@@ -131,7 +145,7 @@ public class TFSConnector implements RestDriver {
         response = webTarget.path(path)
                 .queryParam(key, value)
                 .request(mediaType)
-                .header("Authorization", basic)
+                .header("Authorization", authHeader)
                 .get();
         return response;
     }
@@ -146,7 +160,7 @@ public class TFSConnector implements RestDriver {
             trace("Query: " + key + "=" + value);
         }
         response = webTarget.path(path).request(mediaType)
-                .header("Authorization ", basic)
+                .header("Authorization ", authHeader)
                 .get();
         return response;
     }
@@ -156,32 +170,20 @@ public class TFSConnector implements RestDriver {
         trace("Request POST: " + path);
 //        trace("payload: " + payload);
         response = webTarget.path(path)
-                .queryParam("api-version", apiVersion)
                 .request(mediaType)
-                .header("Authorization ", basic)
+                .header("Authorization ", authHeader)
                 .post(Entity.entity(payload, mediaType));
         return response;
     }
 
-    public Response post(String path, String payload, String apiVersion) {
-        trace("Request POST: " + path);
-//        trace("payload: " + payload);
-        response = webTarget.path(path)
-                .queryParam("api-version", apiVersion)
-                .request(mediaType)
-                .header("Authorization ", basic)
-                .post(Entity.entity(payload, mediaType));
-        return response;
-    }
 
     @Override
     public Response put(String path, String payload) {
         trace("Request PUT: " + path);
 //        trace("payload: " + payload);
         response = webTarget.path(path)
-                .queryParam("api-version", apiVersion)
                 .request(mediaType)
-                .header("Authorization ", basic)
+                .header("Authorization ", authHeader)
                 .put(Entity.entity(payload, mediaType));
         return response;
     }
@@ -191,7 +193,7 @@ public class TFSConnector implements RestDriver {
         trace("Request DELETE: " + path);
         response = webTarget.path(path)
                 .request(mediaType)
-                .header("Authorization ", basic)
+                .header("Authorization ", authHeader)
                 .delete();
         return response;
     }
@@ -200,9 +202,8 @@ public class TFSConnector implements RestDriver {
         trace("Request PATCH: " + path);
 //        trace("payload: " + payload);
         response = webTarget.path(path)
-                .queryParam("api-version", apiVersion)
                 .request(mediaType)
-                .header("Authorization ", basic)
+                .header("Authorization ", authHeader)
                 .header("X-HTTP-Method-Override", "PATCH")
                 .put(Entity.entity(payload, mediaType));
         return response;

@@ -25,7 +25,7 @@ public class CustomStepListDeserializer extends StdDeserializer<List<JSONTestCas
 
     @Override
     public List<JSONTestCaseStep> deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
-        List<JSONTestCaseStep> steps = new ObjectMapper().readValue(jsonParser, new TypeReference<List<JSONTestCaseStep>>() {
+        List<JSONTestCaseStep> steps = new ObjectMapper().readValue(jsonParser, new TypeReference<>() {
         });
         return steps;
     }
