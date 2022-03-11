@@ -20,6 +20,8 @@ import java.util.Map;
 public class JIRARestClient extends RestClientBase {
     private final JIRAConnector jiraConnector;
     private String user = "";
+    private static final String GENERAL_PATH = "rest/api/latest/";
+    private static final String XRAY_PATH = "rest/raven/latest/api/";
 
     /**
      * Constructor with basic authentication
@@ -44,38 +46,123 @@ public class JIRARestClient extends RestClientBase {
         this.jiraConnector = (JIRAConnector) getRestDriver();
     }
 
+    /**
+     * get issue with key
+     *
+     * @param issueKey issue key
+     * @return issue in JsonNode
+     */
     public JsonNode getIssue(String issueKey) {
-        Response response = jiraConnector.get("/rest/api/latest/issue/" + issueKey);
+        Response response = jiraConnector.get(GENERAL_PATH + "issue/" + issueKey);
         return getResponseNode(response, "Fail on get Issue with key: " + issueKey);
     }
 
+    /**
+     * search issues with JQL
+     *
+     * @param jql jql
+     * @return search result
+     */
     public JsonNode searchIssue(String jql) {
-        Response response = jiraConnector.get("/rest/api/latest/search", "jql", encodeUrlPath(jql));
+        Response response = jiraConnector.get(GENERAL_PATH + "search", "jql", encodeUrlPath(jql));
         return getResponseNode(response, "Fail on search Issue with JQL: " + jql);
     }
 
+    /**
+     * create test execution
+     *
+     * @param projectKey  project key
+     * @param summary     summary
+     * @param description description
+     * @return created issue
+     */
     public JsonNode createTestExecution(String projectKey, String summary, String description) {
-        String path = "/rest/api/latest/issue/";
-        Response response = jiraConnector.post(path, buildIssue(projectKey, summary, description, "Test Execution").asText());
-        return getResponseNode(response, "Fail on create Test Execution: " + path);
+        return createIssue(buildIssue(projectKey, summary, description, "Test Execution"));
     }
 
     /**
-     * add xray test exection to test plan
+     * generally create issue in jira with payload in case issue with same summery not exists
      *
-     * @param exeKey   execution key
-     * @param planKeys test plan key
+     * @param payload body to post
+     * @return response in JsonNode
      */
-    public void addTestExecutionToPlan(String exeKey, List<String> planKeys) {
-        for (String planKey : planKeys) {
-            String path = "rest/raven/2.0/api/testplan/" + planKey + "/testexecution";
-            ObjectMapper objectMapper = new ObjectMapper();
-            ArrayNode keyList = objectMapper.createArrayNode();
-            ObjectNode payload = objectMapper.createObjectNode();
-            keyList.add(exeKey);
-            payload.set("add", keyList);
-            jiraConnector.post(path, payload.asText());
+    public JsonNode createIssue(JsonNode payload) {
+        return createIssue(payload.get("summary").asText(), payload.toString());
+    }
+
+    /**
+     * generally create issue in jira with payload in case issue with same summery not exists
+     *
+     * @param payload body to post
+     * @param summary summary of issue
+     * @return response in JsonNode
+     */
+    public JsonNode createIssue(String summary, String payload) {
+        String path = GENERAL_PATH + "issue";
+        JsonNode result = searchIssue("summary~" + summary);
+        if (result.get("total").asInt() == 0) {
+            return getResponseNode(jiraConnector.post(path, payload),
+                    "Fail on create issue: " + path + "\nwith payload: " + payload);
+        } else {
+            throw new RuntimeException("Given Issue has the same summary with existing one!");
         }
+    }
+
+
+    /**
+     * generally edit issue in jira with payload {"fields":{...}}
+     *
+     * @param payload  body to post
+     * @param issueKey issueKey
+     * @return response in JsonNode
+     */
+    public JsonNode updateIssue(String issueKey, JsonNode payload) {
+        String path = GENERAL_PATH + "issue/" + issueKey;
+        return getResponseNode(jiraConnector.put(path, payload.toString()),
+                "Fail on update issue: " + path + "\nwith payload: " + payload);
+    }
+
+    /**
+     * get tests in execution
+     *
+     * @param key      test execution key
+     * @param detailed boolean if detailed data retrieved
+     * @return tests information
+     */
+    public JsonNode getTestsInExecution(String key, boolean detailed) {
+        String path = XRAY_PATH + "testexec/" + key + "/test?detailed=" + detailed;
+        return getResponseNode(jiraConnector.get(path),
+                "Fail on get tests in execution with path: " + path);
+    }
+
+    /**
+     * get test runs for every test in test execution
+     *
+     * @param key test execution key
+     * @return test runs
+     */
+    public JsonNode getTestRunsInExecution(String key) {
+        String path = XRAY_PATH + "testruns";
+        return getResponseNode(jiraConnector.get(path, "testExecKey", key),
+                "Fail on get test runs in execution with path: " + path);
+    }
+
+    /**
+     * add xray test execution to test plan
+     *
+     * @param exeKey  execution key
+     * @param planKey test plan key
+     * @return result
+     */
+    public JsonNode addTestExecutionToPlan(String exeKey, String planKey) {
+        String path = XRAY_PATH + "testplan/" + planKey + "/testexecution";
+        ObjectMapper objectMapper = new ObjectMapper();
+        ArrayNode keyList = objectMapper.createArrayNode();
+        ObjectNode payload = objectMapper.createObjectNode();
+        keyList.add(exeKey);
+        payload.set("add", keyList);
+        return getResponseNode(jiraConnector.post(path, payload.toString()),
+                "Fail on add execution to Plans with path: " + path);
     }
 
     /**
@@ -83,15 +170,17 @@ public class JIRARestClient extends RestClientBase {
      *
      * @param testKeys test case key
      * @param planKey  test plan key
+     * @return result
      */
-    public void removeTestsFromPlan(List<String> testKeys, String planKey) {
-        String path = "rest/raven/1.0/api/testplan/" + planKey + "/test";
+    public JsonNode removeTestsFromPlan(List<String> testKeys, String planKey) {
+        String path = XRAY_PATH + "testplan/" + planKey + "/test";
         ObjectMapper objectMapper = new ObjectMapper();
         ArrayNode keyList = objectMapper.createArrayNode();
         ObjectNode payload = objectMapper.createObjectNode();
         testKeys.forEach(keyList::add);
         payload.set("remove", keyList);
-        jiraConnector.post(path, payload.asText());
+        return getResponseNode(jiraConnector.post(path, payload.toString()),
+                "Fail on delete tests from Plans with path: " + path);
     }
 
     /**
@@ -101,7 +190,7 @@ public class JIRARestClient extends RestClientBase {
      * @param targets target issue keys
      */
     public void addIssueLink(String source, List<String> targets) {
-        String path = "rest/api/latest/issueLink";
+        String path = GENERAL_PATH + "issueLink";
         ObjectMapper objectMapper = new ObjectMapper();
         for (String target : targets) {
             ObjectNode type = objectMapper.createObjectNode().put("name", "Tests");
@@ -113,7 +202,7 @@ public class JIRARestClient extends RestClientBase {
                     .<ObjectNode>set("inwardIssue", inwardIssue)
                     .<ObjectNode>set("outwardIssue", outwardIssue)
                     .set("comment", comment);
-            jiraConnector.post(path, payload.asText());
+            jiraConnector.post(path, payload.toString());
         }
     }
 
@@ -121,16 +210,18 @@ public class JIRARestClient extends RestClientBase {
      * add xray test cases to execution
      *
      * @param testKeys key of test cases
-     * @param key      test execution key
+     * @param execKey  test execution key
+     * @return result
      */
-    public void addTestsToExecution(List<String> testKeys, String key) {
-        String path = "rest/raven/latest/api/testexec/" + key + "/test";
+    public JsonNode addTestsToExecution(List<String> testKeys, String execKey) {
+        String path = XRAY_PATH + "testexec/" + execKey + "/test";
         ObjectMapper objectMapper = new ObjectMapper();
         ArrayNode keyList = objectMapper.createArrayNode();
         ObjectNode payload = objectMapper.createObjectNode();
         testKeys.forEach(keyList::add);
         payload.set("add", keyList);
-        jiraConnector.post(path, payload.asText());
+        return getResponseNode(jiraConnector.post(path, payload.toString()),
+                "Fail on add tests to test execution with path: " + path);
     }
 
     /**
@@ -138,67 +229,57 @@ public class JIRARestClient extends RestClientBase {
      *
      * @param testKeys key of test cases
      * @param key      test execution key
+     * @return result
      */
-    public void removeTestsFromExecution(List<String> testKeys, String key) {
-        String path = "rest/raven/latest/api/testexec/" + key + "/test";
+    public JsonNode removeTestsFromExecution(List<String> testKeys, String key) {
+        String path = XRAY_PATH + "testexec/" + key + "/test";
         ObjectMapper objectMapper = new ObjectMapper();
         ArrayNode keyList = objectMapper.createArrayNode();
         ObjectNode payload = objectMapper.createObjectNode();
         testKeys.forEach(keyList::add);
         payload.set("remove", keyList);
-        jiraConnector.post(path, payload.asText());
+        return getResponseNode(jiraConnector.post(path, payload.toString()),
+                "Fail on add tests to test execution with path: " + path);
     }
-
 
     /**
      * set status of run result to run
      *
-     * @param exeKey               test execution key
+     * @param exeKey               test run id
      * @param testCaseIdAndResults results map: (test case key : result)
      */
-    public void updateStatusToExecution(String exeKey, Map<String, TestRunResult> testCaseIdAndResults) throws IOException {
-        JsonNode jiraConfig = JSONContainerFactory.getConfig(PropertyResolver.getJiraConfigFile());
-        //get execution
-        JsonNode execution = getIssue(exeKey);
-        //get run list of test execution that contains the instances of test cases
-        JsonNode runListNode = execution.get(jiraConfig.get("customFields").get("execution").get("tests").asText());
-        if (runListNode.isArray()) {
-            ArrayNode runList = (ArrayNode) runListNode;
-            for (JsonNode instance : runList) {
-                //b:test case key
-                String testId = instance.get("b").asText();
-                if (testCaseIdAndResults.containsKey(testId)) {
-                    //get result of the instance via tcKey
-                    TestRunResult testRunResult = testCaseIdAndResults.get(testId);
-                    //get runId of the instance of test case
-                    String runId = instance.get("c").toString();
-                    //fetch result of run instance to: PASS, TO DO, FAIL, ABORTED
-                    String runStatus = testRunResult.getStatus().text();
-                    //build uri to get and update status
-                    String path = "rest/raven/latest/api/testrun/" + runId + "/status?status=" + runStatus;
-                    jiraConnector.put(path, "");
-                    //upload console output as run evidence
-                    addRunEvidence(runId, new File(testRunResult.getLogFilePath()));
-                }
-            }
+    public void updateRunStatusInExecution(String exeKey, Map<String, TestRunResult> testCaseIdAndResults) {
+        //get runs in execution
+        JsonNode runs = getTestRunsInExecution(exeKey);
+        if (runs.isArray()) {
+            runs.forEach(run -> updateRunStatus(run, testCaseIdAndResults.get(run.get("testKey").asText())));
         }
     }
 
-    /**
-     * upload evidence to run in test execution
-     *
-     * @param runId   run id of the evidence
-     * @param logFile log file
-     * @throws IOException IOeException while reading file
-     */
-    public void addRunEvidence(String runId, File logFile) throws IOException {
-        String path = "rest/raven/latest/api/testrun/" + runId + "/attachment";
+    public void updateRunStatus(JsonNode run, TestRunResult testRunResult) {
+        if (run != null && testRunResult != null) {
+            updateRunStatus(run.get("id").asText(), testRunResult.getDescription(),
+                    testRunResult.getLogFilePath(),
+                    testRunResult.getStatus().intValue());
+        } else {
+            throw new RuntimeException("Test Run or Test Run Result is null!");
+        }
+    }
+
+    public JsonNode updateRunStatus(String runId, String description, String logFilePath, int statusIndex) {
+        String path = XRAY_PATH + "testrun/" + runId;
         ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode payload = objectMapper.createObjectNode();
-        payload.put("data", Base64.getEncoder().encodeToString(FileOperation.readFileToByteArray(logFile)))
-                .put("filename", logFile.getName())
-                .put("contentType", "text/plain");
-        jiraConnector.post(path, payload.asText());
+        JsonNode logFile = objectMapper.createObjectNode()
+                .put("filename", "testRunLog.txt")
+                .put("contentType", "plain/text")
+                .put("data", PropertyResolver.encodeBase64(FileOperation.readFileToLinedString(logFilePath)));
+        ArrayNode evidence = objectMapper.createArrayNode().add(logFile);
+        JsonNode evidences = objectMapper.createObjectNode().set("add", evidence);
+        ObjectNode payload = objectMapper.createObjectNode()
+                .put("status", JiraRunStatus.getText(statusIndex))
+                .put("comment", description)
+                .set("evidences", evidences);
+        return getResponseNode(jiraConnector.put(path, payload.toString()), "Fail with updat status to run: " + runId);
     }
 
     /**
@@ -212,7 +293,7 @@ public class JIRARestClient extends RestClientBase {
      */
     private JsonNode buildXrayTest(String projectKey, String summary, String description, List<String> plans, List<String> testStepNames) {
         ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode project = objectMapper.createObjectNode().put("id", projectKey);
+        ObjectNode project = objectMapper.createObjectNode().put("key", projectKey);
         ObjectNode issueType = objectMapper.createObjectNode().put("name", "Test").put("id", "10400");
         ObjectNode testType = objectMapper.createObjectNode().put("value", "Manual").put("id", "10200");
         ArrayNode planList = objectMapper.createArrayNode();
@@ -240,19 +321,20 @@ public class JIRARestClient extends RestClientBase {
         return objectMapper.createObjectNode().<ObjectNode>set("fields", fields);
     }
 
-    //todo: check with jira rest api
+
     /**
-     * build Issue with given properties
+     * build Issue with given properties. like:
+     * <a href="https://developer.atlassian.com/server/jira/platform/jira-rest-api-examples/#creating-an-issue-using-a-project-key-and-field-names">Jira REST API examples</a>
      *
      * @param projectKey  project key
      * @param summary     summary
      * @param description description of issue
      * @param issieType   issue type
-     * @return JSONObject as payload
+     * @return JsonNode as payload
      */
     private JsonNode buildIssue(String projectKey, String summary, String description, String issieType) {
         ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode project = objectMapper.createObjectNode().put("id", projectKey);
+        ObjectNode project = objectMapper.createObjectNode().put("key", projectKey);
         ObjectNode issueType = objectMapper.createObjectNode().put("name", issieType);
         ObjectNode fields = objectMapper.createObjectNode()
                 .put("summary", summary)

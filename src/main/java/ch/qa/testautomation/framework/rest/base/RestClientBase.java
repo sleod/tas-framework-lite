@@ -25,10 +25,10 @@ public class RestClientBase {
     }
 
 
-    public JsonNode getResponseNode(Response response, String errorMessage) {
+    public static JsonNode getResponseNode(Response response, String errorMessage) {
         ObjectMapper objectMapper = getObjectMapper();
         JsonNode responseNode;
-        if (response.getStatus() == 200) {
+        if (response.getStatus() >= 200 && response.getStatus() < 230) {
             try {
                 responseNode = objectMapper.readTree(response.readEntity(String.class));
             } catch (JsonProcessingException e) {
@@ -36,6 +36,7 @@ public class RestClientBase {
             }
         } else {
             SystemLogger.debug("Status code: " + response.getStatus());
+            SystemLogger.debug(response.readEntity(String.class));
             throw new RuntimeException(errorMessage);
         }
         return responseNode;

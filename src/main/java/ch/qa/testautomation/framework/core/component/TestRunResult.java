@@ -13,7 +13,7 @@ import static ch.qa.testautomation.framework.common.logging.SystemLogger.getSimp
 
 public class TestRunResult extends TestResult {
     private TestStatus status = TestStatus.NO_RUN;
-    private List<TestStepResult> stepResults = new LinkedList<>();
+    private final List<TestStepResult> stepResults = new LinkedList<>();
     private String name;
     private List<File> attachments = new LinkedList<>();
     private long startTime;

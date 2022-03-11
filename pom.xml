@@ -31,7 +31,6 @@
         <jakarta.version>2.0.1</jakarta.version>
         <log4j.version>2.17.1</log4j.version>
         <ms.sqlserver.version>10.2.0.jre8</ms.sqlserver.version>
-        <oracle.jdbc.version>21.1.0.0</oracle.jdbc.version>
         <poi.version>5.0.0</poi.version>
         <reflection.version>0.10.2</reflection.version>
         <spring.version>5.3.15</spring.version>
@@ -100,6 +99,10 @@
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-api</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-lang3</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -162,7 +165,7 @@
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
-            <artifactId>jersey-server</artifactId>
+            <artifactId>jersey-client</artifactId>
             <version>${jersey.version}</version>
         </dependency>
         <dependency>
@@ -214,6 +217,10 @@
                     <groupId>ch.qos.logback</groupId>
                     <artifactId>logback-classic</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -230,10 +237,6 @@
                     <groupId>org.junit.platform</groupId>
                     <artifactId>junit-platform-launcher</artifactId>
                 </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
             </exclusions>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.microsoft.sqlserver/mssql-jdbc -->
@@ -241,11 +244,7 @@
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
             <version>${ms.sqlserver.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.oracle.database.jdbc</groupId>
-            <artifactId>ojdbc11</artifactId>
-            <version>${oracle.jdbc.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.aspectj</groupId>
@@ -319,7 +318,7 @@
                     <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
                     <testFailureIgnore>true</testFailureIgnore>
                     <includes>
-                        <include>**/ch/qa/testautomation/framework/**/*Test.java</include>
+                        <include>**/ch/raiffeisen/testautomation/framework/**/*Test.java</include>
                     </includes>
                 </configuration>
             </plugin>

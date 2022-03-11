@@ -29,7 +29,7 @@ public class JIRAConnector implements RestDriver {
     /**
      * construct connector with host and personalToken
      *
-     * @param host     host: "https://tfs-prod.service.qa.ch:8081/"
+     * @param host     host: "https://tfs-prod.service.raiffeisen.ch:8081/"
      * @param patToken personalToken
      */
     public JIRAConnector(String host, String patToken) {
@@ -43,7 +43,7 @@ public class JIRAConnector implements RestDriver {
     /**
      * construct connector with basic authorization
      *
-     * @param host     host: "https://tfs-prod.service.qa.ch:8081/"
+     * @param host     host: "https://tfs-prod.service.raiffeisen.ch:8081/"
      * @param user     user for Basic Authorization
      * @param password password for Basic Authorization
      */
@@ -126,7 +126,7 @@ public class JIRAConnector implements RestDriver {
         response = webTarget.path(path)
                 .queryParam("query", URLEncoder.encode(query, StandardCharsets.UTF_8))
                 .request(mediaType)
-                .header("Authorization ", authHeader)
+                .header("Authorization", authHeader)
                 .get();
         return response;
     }
@@ -160,7 +160,7 @@ public class JIRAConnector implements RestDriver {
             trace("Query: " + key + "=" + value);
         }
         response = webTarget.path(path).request(mediaType)
-                .header("Authorization ", authHeader)
+                .header("Authorization", authHeader)
                 .get();
         return response;
     }
@@ -171,7 +171,7 @@ public class JIRAConnector implements RestDriver {
 //        trace("payload: " + payload);
         response = webTarget.path(path)
                 .request(mediaType)
-                .header("Authorization ", authHeader)
+                .header("Authorization", authHeader)
                 .post(Entity.entity(payload, mediaType));
         return response;
     }
@@ -183,7 +183,7 @@ public class JIRAConnector implements RestDriver {
 //        trace("payload: " + payload);
         response = webTarget.path(path)
                 .request(mediaType)
-                .header("Authorization ", authHeader)
+                .header("Authorization", authHeader)
                 .put(Entity.entity(payload, mediaType));
         return response;
     }
@@ -193,7 +193,7 @@ public class JIRAConnector implements RestDriver {
         trace("Request DELETE: " + path);
         response = webTarget.path(path)
                 .request(mediaType)
-                .header("Authorization ", authHeader)
+                .header("Authorization", authHeader)
                 .delete();
         return response;
     }
@@ -203,7 +203,7 @@ public class JIRAConnector implements RestDriver {
 //        trace("payload: " + payload);
         response = webTarget.path(path)
                 .request(mediaType)
-                .header("Authorization ", authHeader)
+                .header("Authorization", authHeader)
                 .header("X-HTTP-Method-Override", "PATCH")
                 .put(Entity.entity(payload, mediaType));
         return response;

@@ -27,22 +27,22 @@ public class RestfulDriver implements RestDriver {
     private Client client;
     private final String host;
     private MediaType mediaType = MediaType.APPLICATION_JSON_TYPE;
-    private final String basic;
+    private final String token;
 
     public RestfulDriver(String host, String user, String password) {
         this.host = host;
-        this.basic = "Basic " + PropertyResolver.encodeBase64(user + ":" + password);
+        this.token = "Basic " + PropertyResolver.encodeBase64(user + ":" + password);
     }
 
     /**
-     * Construction with encoded basic key
+     * Construction with token or encoded key
      *
-     * @param host       host
-     * @param encodedKey base64 encoded key of user:password
+     * @param host  host
+     * @param token 'Basic base64.encode(user:password)' or 'Bearer PAT'
      */
-    public RestfulDriver(String host, String encodedKey) {
+    public RestfulDriver(String host, String token) {
         this.host = host;
-        this.basic = "Basic " + encodedKey;
+        this.token = token;
     }
 
     @Override
@@ -75,7 +75,7 @@ public class RestfulDriver implements RestDriver {
         log("INFO", "Request GET: " + path);
         response = webTarget.path(path)
                 .request(mediaType)
-                .header("Authorization", basic)
+                .header("Authorization", token)
                 .get();
         return response;
     }
@@ -94,7 +94,7 @@ public class RestfulDriver implements RestDriver {
             response = webTarget.path(path)
                     .queryParam("query", URLEncoder.encode(query, "UTF-8"))
                     .request(mediaType)
-                    .header("Authorization", basic)
+                    .header("Authorization", token)
                     .get();
         } catch (UnsupportedEncodingException ex) {
             close();
@@ -117,7 +117,7 @@ public class RestfulDriver implements RestDriver {
         response = webTarget.path(path)
                 .queryParam(key, value)
                 .request(mediaType)
-                .header("Authorization", basic)
+                .header("Authorization", token)
                 .get();
         return response;
     }
@@ -139,7 +139,7 @@ public class RestfulDriver implements RestDriver {
             trace("Query: " + key + "=" + value);
         }
         response = webTarget.path(path).request(mediaType)
-                .header("Authorization ", basic)
+                .header("Authorization", token)
                 .get();
         return response;
     }
@@ -149,7 +149,7 @@ public class RestfulDriver implements RestDriver {
         log("INFO", "Request POST: " + path + "\nPayload: " + payload);
         response = webTarget.path(path)
                 .request(mediaType)
-                .header("Authorization", basic)
+                .header("Authorization", token)
                 .post(Entity.entity(payload, mediaType));
         return response;
     }
@@ -159,7 +159,7 @@ public class RestfulDriver implements RestDriver {
         log("INFO", "Request POST: " + path + "\nPayload: " + payload);
         response = webTarget.path(path)
                 .request(mediaType)
-                .header("Authorization", basic)
+                .header("Authorization", token)
                 .put(Entity.entity(payload, mediaType));
         return response;
     }
@@ -169,7 +169,7 @@ public class RestfulDriver implements RestDriver {
         log("INFO", "Request DELETE: " + path);
         response = webTarget.path(path)
                 .request(mediaType)
-                .header("Authorization", basic)
+                .header("Authorization", token)
                 .delete();
         return response;
     }

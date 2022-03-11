@@ -1,7 +1,6 @@
 package ch.qa.testautomation.framework.common.IOUtils;
 
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
-import jakarta.validation.constraints.NotNull;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -136,7 +135,6 @@ public class FileLocator {
      * @param relativePath path of file don't need "/" at beginning
      * @return path of target
      */
-    @NotNull
     public static Path findResource(String relativePath) {
         String location;
         //clean up first '/'

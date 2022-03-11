@@ -3,7 +3,6 @@ package ch.qa.testautomation.framework.core.report;
 import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.enumerations.PropertyKey;
 import ch.qa.testautomation.framework.common.enumerations.TestStatus;
-import ch.qa.testautomation.framework.common.logging.Screenshot;
 import ch.qa.testautomation.framework.common.utils.TimeUtils;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.component.TestCaseObject;
