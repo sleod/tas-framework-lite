@@ -3,6 +3,7 @@ package ch.qa.testautomation.framework.rest;
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.intefaces.RestDriver;
+import ch.qa.testautomation.framework.rest.base.RestClientBase;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
@@ -12,6 +13,7 @@ import jakarta.ws.rs.core.Response;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -89,17 +91,12 @@ public class RestfulDriver implements RestDriver {
      */
     @Override
     public Response get(String path, String query) {
-        try {
-            log("INFO", "Request Get: " + path + "\nWith Query: " + query);
-            response = webTarget.path(path)
-                    .queryParam("query", URLEncoder.encode(query, "UTF-8"))
-                    .request(mediaType)
-                    .header("Authorization", token)
-                    .get();
-        } catch (UnsupportedEncodingException ex) {
-            close();
-            SystemLogger.error(ex);
-        }
+        log("INFO", "Request Get: " + path + "\nWith Query: " + query);
+        response = webTarget.path(path)
+                .queryParam("query", RestClientBase.encodeUrlPath(query))
+                .request(mediaType)
+                .header("Authorization", token)
+                .get();
         return response;
     }
 

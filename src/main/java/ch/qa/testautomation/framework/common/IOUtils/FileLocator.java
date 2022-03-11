@@ -91,7 +91,7 @@ public class FileLocator {
         } catch (IOException e) {
             throw new RuntimeException("Error by search exact file with name <" + name + "> in folder " + startDir + " --> " + e.getMessage());
         }
-        if (!paths.isPresent()) {
+        if (paths.isEmpty()) {
             throw new RuntimeException("File <" + name + "> was not found in folder " + startDir);
         }
         return paths.get();
