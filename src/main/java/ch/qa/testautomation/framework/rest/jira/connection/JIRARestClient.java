@@ -4,6 +4,7 @@ import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.component.TestRunResult;
 import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
+import ch.qa.testautomation.framework.rest.TFS.connection.QUERY_OPTION;
 import ch.qa.testautomation.framework.rest.base.RestClientBase;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,9 +14,7 @@ import jakarta.ws.rs.core.Response;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class JIRARestClient extends RestClientBase {
     private final JIRAConnector jiraConnector;
@@ -136,6 +135,34 @@ public class JIRARestClient extends RestClientBase {
     }
 
     /**
+     * get test ids in Execution with query option according run status
+     *
+     * @param key          execution key
+     * @param query_option {@link QUERY_OPTION}
+     * @return list of test keys
+     */
+    public List<String> getTestsInExecution(String key, QUERY_OPTION query_option) {
+        JsonNode jiraTests = getTestsInExecution(key, false);
+        List<String> testIds = new LinkedList<>();
+        if (query_option == null || query_option.equals(QUERY_OPTION.ALL)) {
+            jiraTests.forEach(test -> testIds.add(test.get("key").asText()));
+        } else if (query_option.equals(QUERY_OPTION.EXCEPT_SUCCESS)) {
+            jiraTests.forEach(test -> {
+                if (!test.get("status").asText().equalsIgnoreCase(JiraRunStatus.PASS.text())) {
+                    testIds.add(test.get("key").asText());
+                }
+            });
+        } else if (query_option.equals(QUERY_OPTION.FAILED_ONLY)) {
+            jiraTests.forEach(test -> {
+                if (!test.get("status").asText().equalsIgnoreCase(JiraRunStatus.FAIL.text())) {
+                    testIds.add(test.get("key").asText());
+                }
+            });
+        }
+        return testIds;
+    }
+
+    /**
      * get test runs for every test in test execution
      *
      * @param key test execution key
@@ -145,6 +172,19 @@ public class JIRARestClient extends RestClientBase {
         String path = XRAY_PATH + "testruns";
         return getResponseNode(jiraConnector.get(path, "testExecKey", key),
                 "Fail on get test runs in execution with path: " + path);
+    }
+
+    /**
+     * get test run key:id map of tests in execution
+     *
+     * @param key test execution key
+     * @return test run key:id map
+     */
+    public Map<String, Integer> getTestRunKeyIdMapInExecution(String key) {
+        JsonNode runs = getTestRunsInExecution(key);
+        Map<String, Integer> idKeyMap = new HashMap<>(runs.size());
+        runs.forEach(run -> idKeyMap.put(run.get("key").asText(), run.get("id").asInt()));
+        return idKeyMap;
     }
 
     /**

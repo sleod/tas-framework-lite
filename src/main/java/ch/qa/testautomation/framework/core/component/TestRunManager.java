@@ -14,6 +14,7 @@ import ch.qa.testautomation.framework.core.report.ReportBuilder;
 import ch.qa.testautomation.framework.core.report.allure.ReportBuilderAllureService;
 import ch.qa.testautomation.framework.rest.TFS.connection.QUERY_OPTION;
 import ch.qa.testautomation.framework.rest.TFS.connection.TFSRestClient;
+import ch.qa.testautomation.framework.rest.jira.connection.JIRARestClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -40,7 +41,8 @@ public class TestRunManager {
     private static String currentISOAppName;
     private static String currentAppName;
     private static String currentAppActivity;
-    private static JSONRunnerConfig runnerConfig = null;
+    private static JSONRunnerConfig tfsRunnerConfig = null;
+    private static JsonNode jiraExecutionConfig = null;
 
     public static PerformableTestCases getPerformer() {
         return performer;
@@ -154,17 +156,31 @@ public class TestRunManager {
     public static void initTestCases(List<String> filePaths, List<String> metaFilters) throws IOException {
         List<String> selectedIds = Collections.emptyList();
         if (PropertyResolver.isTFSSyncEnabled()) {//check for feedback to tfs
-            if (runnerConfig.isFullRun()) {//check run config for full run
-                selectedIds = getFullRunTestCaseIds(runnerConfig);
-            } else if (runnerConfig.isFailureRetest()) {//check run config for retest run
-                selectedIds = getLastFailedTestCaseIds(runnerConfig, QUERY_OPTION.EXCEPT_SUCCESS);
+            if (tfsRunnerConfig.isFullRun()) {//check run config for full run
+                selectedIds = getTestCaseIdsInTFSSuite(tfsRunnerConfig, QUERY_OPTION.ALL);
+            } else if (tfsRunnerConfig.isFailureRetest()) {//check run config for retest run
+                selectedIds = getTestCaseIdsInTFSSuite(tfsRunnerConfig, QUERY_OPTION.EXCEPT_SUCCESS);
             } else {//check run config for selected ids to run
-                selectedIds = asList(runnerConfig.getSelectedTestCaseIds());
+                selectedIds = asList(tfsRunnerConfig.getSelectedTestCaseIds());
             }
             if (selectedIds.isEmpty()) {
                 throw new RuntimeException("Fail on get test case id from TFS, Response list is empty!");
             }
-        }//todo: add cluster for jira selected ids
+        } else if (PropertyResolver.isJIRASyncEnabled()) {
+            if (jiraExecutionConfig.get("fullRun").asBoolean()) {//check run config for full run
+                selectedIds = getJiraTestCaseIdsInExecution(jiraExecutionConfig, QUERY_OPTION.ALL);
+            } else if (tfsRunnerConfig.isFailureRetest()) {//check run config for retest run
+                selectedIds = getJiraTestCaseIdsInExecution(jiraExecutionConfig, QUERY_OPTION.EXCEPT_SUCCESS);
+            } else {//check run config for selected ids to run
+                JsonNode node = jiraExecutionConfig.get("selectedTestCaseIds");
+                List<String> finalSelectedIds = new ArrayList<>(node.size());
+                node.forEach(value -> finalSelectedIds.add(value.asText()));
+                selectedIds = finalSelectedIds;
+            }
+            if (selectedIds.isEmpty()) {
+                throw new RuntimeException("Fail on get test case id from JIRA, Response list is empty!");
+            }
+        }
         if (filePaths.isEmpty()) {
             throw new RuntimeException("There is no json test case in defined folder! ->" + PropertyResolver.getDefaultTestCaseLocation());
         }
@@ -217,25 +233,27 @@ public class TestRunManager {
      * @param query_option query_option
      * @return list of test case ids
      */
-    private static List<String> getLastFailedTestCaseIds(JSONRunnerConfig runnerConfig, QUERY_OPTION query_option) {
+    private static List<String> getTestCaseIdsInTFSSuite(JSONRunnerConfig runnerConfig, QUERY_OPTION query_option) {
         String suiteId = runnerConfig.getSuiteId();
         String planId = runnerConfig.getPlanId();
         TFSRestClient restClient = new TFSRestClient(runnerConfig.getTfsConfig());
-//        return restClient.getTestCaseIdsInPlan(planId, suiteId, QUERY_OPTION.FAILED_ONLY);
         return restClient.getTestCaseIdsInPlan(planId, suiteId, query_option);
     }
 
     /**
-     * Get all test cases in last run with plan id and suite id in config
+     * Get all test cases in last run with Jira execution id in config
      *
-     * @param runnerConfig run config
+     * @param jiraExecutionConfig run config
+     * @param query_option        {@link QUERY_OPTION}
      * @return list of test case ids
      */
-    private static List<String> getFullRunTestCaseIds(JSONRunnerConfig runnerConfig) {
-        String suiteId = runnerConfig.getSuiteId();
-        String planId = runnerConfig.getPlanId();
-        TFSRestClient restClient = new TFSRestClient(runnerConfig.getTfsConfig());
-        return restClient.getTestCaseIdsInPlan(planId, suiteId, QUERY_OPTION.ALL);
+    private static List<String> getJiraTestCaseIdsInExecution(JsonNode jiraExecutionConfig, QUERY_OPTION query_option) {
+        return getJiraRestClient().getTestsInExecution(jiraExecutionConfig.get("testExecution").asText(), query_option);
+    }
+
+    private static JIRARestClient getJiraRestClient() {
+        JsonNode jiraConfig = JSONContainerFactory.getConfig(PropertyResolver.getJiraConfigFile());
+        return new JIRARestClient(jiraConfig.get("host").asText(), jiraConfig.get("pat").asText());
     }
 
     /**
@@ -427,10 +445,10 @@ public class TestRunManager {
             testRunResultMap.put(testCaseId, testCaseObject.getTestRunResult());
         }
         //create test run with plan id, suite id and test points via test case id, if not done
-        TFSRestClient restClient = new TFSRestClient(runnerConfig.getTfsConfig());
-        String suiteId = runnerConfig.getSuiteId();
-        String planId = runnerConfig.getPlanId();
-        String runName = runnerConfig.getRunName();
+        TFSRestClient restClient = new TFSRestClient(tfsRunnerConfig.getTfsConfig());
+        String suiteId = tfsRunnerConfig.getSuiteId();
+        String planId = tfsRunnerConfig.getPlanId();
+        String runName = tfsRunnerConfig.getRunName();
         JsonNode testRun = restClient.createTestRun(runName, planId, suiteId, new ArrayList<>(testRunResultMap.keySet()));
         String tfsRunId = testRun.get("id").asText();
         //update test run with test run result
@@ -455,7 +473,19 @@ public class TestRunManager {
     }
 
     public static void jiraFeedback(List<TestCaseObject> testCaseObjects) {
-        //todo: analog to tfs case
+        //get data from test case object
+        Map<String, TestRunResult> testRunResultMap = new HashMap<>(testCaseObjects.size());
+        for (TestCaseObject testCaseObject : testCaseObjects) {
+            String testCaseId = testCaseObject.getTestCaseId();
+            if (testCaseId == null) {
+                throw new RuntimeException("Test Case Id in Test Case Object is Null. Without Id no update to TFS!");
+            }
+            testRunResultMap.put(testCaseId, testCaseObject.getTestRunResult());
+        }
+        String executionKey = jiraExecutionConfig.get("testExecutionId").asText();
+        JIRARestClient jiraRestClient = getJiraRestClient();
+        jiraRestClient.getTestRunKeyIdMapInExecution(executionKey);
+        jiraRestClient.updateRunStatusInExecution(executionKey, testRunResultMap);
     }
 
     /**
@@ -485,25 +515,28 @@ public class TestRunManager {
             //retrieve TFS Configuration ID and set to runtime property
             if (PropertyResolver.isTFSConnectEnabled()) {
                 String configName = PropertyResolver.getTFSRunnerConfigFile();
-                runnerConfig = JSONContainerFactory.getRunnerConfig(configName);
+                tfsRunnerConfig = JSONContainerFactory.getRunnerConfig(configName);
                 //init test plan configuration with given id
                 String configId = "";
                 if (PropertyResolver.getTFSConfigurationID() != null && !PropertyResolver.getTFSConfigurationID().isEmpty()) {
                     configId = PropertyResolver.getTFSConfigurationID();
-                } else if (runnerConfig.getConfigurationId() != null && !runnerConfig.getConfigurationId().isEmpty()) {
-                    configId = runnerConfig.getConfigurationId();
+                } else if (tfsRunnerConfig.getConfigurationId() != null && !tfsRunnerConfig.getConfigurationId().isEmpty()) {
+                    configId = tfsRunnerConfig.getConfigurationId();
                 }
                 if (!configId.isEmpty()) {
-                    TFSRestClient restClient = new TFSRestClient(runnerConfig.getTfsConfig());
-                    runnerConfig.setTestPlanConfig(restClient.getTestPlanConfiguration(configId));
+                    TFSRestClient restClient = new TFSRestClient(tfsRunnerConfig.getTfsConfig());
+                    tfsRunnerConfig.setTestPlanConfig(restClient.getTestPlanConfiguration(configId));
                     //set test plan configuration to system property
-                    PropertyResolver.setProperties(runnerConfig.getTestPlanConfig());
+                    PropertyResolver.setProperties(tfsRunnerConfig.getTestPlanConfig());
                     if (!PropertyResolver.getTFSRunnerConfigFile().equals(configName)) {
-                        runnerConfig = JSONContainerFactory.getRunnerConfig(PropertyResolver.getTFSRunnerConfigFile());
+                        tfsRunnerConfig = JSONContainerFactory.getRunnerConfig(PropertyResolver.getTFSRunnerConfigFile());
                     }
                 } else {
                     warn("TFS Configuration ID is Empty! Please set the id in properties or tfs runner config if necessary.");
                 }
+            }
+            if (PropertyResolver.isJIRAConnectEnabled()) {
+                jiraExecutionConfig = JSONContainerFactory.getConfig(PropertyResolver.getJiraExecConfigFile());
             }
         } catch (URISyntaxException | IOException ex) {
             throw new RuntimeException("Error while retrieve data from resources!\n" + ex.getMessage());

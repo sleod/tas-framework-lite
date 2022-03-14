@@ -16,7 +16,7 @@
         <maven.plugin.source.version>3.2.1</maven.plugin.source.version>
         <maven.plugin.resource.version>3.2.0</maven.plugin.resource.version>
         <maven.surefire.version>3.0.0-M5</maven.surefire.version>
-        <allure.version>2.17.2</allure.version>
+        <allure.version>2.17.3</allure.version>
         <aspectj.version>1.9.8</aspectj.version>
         <appium.version>8.0.0-beta2</appium.version>
         <commons-exec.version>1.3</commons-exec.version>
@@ -27,14 +27,14 @@
         <jersey.version>3.0.4</jersey.version>
         <jdom2.version>2.0.6.1</jdom2.version>
         <jcoded.version>0.2.5</jcoded.version>
-        <jackson.version>2.13.1</jackson.version>
-        <jakarta.version>2.0.1</jakarta.version>
+        <jackson.version>2.13.2</jackson.version>
+        <jakarta.version>2.1.0</jakarta.version>
         <log4j.version>2.17.1</log4j.version>
         <ms.sqlserver.version>10.2.0.jre8</ms.sqlserver.version>
-        <poi.version>5.0.0</poi.version>
+        <poi.version>5.2.0</poi.version>
         <reflection.version>0.10.2</reflection.version>
-        <spring.version>5.3.15</spring.version>
-        <selenide.version>6.3.0</selenide.version>
+        <spring.version>5.3.16</spring.version>
+        <selenide.version>6.3.4</selenide.version>
         <slf4j.version>1.7.36</slf4j.version>
         <tess4j.version>5.1.1</tess4j.version>
         <zxing.version>3.4.1</zxing.version>
@@ -62,7 +62,7 @@
         <dependency>
             <groupId>ws.schild</groupId>
             <artifactId>jave-core</artifactId>
-            <version>3.1.1</version>
+            <version>3.2.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
