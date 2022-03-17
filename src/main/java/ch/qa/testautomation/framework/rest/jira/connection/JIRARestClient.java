@@ -13,8 +13,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.ws.rs.core.Response;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class JIRARestClient extends RestClientBase {
     private final JIRAConnector jiraConnector;
@@ -129,8 +131,8 @@ public class JIRARestClient extends RestClientBase {
      * @return tests information
      */
     public JsonNode getTestsInExecution(String key, boolean detailed) {
-        String path = XRAY_PATH + "testexec/" + key + "/test?detailed=" + detailed;
-        return getResponseNode(jiraConnector.get(path),
+        String path = XRAY_PATH + "testexec/" + key + "/test";
+        return getResponseNode(jiraConnector.get(path, "detailed=" + detailed),
                 "Fail on get tests in execution with path: " + path);
     }
 
@@ -183,7 +185,7 @@ public class JIRARestClient extends RestClientBase {
     public Map<String, Integer> getTestRunKeyIdMapInExecution(String key) {
         JsonNode runs = getTestRunsInExecution(key);
         Map<String, Integer> idKeyMap = new HashMap<>(runs.size());
-        runs.forEach(run -> idKeyMap.put(run.get("key").asText(), run.get("id").asInt()));
+        runs.forEach(run -> idKeyMap.put(run.get("testKey").asText(), run.get("id").asInt()));
         return idKeyMap;
     }
 
@@ -292,38 +294,46 @@ public class JIRARestClient extends RestClientBase {
         //get runs in execution
         JsonNode runs = getTestRunsInExecution(exeKey);
         if (runs.isArray()) {
-            runs.forEach(run -> updateRunStatus(run, testCaseIdAndResults.get(run.get("testKey").asText())));
+            runs.forEach(run -> {
+                String testKey = run.get("testKey").asText();
+                if (testCaseIdAndResults.containsKey(testKey)) {
+                    updateRunStatus(run, testCaseIdAndResults.get(testKey));
+                }
+            });
         }
     }
 
     public void updateRunStatus(JsonNode run, TestRunResult testRunResult) {
+        List<File> dataFiles = testRunResult.getAttachments();
+        dataFiles.add(new File(testRunResult.getLogFilePath()));
         if (run != null && testRunResult != null) {
             updateRunStatus(run.get("id").asText(), testRunResult.getDescription(),
-                    testRunResult.getLogFilePath(),
+                    dataFiles,
                     testRunResult.getStatus().intValue());
         } else {
             throw new RuntimeException("Test Run or Test Run Result is null!");
         }
     }
 
-    public JsonNode updateRunStatus(String runId, String description, String logFilePath, int statusIndex) {
+    public JsonNode updateRunStatus(String runId, String description, List<File> dataFiles, int statusIndex) {
         String path = XRAY_PATH + "testrun/" + runId;
         ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode logFile = objectMapper.createObjectNode()
-                .put("filename", "testRunLog.txt")
-                .put("contentType", "plain/text")
-                .put("data", PropertyResolver.encodeBase64(FileOperation.readFileToLinedString(logFilePath)));
-        ArrayNode evidence = objectMapper.createArrayNode().add(logFile);
+        ArrayNode evidence = objectMapper.createArrayNode();
+        dataFiles.forEach(file ->
+                evidence.add(objectMapper.createObjectNode()
+                        .put("filename", file.getName())
+                        .put("contentType", "plain/text")
+                        .put("data", FileOperation.encodeFileToBase64(file))));
         JsonNode evidences = objectMapper.createObjectNode().set("add", evidence);
         ObjectNode payload = objectMapper.createObjectNode()
                 .put("status", JiraRunStatus.getText(statusIndex))
                 .put("comment", description)
                 .set("evidences", evidences);
-        return getResponseNode(jiraConnector.put(path, payload.toString()), "Fail with updat status to run: " + runId);
+        return getResponseNode(jiraConnector.put(path, payload.toString()), "Fail with update status to run: " + runId);
     }
 
     /**
-     * build Xray Test Object. Note that, the customerfield can be changed
+     * build Xray Test Object. Note that, the customer fields can be changed
      *
      * @param projectKey  project key
      * @param summary     summary

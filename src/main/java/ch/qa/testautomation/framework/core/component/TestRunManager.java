@@ -169,7 +169,7 @@ public class TestRunManager {
         } else if (PropertyResolver.isJIRASyncEnabled()) {
             if (jiraExecutionConfig.get("fullRun").asBoolean()) {//check run config for full run
                 selectedIds = getJiraTestCaseIdsInExecution(jiraExecutionConfig, QUERY_OPTION.ALL);
-            } else if (tfsRunnerConfig.isFailureRetest()) {//check run config for retest run
+            } else if (jiraExecutionConfig.get("failureRetest").asBoolean()) {//check run config for retest run
                 selectedIds = getJiraTestCaseIdsInExecution(jiraExecutionConfig, QUERY_OPTION.EXCEPT_SUCCESS);
             } else {//check run config for selected ids to run
                 JsonNode node = jiraExecutionConfig.get("selectedTestCaseIds");
@@ -248,7 +248,7 @@ public class TestRunManager {
      * @return list of test case ids
      */
     private static List<String> getJiraTestCaseIdsInExecution(JsonNode jiraExecutionConfig, QUERY_OPTION query_option) {
-        return getJiraRestClient().getTestsInExecution(jiraExecutionConfig.get("testExecution").asText(), query_option);
+        return getJiraRestClient().getTestsInExecution(jiraExecutionConfig.get("testExecutionId").asText(), query_option);
     }
 
     private static JIRARestClient getJiraRestClient() {
@@ -338,7 +338,7 @@ public class TestRunManager {
                     throw new RuntimeException("To return result back to TFS the test case id is required in csv or db data. " +
                             "Please set test case id with column name 'testCaseId' for every test data line! Or set the value with '-' to avoid execution.");
                 } else {
-                    if (PropertyResolver.isTFSSyncEnabled() || PropertyResolver.isJIRASyncEnabled()) {
+                    if (PropertyResolver.isJIRAConnectEnabled() || PropertyResolver.isJIRASyncEnabled()) {
                         String testCaseId = testData.get("testCaseId").toString();
                         if (!testCaseId.equalsIgnoreCase("-")) {//avoid execution with '-'
                             new_tco.setTestCaseId(testCaseId);
@@ -484,7 +484,6 @@ public class TestRunManager {
         }
         String executionKey = jiraExecutionConfig.get("testExecutionId").asText();
         JIRARestClient jiraRestClient = getJiraRestClient();
-        jiraRestClient.getTestRunKeyIdMapInExecution(executionKey);
         jiraRestClient.updateRunStatusInExecution(executionKey, testRunResultMap);
     }
 
