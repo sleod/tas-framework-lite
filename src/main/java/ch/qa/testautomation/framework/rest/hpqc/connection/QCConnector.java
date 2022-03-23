@@ -12,6 +12,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -164,10 +165,10 @@ public class QCConnector implements RestDriver {
         log("INFO", "updated: " + entityType + " with id: " + entityId);
         //check in
         response = checkInQCEntity(domain, project, entityType, entityId, response.readEntity(String.class));
-        log("INFO", "Checked in: " + +entityType + " with id: " + entityId);
+        log("INFO", "Checked in: " + entityType + " with id: " + entityId);
         //unlock
         response = lockAndUnlockQCEntity(domain, project, entityType, entityId, "unlock");
-        log("INFO", "unlocked: " + +entityType + " with id: " + entityId);
+        log("INFO", "unlocked: " + entityType + " with id: " + entityId);
 
         return response;
     }
@@ -304,18 +305,13 @@ public class QCConnector implements RestDriver {
 
     @Override
     public Response get(String path, String query) {
-        try {
-            log("INFO", "Get: path-> " + path + "\nQuery-> " + query);
-            response = webTarget.path(path)
-                    .queryParam("query", URLEncoder.encode(query, "UTF-8"))
-                    .request(mediaType)
-                    .header("Cookie", cookies)
-                    .get();
+        log("INFO", "Get: path-> " + path + "\nQuery-> " + query);
+        response = webTarget.path(path)
+                .queryParam("query", URLEncoder.encode(query, StandardCharsets.UTF_8))
+                .request(mediaType)
+                .header("Cookie", cookies)
+                .get();
 
-        } catch (UnsupportedEncodingException ex) {
-            close();
-            error(ex);
-        }
         return response;
     }
 
@@ -351,6 +347,7 @@ public class QCConnector implements RestDriver {
         response = webTarget.path(path).request(mediaType)
                 .header("Cookie", cookies)
                 .get();
+        connect();//reset to host
         return response;
     }
 

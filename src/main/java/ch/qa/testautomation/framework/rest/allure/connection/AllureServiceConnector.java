@@ -75,7 +75,7 @@ public class AllureServiceConnector implements RestDriver {
         response = webTarget.path(path)
                 .request(mediaType)
                 .get();
-
+        connect();
         return response;
     }
 

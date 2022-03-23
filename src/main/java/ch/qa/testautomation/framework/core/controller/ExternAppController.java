@@ -220,76 +220,95 @@ public class ExternAppController {
     }
 
     /**
-     * check current chrome and driver version
+     * prepare chrome driver
+     *
+     * @return Path of driver file
+     * @throws IOException while write file
+     */
+    public static Path prepareChromeDriver() throws IOException {
+        return matchBrowserAndDriverVersion(getCurrentChromeVersion(), PropertyResolver.getChromeDriverFileName());
+    }
+
+    /**
+     * prepare edge driver
+     *
+     * @return Path of driver file
+     * @throws IOException while write file
+     */
+    public static Path prepareEdgeDriver() throws IOException {
+        return matchBrowserAndDriverVersion(getCurrentEdgeVersion(), PropertyResolver.getEdgeDriverFileName());
+    }
+
+    /**
+     * check current browser and driver version
      *
      * @return matched driver path or exception
      */
-    public static Path matchChromeAndDriverVersion() throws IOException {
-        String chromeVersion = getCurrentChromeVersion();
-        String driverFileName = PropertyResolver.getChromeDriverFileName();
+    private static Path matchBrowserAndDriverVersion(String browserVersion, String driverFileName) throws IOException {
         //scan driver in folder
         String folderPath = PropertyResolver.getDefaultWebDriverBinLocation();
         String driverDir = FileLocator.getProjectBaseDir() + "/src/main/resources/" + folderPath;
         new File(driverDir).mkdirs();
         List<Path> paths = FileLocator.listRegularFilesRecursiveMatchedToName(driverDir, 3, driverFileName);
         Path driverPath = null;
-        if (!paths.isEmpty()) {
-            driverPath = checkPaths(paths, chromeVersion);
+        if (!paths.isEmpty()) {//in case found existing driver files, check version
+            driverPath = checkDriverVersionWithBrowser(paths, browserVersion);
         }
-        if (paths.isEmpty() || driverPath == null) {
-            SystemLogger.warn("No File matched to current chrome browser! Try to download chrome driver!");
-            String folder = tryToDownloadChromeDriver();
+        if (paths.isEmpty() || driverPath == null) {//in case existing not match, try to download
+            SystemLogger.warn("No File matched to current browser! Try to download driver!");
+            String folder = tryToDownloadDriver(driverFileName, browserVersion);
             paths = FileLocator.listRegularFilesRecursiveMatchedToName(folder, 3, driverFileName);
-            driverPath = checkPaths(paths, chromeVersion);
+            driverPath = checkDriverVersionWithBrowser(paths, browserVersion);
         }
         if (driverPath != null) {
-            SystemLogger.trace("Find Driver: " + driverPath.toFile().getName() + " with Version: " + chromeVersion);
+            SystemLogger.trace("Find Driver: " + driverPath.toFile().getName() + " with Version: " + browserVersion);
             return driverPath;
         } else {
             throw new RuntimeException("No matched driver for current test browser was found.");
         }
     }
 
-    /**
-     * find edge driver file
-     *
-     * @return path
-     */
-    public static Path findEdgeDriver() {
-        //scan driver in folder
-        String folderPath = PropertyResolver.getDefaultWebDriverBinLocation();
-        String driverFileName = PropertyResolver.getEdgeDriverFileName();
-        String driverDir = FileLocator.getProjectBaseDir() + "/src/main/resources/" + folderPath;
-        new File(driverDir).mkdirs();
-        List<Path> paths = FileLocator.listRegularFilesRecursiveMatchedToName(driverDir, 3, driverFileName);
-        if (!paths.isEmpty()) {
-            return paths.get(0);
-        } else {
-            throw new RuntimeException("No matched driver for current test browser was found.");
-        }
-    }
 
-    private static Path checkPaths(List<Path> paths, String chromeVersion) {
+    /**
+     * check driver version against browser version
+     *
+     * @param paths          file paths of driver files
+     * @param browserVersion Browser version
+     * @return path of matched driver with major version number
+     */
+    private static Path checkDriverVersionWithBrowser(List<Path> paths, String browserVersion) {
         Path driverPath = null;
         for (Path path : paths) {
-            //check driver version with filepath --v
-            String response = executeCommand(path.toString() + " --v");
-            Matcher matcher = pattern.matcher(response);
-            if (matcher.find()) {
-                String driverVersion = matcher.group(1);
-                //match chrome version with existing driver and return driver path
-                if (driverVersion.equalsIgnoreCase(chromeVersion)) {
-                    driverPath = path;
-                    if (path.toFile().getName().toLowerCase().endsWith("exe") == PropertyResolver.isWindows()) {
-                        break;
-                    }
-                }
-            } else {
-                SystemLogger.warn("No Version was found with given Pattern like 'xx.xxx.xxx.xxx' -> " + response);
-                SystemLogger.warn("The Chrome Driver may too old! Please Delete it.");
+            driverPath = checkVersion(path, browserVersion);
+            if (driverPath != null) {
+                break;
             }
         }
         return driverPath;
+    }
+
+    /**
+     * check single driver with given browser version
+     *
+     * @param path           driver path
+     * @param browserVersion browser Version
+     * @return Path of driver if match else null
+     */
+    private static Path checkVersion(Path path, String browserVersion) {
+        //check driver version with filepath --v
+        String response = executeCommand(path.toString() + " --v");
+        Matcher matcher = pattern.matcher(response);
+        if (matcher.find()) {
+            String driverVersion = matcher.group(1);
+            //match Chrome version with existing driver and return driver path
+            if (driverVersion.equalsIgnoreCase(browserVersion)) {
+                return path;
+            } else {
+                SystemLogger.warn("Given Driver: <" + path + "> has Version: " + response
+                        + " but not match to Browser Version: " + browserVersion);
+            }
+        }
+        return null;
     }
 
     /**
@@ -317,41 +336,82 @@ public class ExternAppController {
         }
     }
 
+
     /**
-     * download chrome drivers fome TFS resources
+     * get current Edge version
+     *
+     * @return major version in string
+     */
+    public static String getCurrentEdgeVersion() {
+        String response;
+        if (PropertyResolver.isWindows()) {
+            response = executeCommand("reg query \"HKEY_CURRENT_USER\\Software\\Microsoft\\Edge\\BLBeacon\" /v version");
+        } else if (PropertyResolver.isLinux()) {
+            response = executeCommand("microsoft-edge --version");
+        } else if (PropertyResolver.isMac()) {
+            response = executeCommand("/Applications/Microsoft\\ Edge.app/Contents/MacOS/Microsoft\\ Edge --version");
+        } else {
+            throw new RuntimeException("Unknown Operation System!");
+        }
+        Matcher matcher = pattern.matcher(response);
+        if (matcher.find()) {
+            return matcher.group(1);
+        } else {
+            SystemLogger.warn("No Version was found with given Pattern -> " + response);
+            return response;
+        }
+    }
+
+    /**
+     * download chrome drivers from TFS resources
      *
      * @return folder of drivers
      * @throws IOException io exception
      */
-    public static String tryToDownloadChromeDriver() throws IOException {
+    public static String tryToDownloadDriver(String driverFileName, String browserVersion) throws IOException {
         String downloadFolder = PropertyResolver.getRemoteWebDriverFolder();
         if (downloadFolder.startsWith("http")) {
             //todo: download from server
             throw new RuntimeException("Download webdriver from server not developed yet!");
         } else if (downloadFolder.toLowerCase().startsWith("git")) {
-            return downloadFromTFS(downloadFolder);
+            return downloadFromTFS(downloadFolder, driverFileName, browserVersion);
         } else if (downloadFolder.startsWith("\\\\")) {
-            File driverFile = new File(downloadFolder + "\\chromedriver.zip");
+            File driverFile = new File(downloadFolder + "\\drivers.zip");
             String filePath = FileLocator.getProjectBaseDir() + "/src/main/resources/" + PropertyResolver.getDefaultWebDriverBinLocation() + "/drivers.zip";
             File target = new File(filePath);
             SystemLogger.trace("Write to target: " + target.getAbsolutePath());
             FileOperation.copyFileTo(driverFile.toPath(), target.toPath());
-            ZipUtils.unzipFileHere(target);
+            unzipAndDelete(target);
             return target.getParentFile().getAbsolutePath();
         }
         return "";
     }
 
-    private static String downloadFromTFS(String folder) throws IOException {
+    /**
+     * download driver from tfs: tfvc items
+     *
+     * @param folder target folder
+     * @return folder of downloaded local file
+     * @throws IOException while write file
+     */
+    private static String downloadFromTFS(String folder, String fileName, String browserVersion) throws IOException {
         JSONRunnerConfig runnerConfig = JSONContainerFactory.getRunnerConfig(PropertyResolver.getTFSRunnerConfigFile());
         Map<String, String> config = runnerConfig.getTfsConfig();
-        TFSRestClient tfsRestClient = new TFSRestClient(config.get("host"), config.get("pat"), config.get("organization"),
-                config.get("collection"), "ap.testtools", config.get("apiVersion"));
-        String filePath = FileLocator.getProjectBaseDir() + "/src/main/resources/" + PropertyResolver.getDefaultWebDriverBinLocation() + "/drivers.zip";
-        File target = new File(filePath);
-        tfsRestClient.downloadFilesAsZip(folder, target);
-        unzipAndDelete(target);
-        return target.getParentFile().getAbsolutePath();
+        TFSRestClient tfsRestClient = new TFSRestClient(config);
+        String parentFolder = FileLocator.getProjectBaseDir() + "/src/main/resources/"
+                + PropertyResolver.getDefaultWebDriverBinLocation();
+        //try to look up the driver and download it
+        Map<Integer, String> items = tfsRestClient.getItemsMap(folder, fileName, true);
+        for (Map.Entry<Integer, String> entry : items.entrySet()) {
+            String value = entry.getValue();
+            String targetFilePath = parentFolder + FileOperation.getFileName(value);
+            File driverFile = new File(targetFilePath);
+            tfsRestClient.downloadFile(value, driverFile);
+            if (checkVersion(driverFile.toPath(), browserVersion) != null) {
+                break;
+            }
+        }
+        return parentFolder;
     }
 
     private static void unzipAndDelete(File zipFile) {
@@ -359,7 +419,7 @@ public class ExternAppController {
         zipFile.deleteOnExit();
     }
 
-    public static void sleep(int sec) {
+    private static void sleep(int sec) {
         try {
             TimeUnit.SECONDS.sleep(sec);
         } catch (InterruptedException ex) {

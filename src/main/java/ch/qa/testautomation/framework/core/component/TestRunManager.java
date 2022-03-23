@@ -152,6 +152,7 @@ public class TestRunManager {
      *
      * @param filePaths   file paths
      * @param metaFilters meta filters
+     * @throws IOException while read json file
      */
     public static void initTestCases(List<String> filePaths, List<String> metaFilters) throws IOException {
         List<String> selectedIds = Collections.emptyList();
@@ -204,6 +205,7 @@ public class TestRunManager {
                 }
             }
         }
+        checkDuplicateNaming(testCaseObjects);
         getPerformer().setTestCaseObjects(testCaseObjects);
     }
 
@@ -222,6 +224,29 @@ public class TestRunManager {
     public static void generateReportOnService() {
         if (PropertyResolver.isAllureReportService()) {
             new ReportBuilderAllureService().generateReportOnService();
+        }
+    }
+
+    /**
+     * Checks if multiple testcases have the same name or id.
+     * @param testCaseObjects list of type testCaseObject.
+     * @throws RuntimeException if duplicate found.
+     */
+    private static void checkDuplicateNaming(List<TestCaseObject> testCaseObjects){
+        Set<String> testCaseNames = new HashSet<>();
+        Set<String> testCaseIds = new HashSet<>();
+
+        for (TestCaseObject testCaseObject:testCaseObjects){
+            if (!testCaseNames.add(testCaseObject.getName())){
+                throw new RuntimeException("Defined multiple testcases with name "+testCaseObject.getName()+".");
+            }
+            //If ID is set, check if duplicate
+            if (!testCaseObject.getTestCaseId().equals("") && !testCaseObject.getTestCaseId().equals("-")){
+                if (!testCaseIds.add(testCaseObject.getTestCaseId())){
+                    throw new RuntimeException("Defined multiple testcases with ID "+testCaseObject.getTestCaseId()+".");
+                }
+            }
+
         }
     }
 

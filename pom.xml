@@ -33,7 +33,6 @@
         <ms.sqlserver.version>10.2.0.jre8</ms.sqlserver.version>
         <poi.version>5.2.0</poi.version>
         <reflection.version>0.10.2</reflection.version>
-        <spring.version>5.3.16</spring.version>
         <selenide.version>6.3.4</selenide.version>
         <slf4j.version>1.7.36</slf4j.version>
         <tess4j.version>5.1.1</tess4j.version>
@@ -109,23 +108,6 @@
             <groupId>org.jcodec</groupId>
             <artifactId>jcodec-javase</artifactId>
             <version>${jcoded.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <version>${spring.version}</version>
-            <scope>compile</scope>
-            <exclusions>
-                <exclusion>  <!-- declare the exclusion here -->
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-core</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.poi</groupId>
@@ -259,10 +241,6 @@
                 <exclusion>  <!-- declare the exclusion here -->
                     <groupId>org.apache.commons</groupId>
                     <artifactId>commons-lang3</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>org.aspectj</groupId>

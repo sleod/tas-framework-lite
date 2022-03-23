@@ -96,6 +96,7 @@ public class JIRAConnector implements RestDriver {
     public void close() {
         webTarget = null;
         client.close();
+        response.close();
     }
 
     @Override
@@ -162,6 +163,7 @@ public class JIRAConnector implements RestDriver {
         response = webTarget.path(path).request(mediaType)
                 .header("Authorization", authHeader)
                 .get();
+        connect();//reset to path
         return response;
     }
 

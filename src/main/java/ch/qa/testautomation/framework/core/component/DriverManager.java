@@ -193,13 +193,13 @@ public class DriverManager {
 
     private static WebDriverProvider installChromeDriver(ChromeOptions options) {
         try {
-            String path = ExternAppController.matchChromeAndDriverVersion().toString();
+            String path = ExternAppController.prepareChromeDriver().toString();
             driverFile = new File(path);
             driverFile.setExecutable(true);
             setChromeDriverPath(driverFile.getPath());
-            PropertyResolver.setChromeDriverFileName(driverFile.getName());
+            setChromeDriverFileName(driverFile.getName());
         } catch (IOException ex) {
-            warn("Install Chrome driver failed!");
+            warn("Install/Download Chrome driver failed!");
             error(ex);
         }
         if (options == null) {
@@ -210,14 +210,15 @@ public class DriverManager {
     }
 
     private static WebDriverProvider installEdgeDriver() {
-        if (isWindows()) {
-            String path = ExternAppController.findEdgeDriver().toString();
+        try {
+            String path = ExternAppController.prepareEdgeDriver().toString();
             driverFile = new File(path);
             driverFile.setExecutable(true);
             setWebDriverEdgeProperty(driverFile.getPath());
             setEdgeDriverFileName(driverFile.getName());
-        } else {
-            throw new RuntimeException("Edge Driver can not be run in non windows OS!");
+        } catch (IOException ex) {
+            warn("Install/Download Edge driver failed!");
+            error(ex);
         }
         return new EdgeDriverProvider();
     }

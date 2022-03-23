@@ -138,6 +138,7 @@ public class RestfulDriver implements RestDriver {
         response = webTarget.path(path).request(mediaType)
                 .header("Authorization", token)
                 .get();
+        connect();//reset to host
         return response;
     }
 

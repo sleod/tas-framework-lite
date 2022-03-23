@@ -9,13 +9,12 @@ import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ch.qa.testautomation.framework.common.logging.SystemLogger.log;
 import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
+import static ch.qa.testautomation.framework.rest.base.RestClientBase.encodeUrlPath;
 
 public class TFSConnector implements RestDriver {
 
@@ -30,7 +29,7 @@ public class TFSConnector implements RestDriver {
     /**
      * construct connector with host, apiVersion and personalToken
      *
-     * @param host          host: "https://tfs-prod.service.qa.ch:8081/"
+     * @param host          host: "https://tfs-prod.service.raiffeisen.ch:8081/"
      * @param personalToken personalToken
      * @param apiVersion    api-version of tfs for post, put and update
      */
@@ -72,11 +71,12 @@ public class TFSConnector implements RestDriver {
     public void close() {
         webTarget = null;
         client.close();
+        response.close();
     }
 
     @Override
     public void connect() {
-        this.webTarget = client.target(host);
+        webTarget = client.target(host);
     }
 
     @Override
@@ -85,14 +85,58 @@ public class TFSConnector implements RestDriver {
         return response.getCookies().values().stream().map(cookie -> cookie.getName() + "=" + cookie.getValue()).collect(Collectors.joining(";"));
     }
 
-    public Response downloadItemsInFolderAsZip(String path, String folder) {
-        trace("Request GET: " + path);
+//    /**
+//     * download tfvc items in folder as zip
+//     *
+//     * @param path           path of tfvc
+//     * @param itemFolderPath folder in tfvc
+//     * @return response
+//     */
+//    public Response downloadItemsInFolderAsZip(String path, String itemFolderPath) {
+//        trace("Request GET: " + path);
+//        response = webTarget.path(path)
+//                .queryParam("path", itemFolderPath)
+//                .request(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+//                .header("Authorization", basic)
+//                .header("Accept", "application/zip")
+//                .get();
+//        return response;
+//    }
+
+    /**
+     * download item with query params
+     *
+     * @param path     path of tfvc
+     * @param filePath params for get item
+     * @return response
+     */
+    public Response downloadItem(String path, String filePath) {
+        return get(path, "path", filePath, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+    }
+
+    public Response get(String path, String key, String value, MediaType mediaType) {
+        log("TRACE", "Request Get: " + path + "\nWith Query: " + key + "=" + value);
         response = webTarget.path(path)
-                .queryParam("path", folder)
-                .request(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+                .queryParam(key, value)
+                .request(mediaType)
                 .header("Authorization", basic)
-                .header("Accept", "application/zip")
+                .header("Accept", "application/octet-stream")
                 .get();
+        return response;
+    }
+
+    public Response get(String path, Map<String, String> params, MediaType mediaType) {
+        trace("Request Get: " + path);
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            webTarget = webTarget.queryParam(key, value);
+            trace("Query Parameter: " + key + "=" + value);
+        }
+        response = webTarget.path(path).request(mediaType)
+                .header("Authorization", basic)
+                .get();
+        connect();//reset to host
         return response;
     }
 
@@ -110,9 +154,9 @@ public class TFSConnector implements RestDriver {
     public Response get(String path, String query) {
         trace("Request Get: " + path + "\nWith Query: " + query);
         response = webTarget.path(path)
-                .queryParam("query", URLEncoder.encode(query, StandardCharsets.UTF_8))
+                .queryParam("query", encodeUrlPath(query))
                 .request(mediaType)
-                .header("Authorization ", basic)
+                .header("Authorization", basic)
                 .get();
         return response;
     }
@@ -127,29 +171,21 @@ public class TFSConnector implements RestDriver {
      */
     @Override
     public Response get(String path, String key, String value) {
-        log("TRACE", "Request Get: " + path + "\nWith Query: " + key + "=" + value);
-        response = webTarget.path(path)
-                .queryParam(key, value)
-                .request(mediaType)
-                .header("Authorization", basic)
-                .get();
-        return response;
+        return get(path, key, value, mediaType);
     }
 
+    /**
+     * reqular get with multi-params
+     *
+     * @param path   path
+     * @param params map of params
+     * @return response
+     */
     @Override
     public Response get(String path, Map<String, String> params) {
-        trace("Request Get: " + path);
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            webTarget = webTarget.queryParam(key, value);
-            trace("Query: " + key + "=" + value);
-        }
-        response = webTarget.path(path).request(mediaType)
-                .header("Authorization ", basic)
-                .get();
-        return response;
+        return get(path, params, mediaType);
     }
+
 
     @Override
     public Response post(String path, String payload) {
@@ -158,7 +194,7 @@ public class TFSConnector implements RestDriver {
         response = webTarget.path(path)
                 .queryParam("api-version", apiVersion)
                 .request(mediaType)
-                .header("Authorization ", basic)
+                .header("Authorization", basic)
                 .post(Entity.entity(payload, mediaType));
         return response;
     }
@@ -169,7 +205,7 @@ public class TFSConnector implements RestDriver {
         response = webTarget.path(path)
                 .queryParam("api-version", apiVersion)
                 .request(mediaType)
-                .header("Authorization ", basic)
+                .header("Authorization", basic)
                 .post(Entity.entity(payload, mediaType));
         return response;
     }
@@ -181,7 +217,7 @@ public class TFSConnector implements RestDriver {
         response = webTarget.path(path)
                 .queryParam("api-version", apiVersion)
                 .request(mediaType)
-                .header("Authorization ", basic)
+                .header("Authorization", basic)
                 .put(Entity.entity(payload, mediaType));
         return response;
     }
@@ -191,7 +227,7 @@ public class TFSConnector implements RestDriver {
         trace("Request DELETE: " + path);
         response = webTarget.path(path)
                 .request(mediaType)
-                .header("Authorization ", basic)
+                .header("Authorization", basic)
                 .delete();
         return response;
     }
@@ -202,7 +238,7 @@ public class TFSConnector implements RestDriver {
         response = webTarget.path(path)
                 .queryParam("api-version", apiVersion)
                 .request(mediaType)
-                .header("Authorization ", basic)
+                .header("Authorization", basic)
                 .header("X-HTTP-Method-Override", "PATCH")
                 .put(Entity.entity(payload, mediaType));
         return response;

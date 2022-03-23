@@ -8,7 +8,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.Response;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 import static ch.qa.testautomation.framework.core.json.ObjectMapperSingleton.getObjectMapper;
 
@@ -28,7 +33,7 @@ public class RestClientBase {
     public static JsonNode getResponseNode(Response response, String errorMessage) {
         ObjectMapper objectMapper = getObjectMapper();
         JsonNode responseNode;
-        if (response.getStatus() >= 200 && response.getStatus() < 230) {
+        if (isSuccessful(response)) {
             try {
                 responseNode = objectMapper.readTree(response.readEntity(String.class));
             } catch (JsonProcessingException e) {
@@ -65,5 +70,25 @@ public class RestClientBase {
             }
         }
         return sb.toString();
+    }
+
+    public static void storeStreamIntoFile(Response response, File targetFile) {
+        if (isSuccessful(response)) {
+            targetFile.getParentFile().mkdirs();
+            SystemLogger.trace("Write to target: " + targetFile.getAbsolutePath());
+            try {
+                Files.copy(response.readEntity(InputStream.class), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException ex) {
+                SystemLogger.debug("Failed while write stream to file: " + targetFile.getPath());
+                SystemLogger.error(ex);
+            }
+        } else {
+            SystemLogger.debug(response.readEntity(String.class));
+            throw new RuntimeException("Fail to download files: " + targetFile.getName() + " >> Response Code: " + response.getStatus());
+        }
+    }
+
+    public static boolean isSuccessful(Response response) {
+        return response.getStatus() >= 200 && response.getStatus() < 230;
     }
 }

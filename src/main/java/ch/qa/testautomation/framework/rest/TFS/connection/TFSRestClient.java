@@ -1,5 +1,6 @@
 package ch.qa.testautomation.framework.rest.TFS.connection;
 
+import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.enumerations.TestStatus;
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.common.utils.TimeUtils;
@@ -17,6 +18,8 @@ import org.junit.Assert;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
@@ -77,8 +80,10 @@ public class TFSRestClient extends RestClientBase {
      * @return response of creation
      */
     public JsonNode createTestRun(String runName, String testPlanId, String testSuiteId, List<String> testCaseIds) {
+
         String path = organization + "/" + collection + "/" + project + "/_apis/test/runs";
         Response response = tfsConnector.post(path, buildTestRunPayLoad(runName, testPlanId, testSuiteId, testCaseIds));
+
         return getResponseNode(response, "Failed on Create Test Run! Response Code: " + response.getStatus());
     }
 
@@ -340,16 +345,59 @@ public class TFSRestClient extends RestClientBase {
         return "failed".equalsIgnoreCase(getLastRunStatus(planId, suiteId, tcid));
     }
 
-    public void downloadFilesAsZip(String folder, File targetFile) throws IOException {
+//    public void downloadFilesAsZip(String folder, File targetFile) {
+//        String path = organization + "/" + collection + "/" + project + "/_apis/tfvc/items";
+//        Response response = tfsConnector.downloadItemsInFolderAsZip(path, folder);
+//        storeStreamIntoFile(response, targetFile);
+//    }
+
+    public void downloadFile(String filePath, File targetFile) {
         String path = organization + "/" + collection + "/" + project + "/_apis/tfvc/items";
-        Response response = tfsConnector.downloadItemsInFolderAsZip(path, folder);
-        if (response.getStatus() == 200) {
-            targetFile.getParentFile().mkdirs();
-            SystemLogger.trace("Write to target: " + targetFile.getAbsolutePath());
-            Files.copy(response.readEntity(InputStream.class), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        } else {
-            throw new RuntimeException("Fail to download files from path! Response Code: " + response.getStatus());
+        Response response = tfsConnector.downloadItem(path, filePath);
+        storeStreamIntoFile(response, targetFile);
+    }
+
+    /**
+     * get items in map with sorted key of its version
+     *
+     * @param scopePath     look up folder
+     * @param fileName      filename
+     * @param isFirstLookUp if it is the first look up
+     * @return map
+     */
+    public Map<Integer, String> getItemsMap(String scopePath, String fileName, Boolean isFirstLookUp) {
+        String path = organization + "/" + collection + "/" + project + "/_apis/tfvc/items";
+        Map<String, String> params = new HashMap<>(3);
+        if (scopePath.contains("%")) {
+            scopePath = URLDecoder.decode(scopePath, StandardCharsets.UTF_8);
         }
+        params.put("scopePath", scopePath);
+        params.put("download", "false");
+        params.put("recursionLevel", "full");
+        Response response = tfsConnector.get(path, params);
+        JsonNode result = getResponseNode(response, "Fail to get item list!");
+        int size = result.get("count").asInt();
+        if (size > 0) {
+            Map<Integer, String> items = new HashMap<>(size);
+            ArrayNode values = (ArrayNode) result.get("value");
+            values.forEach(item -> {
+                String itemPath = item.get("path").asText();
+                if (itemPath.endsWith(".exe") && FileOperation.getFileName(itemPath).contains(fileName)) {
+                    items.put(item.get("version").asInt(), itemPath);
+                }//todo: other os
+            });
+            if (items.size() > 0) {
+                LinkedHashMap<Integer, String> reverseSortedMap = new LinkedHashMap<>();
+                items.entrySet()
+                        .stream()
+                        .sorted(Map.Entry.comparingByKey(Comparator.reverseOrder()))
+                        .forEachOrdered(entry -> reverseSortedMap.put(entry.getKey(), entry.getValue()));
+                return reverseSortedMap;
+            } else if (isFirstLookUp) {//try to look up in parent folder
+                return getItemsMap(scopePath.substring(0, scopePath.lastIndexOf("/")), fileName, false);
+            }
+        }
+        return Collections.emptyMap();
     }
 
     /**
