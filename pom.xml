@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ch.qa.testautomation</groupId>
     <artifactId>framework</artifactId>
-    <version>3.6.02-qa-SNAPSHOT</version>
+    <version>3.7.00-qa-RELEASE</version>
     <name>testautomation-framework</name>
 
     <properties>
