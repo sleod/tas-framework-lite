@@ -3,14 +3,11 @@ package example.google;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.annotations.AfterTest;
 import ch.qa.testautomation.framework.core.annotations.BeforeTest;
-import ch.qa.testautomation.framework.core.component.DriverManager;
 import ch.qa.testautomation.framework.core.component.PerformableTestCases;
-import ch.qa.testautomation.framework.core.component.TestRunManager;
 import ch.qa.testautomation.framework.core.runner.JUnitReportingRunner;
 import com.codeborne.selenide.Configuration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.runner.RunWith;
-import org.openqa.selenium.chrome.ChromeOptions;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
