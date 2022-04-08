@@ -1,24 +1,139 @@
 #### Version Stack
-==================
+========================
 
-* Master:  `3.0.2-qa-RELEASE`
-* Develop: `3.0.3-qa-SNAPSHOT`
+* Release: `3.7.01-RELEASE`
+* Development: `3.7.02-SNAPSHOT`
 
 #### New Features and Changes
 ========================
-Version 3.0.2-qa-RELEASE
 
-** Repack with renamed package ch.qa.*
-* change WebDriverEventCapture to implement WebDriverListener
-* resolve deprecated class in WebPageObject
-* implement edge driver provider
-* optimized WebDriverProvider
-* correct DBConnector
-* clean up PropertyKey and fix PropertyResolver
-* clean up properties
-* change property driver.chrome.headless to driver.browser.headless
-* optimized web driver download function in ExternalAppController
-* optimized trace info of error handling
+> :rocket: **Version 3.7.01-SNAPSHOT**
+>
+> [BUG FIX]
+> * 840845 Fixing an issue where it was not possible to pass an int and a string parameter
+> * Hotfix an issue for driver look up service: search first in default project as than current
+
+> [OPTIMIZATION]
+> * enable more parameter type in TestCaseStep for double, long and boolean
+> * not matched driver will be removed runtime
+> * optimize property key for driver resource location for look up service:
+    >  - Deprecated: remote.web.driver.folder
+>  - new key: resource.driver.location=Git - RCH Framework Solution Items/Java/DriverVersions/
+>  - new key: resource.project=ap.testtools
+> * resolve headless download with new annotation "@NonHeadless"
+> * restart driver after single test case execution as default
+    >  - new key: default.execution.driver.restart=true
+
+
+&nbsp;
+
+> :rocket: **Version 3.6.04-SNAPSHOT**
+>
+> [FEATURE]
+> * Enable Look up driver in Azure DevOps VC item folder
+>
+> [OPTIMIZATION]
+> * TestRunManager Comments
+> * download web driver single file
+>
+> [DEPENDENCY UPDATES]
+> * clear unused Dependencies
+>
+&nbsp;
+
+> :rocket: **Version 3.6.03-SNAPSHOT**
+>
+> [FEATURE]
+> * Microsoft Edge Driver
+> * Jira Rest Client
+>
+> [OPTIMIZATION]
+> * elimination deprecated reference
+> * refactoring web driver event handling
+> * propertyKey for enabling jira connect and sync
+> * add propertyKey enum for override runtime parameter or external job
+> * clean up and simplify keys in DefaultTestRunProperties.properties
+> * removing path folder for config or driver files in DefaultTestRunProperties.properties
+> * rename property keys for jira settings
+> * PropertyResolver for getting config or driver files
+> * clean up and optimize imports, empty line comment and name inspection
+> * clean up driver files
+> * remove junit allure report generation in ReportBuilder
+> * add comments
+> * elimination deprecated reference
+>
+> [DEPENDENCY UPDATES]
+> * Selenide updated to 6.3.4
+> * Selenium updated to 4.1.2
+> * Allure updated to 2.17.3
+> * Appium updated to 8.0.0
+> * Framework Support Plugin updated to 1.2.8
+> * Jackson updated to 2.13.2
+> * Spring updated to 5.3.16
+>
+> [BUG FIX]
+> * 809576 check for duplicate testcase name or id
+> * 813702 It is now possible to use int parameters in testdata
+> * 823992 using of slash in the tes object name get an path error
+>
+&nbsp;
+
+> :rocket: **Version 3.6.01-SNAPSHOT**
+>
+> [FEATURE]
+> * implement edge driver provider
+>
+> [OPTIMIZATION]
+>* change WebDriverEventCapture to implement WebDriverListener
+>* resolve deprecated class in WebPageObject
+>* optimized WebDriverProvider
+>* correct DBConnector
+>* clean up PropertyKey and fix PropertyResolver
+>* clean up properties
+>* change property driver.chrome.headless to driver.browser.headless
+>* optimized web driver download function in ExternalAppController
+>* optimized trace info of error handling
+>
+&nbsp;
+
+> :rocket: **Version: 3.5.01-SNAPSHOT**
+>
+> [FEATURE]
+>* consideration of JSON compilation errors
+>
+> [OPTIMIZATION]
+>* correction of remote driver and mobile driver because of appium upgrade
+>* eliminated / excluded most conflicts between Maven dependencies
+>* Framework specific exception and message handler added
+>
+> [DEPENDENCY UPDATES]
+>* Microsoft SQL Server upgrade to 9.4.1.jre11
+>* Log4J updated to 2.17.1
+>* Selenide upgrade to 6.1.2
+>* Selenium upgrade to 4.1.1
+>* Allure updated to 2.17.2
+>* Appium upgrade to 8.0.0-beta2
+>* Framework Support Plugin updated to 1.2.5
+>* Added com.atlassian.jira Maven dependency (jira rest java client)
+>* Deleted net.rcarz Maven dependency
+>
+> [BUG FIX]
+>* 815693 It is not possible to use a value in the testData File. It must be a key
+>
+&nbsp;
+
+> :rocket: **Version: 3.0.02-SNAPSHOT**
+>
+> [FEATURE]
+>* 756955 Remove all unused JSON libraries. Now the Jackson library is in use
+>* 783468 Create Test Structure with Junit Test and Scenario Test
+>
+> [BUG FIX]
+>* Different Bug Fixes which were discovered when the JSON libraries was changed
+
+Version: 2.0.02a-SNAPSHOT
+
+* Feature: new execution and report process with sync to TFS and Allure report server
 
 Version: 2.0.02-SNAPSHOT
 
@@ -44,11 +159,11 @@ Version: 2.0.01-SNAPSHOT
 Version: 1.0.7.03-Snapshot
 
 * Dependency Upgrade:
-    1. java up to openJDK 14.0.1
-    2. Junit up to 5.7.2 with dependencyManagement
-    3. Appium up to 7.5.1
-    4. Allure up to 2.14.0
-    5. Selenide up to 5.21.0
+  1. java up to openJDK 14.0.1
+  2. Junit up to 5.7.2 with dependencyManagement
+  3. Appium up to 7.5.1
+  4. Allure up to 2.14.0
+  5. Selenide up to 5.21.0
 * Optimization: TestDataContainer
 
 Version: 1.0.7.02-Snapshot

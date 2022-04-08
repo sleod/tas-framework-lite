@@ -1,5 +1,6 @@
 package ch.qa.testautomation.framework.core.component;
 
+import ch.qa.testautomation.framework.common.enumerations.PropertyKey;
 import ch.qa.testautomation.framework.common.enumerations.TestStatus;
 import ch.qa.testautomation.framework.common.enumerations.TestType;
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
@@ -8,6 +9,7 @@ import ch.qa.testautomation.framework.common.utils.AnnotationUtils;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.annotations.AfterTest;
 import ch.qa.testautomation.framework.core.annotations.BeforeTest;
+import ch.qa.testautomation.framework.core.annotations.NonHeadless;
 import ch.qa.testautomation.framework.core.annotations.TestObject;
 import ch.qa.testautomation.framework.core.json.container.JSONPageConfig;
 import ch.qa.testautomation.framework.core.json.container.JSONTestCase;
@@ -244,6 +246,29 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
         return seriesNumber;
     }
 
+    @Override
+    public int compareTo(TestCaseObject tco) {
+        int result = 0;
+        String keyIn = tco.getSeriesNumber();
+        String keyThis = this.getSeriesNumber();
+        if (keyIn != null && !keyIn.isEmpty() && keyThis != null && !keyThis.isEmpty()) {
+            try {
+                int orderIn = Integer.parseInt(keyIn.substring(keyIn.lastIndexOf(".") + 1));
+                int orderThis = Integer.parseInt(keyThis.substring(keyThis.lastIndexOf(".") + 1));
+                result = orderThis - orderIn;
+            } catch (NumberFormatException ex) {
+                warn("Order Number has Wrong format: " + keyThis + ", " + keyIn);
+                error(ex);
+            }
+        }
+        return result;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
+
+
     /**
      * after test
      */
@@ -262,9 +287,15 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
             TestRunManager.jiraFeedback(Collections.singletonList(this));
         }
         log("TRACE", "Generate Allure Result: {}", getName());
+        //generate allure results files for this test case
         ReportBuilder.generateReport(Collections.singletonList(this));
         if (PropertyResolver.isAllureReportService()) {
             TestRunManager.uploadSingleTestRunReport();
+        }
+        //restart driver
+        if (PropertyResolver.isRestartDriverAfterExecution()) {
+            trace("Driver closing ... ");
+            DriverManager.closeDriver();
         }
     }
 
@@ -272,6 +303,8 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
      * before test
      */
     private void beforeTest() {
+        //check @NonHeadless Annotation to reset driver option
+        checkNonHeadlessMethod();
         TestRunManager.loadDriver(getTestCase(), getName());
         testRunResult.setName(getObjectId());
         ImageHandler.prepareVideoRecording(testRunResult);
@@ -348,25 +381,15 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
         }
     }
 
-    @Override
-    public int compareTo(TestCaseObject tco) {
-        int result = 0;
-        String keyIn = tco.getSeriesNumber();
-        String keyThis = this.getSeriesNumber();
-        if (keyIn != null && !keyIn.isEmpty() && keyThis != null && !keyThis.isEmpty()) {
-            try {
-                int orderIn = Integer.parseInt(keyIn.substring(keyIn.lastIndexOf(".") + 1));
-                int orderThis = Integer.parseInt(keyThis.substring(keyThis.lastIndexOf(".") + 1));
-                result = orderThis - orderIn;
-            } catch (NumberFormatException ex) {
-                warn("Order Number has Wrong format: " + keyThis + ", " + keyIn);
-                error(ex);
+    private void checkNonHeadlessMethod() {
+        //preset non-headless method not exists
+        PropertyResolver.setProperty(PropertyKey.METHOD_NONHEADLESS_EXISTS.key(), "false");
+        for (Class aClass : pageObjects.values()) {
+            List<Method> methods = AnnotationReflector.getAnnotatedMethods(aClass, NonHeadless.class);
+            if (!methods.isEmpty()) {
+                PropertyResolver.setProperty(PropertyKey.METHOD_NONHEADLESS_EXISTS.key(), "true");
+                break;
             }
         }
-        return result;
-    }
-
-    public String getDescription() {
-        return this.description;
     }
 }

@@ -15,9 +15,7 @@ import ch.qa.testautomation.framework.mobile.AndroidPageObject;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.databind.node.*;
 import junit.framework.TestCase;
 
 import java.lang.reflect.InvocationTargetException;
@@ -159,10 +157,12 @@ public class TestCaseStep extends TestCase {
                         Iterator<JsonNode> elements = arrayNode.elements();
                         JsonNode elementNode = elements.next();
                         if (elementNode.isValueNode()) {
-                            List<String> textNodeValues = mapper.convertValue(arrayNode, new TypeReference<>(){});
+                            List<String> textNodeValues = mapper.convertValue(arrayNode, new TypeReference<>() {
+                            });
                             invokeMethod(runMethod, instance, textNodeValues);
                         } else {
-                            List<Map<String, Object>> objectNodesValues = mapper.convertValue(arrayNode, new TypeReference<List<Map<String, Object>>>() {});
+                            List<Map<String, Object>> objectNodesValues = mapper.convertValue(arrayNode, new TypeReference<List<Map<String, Object>>>() {
+                            });
                             invokeMethod(runMethod, instance, objectNodesValues);
                         }
 
@@ -172,8 +172,11 @@ public class TestCaseStep extends TestCase {
                         }
                         if (parameter instanceof TextNode) {
                             invokeMethod(runMethod, instance, ((TextNode) parameter).asText());
+                        } else if (parameter instanceof IntNode) {
+                            invokeMethod(runMethod, instance, ((IntNode) parameter).asInt());
                         } else if (parameter instanceof ObjectNode) {
-                            Map<String, Object> parameterList = mapper.convertValue(parameter, new TypeReference<>(){});
+                            Map<String, Object> parameterList = mapper.convertValue(parameter, new TypeReference<>() {
+                            });
                             invokeMethod(runMethod, instance, parameterList);
                         } else {
                             invokeMethod(runMethod, instance, parameter);
@@ -193,6 +196,14 @@ public class TestCaseStep extends TestCase {
                             } else if (valueObject instanceof ObjectNode) {
                                 Map<String, Object> parameterMap = mapper.convertValue(valueObject, new TypeReference<>() {});
                                 parameters[index] = parameterMap;
+                            } else if (valueObject instanceof IntNode) {
+                                parameters[index] = ((IntNode) valueObject).asInt();
+                            } else if (valueObject instanceof DoubleNode) {
+                                parameters[index] = ((DoubleNode) valueObject).asDouble();
+                            } else if (valueObject instanceof BooleanNode) {
+                                parameters[index] = ((BooleanNode) valueObject).asBoolean();
+                            } else if (valueObject instanceof LongNode) {
+                                parameters[index] = ((LongNode) valueObject).asLong();
                             } else {
                                 parameters[index] = valueObject;
                             }
@@ -201,7 +212,8 @@ public class TestCaseStep extends TestCase {
                     } else {
                         Object parameter = testDataContainer.getParameter(using, parameterRowNum);
                         if (parameter instanceof ArrayNode) {
-                            parameters = mapper.convertValue(parameter, new TypeReference<>() {});
+                            parameters = mapper.convertValue(parameter, new TypeReference<>() {
+                            });
                             invokeMethod(runMethod, instance, parameters);
                         } else {
                             throw new RuntimeException("Given test data does not match to required parameters!");

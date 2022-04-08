@@ -246,19 +246,22 @@ public class ExternAppController {
      */
     private static Path matchBrowserAndDriverVersion(String browserVersion, String driverFileName) throws IOException {
         //scan driver in folder
-        String folderPath = PropertyResolver.getDefaultWebDriverBinLocation();
-        String driverDir = FileLocator.getProjectBaseDir() + "/src/main/resources/" + folderPath;
+        String driverDir = FileLocator.getProjectBaseDir() + "/src/main/resources/" + PropertyResolver.getDefaultWebDriverBinLocation();
         new File(driverDir).mkdirs();
         List<Path> paths = FileLocator.listRegularFilesRecursiveMatchedToName(driverDir, 3, driverFileName);
         Path driverPath = null;
         if (!paths.isEmpty()) {//in case found existing driver files, check version
             driverPath = checkDriverVersionWithBrowser(paths, browserVersion);
         }
-        if (paths.isEmpty() || driverPath == null) {//in case existing not match, try to download
+        if (paths.isEmpty() || driverPath == null) {//in case existing not match or nothing found, try to download
             SystemLogger.warn("No File matched to current browser! Try to download driver!");
-            String folder = tryToDownloadDriver(driverFileName, browserVersion);
-            paths = FileLocator.listRegularFilesRecursiveMatchedToName(folder, 3, driverFileName);
-            driverPath = checkDriverVersionWithBrowser(paths, browserVersion);
+            boolean success = tryToDownloadDriver(driverFileName, browserVersion);
+            if (success) {
+                paths = FileLocator.listRegularFilesRecursiveMatchedToName(driverDir, 3, driverFileName);
+                driverPath = checkDriverVersionWithBrowser(paths, browserVersion);
+            } else {
+                SystemLogger.warn("Download driver failed!");
+            }
         }
         if (driverPath != null) {
             SystemLogger.trace("Find Driver: " + driverPath.toFile().getName() + " with Version: " + browserVersion);
@@ -301,11 +304,12 @@ public class ExternAppController {
         if (matcher.find()) {
             String driverVersion = matcher.group(1);
             //match Chrome version with existing driver and return driver path
-            if (driverVersion.equalsIgnoreCase(browserVersion)) {
+            if (driverVersion.equals(browserVersion)) {
+                SystemLogger.trace("Find match driver: " + path);
                 return path;
             } else {
-                SystemLogger.warn("Given Driver: <" + path + "> has Version: " + response
-                        + " but not match to Browser Version: " + browserVersion);
+                SystemLogger.warn("Check Given Driver: <" + path + ">\nhas Version: " + response
+                        + "but not match to Browser Version: " + browserVersion);
             }
         }
         return null;
@@ -368,8 +372,8 @@ public class ExternAppController {
      * @return folder of drivers
      * @throws IOException io exception
      */
-    public static String tryToDownloadDriver(String driverFileName, String browserVersion) throws IOException {
-        String downloadFolder = PropertyResolver.getRemoteWebDriverFolder();
+    public static boolean tryToDownloadDriver(String driverFileName, String browserVersion) throws IOException {
+        String downloadFolder = PropertyResolver.getDriverResourceLocation();
         if (downloadFolder.startsWith("http")) {
             //todo: download from server
             throw new RuntimeException("Download webdriver from server not developed yet!");
@@ -382,9 +386,9 @@ public class ExternAppController {
             SystemLogger.trace("Write to target: " + target.getAbsolutePath());
             FileOperation.copyFileTo(driverFile.toPath(), target.toPath());
             unzipAndDelete(target);
-            return target.getParentFile().getAbsolutePath();
+            return true;
         }
-        return "";
+        return false;
     }
 
     /**
@@ -392,9 +396,9 @@ public class ExternAppController {
      *
      * @param folder target folder
      * @return folder of downloaded local file
-     * @throws IOException while write file
+     * @throws IOException while read config file
      */
-    private static String downloadFromTFS(String folder, String fileName, String browserVersion) throws IOException {
+    private static boolean downloadFromTFS(String folder, String fileName, String browserVersion) throws IOException {
         JSONRunnerConfig runnerConfig = JSONContainerFactory.getRunnerConfig(PropertyResolver.getTFSRunnerConfigFile());
         Map<String, String> config = runnerConfig.getTfsConfig();
         TFSRestClient tfsRestClient = new TFSRestClient(config);
@@ -404,14 +408,17 @@ public class ExternAppController {
         Map<Integer, String> items = tfsRestClient.getItemsMap(folder, fileName, true);
         for (Map.Entry<Integer, String> entry : items.entrySet()) {
             String value = entry.getValue();
-            String targetFilePath = parentFolder + FileOperation.getFileName(value);
-            File driverFile = new File(targetFilePath);
+            File driverFile = new File(parentFolder + FileOperation.getFileName(value));
             tfsRestClient.downloadFile(value, driverFile);
-            if (checkVersion(driverFile.toPath(), browserVersion) != null) {
-                break;
+            Path filePath = checkVersion(driverFile.toPath(), browserVersion);
+            if (filePath != null) {
+                return true;
+            } else {
+                SystemLogger.trace("Driver removed...");
+                driverFile.deleteOnExit();
             }
         }
-        return parentFolder;
+        return false;
     }
 
     private static void unzipAndDelete(File zipFile) {
@@ -459,4 +466,4 @@ public class ExternAppController {
     public static Rectangle findSubImageOnScreen(BufferedImage subImage, int subWidth, int subHeight, double allowedPixelFailsPercent, int allowedPixelColorDifference) throws AWTException {
         return FindImageInImage.findSubImage(subImage, subWidth, subHeight, UserRobot.captureMainFullScreen(), screenSize.width, screenSize.height, allowedPixelFailsPercent, allowedPixelColorDifference);
     }
-} 
+}

@@ -2,8 +2,8 @@ package ch.qa.testautomation.framework.rest.TFS.connection;
 
 import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.enumerations.TestStatus;
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.common.utils.TimeUtils;
+import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.component.TestRunResult;
 import ch.qa.testautomation.framework.exception.JsonProcessException;
 import ch.qa.testautomation.framework.rest.base.RestClientBase;
@@ -16,12 +16,8 @@ import jakarta.ws.rs.core.Response;
 import org.junit.Assert;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 import static ch.qa.testautomation.framework.common.utils.SafeCase.notNull;
@@ -345,15 +341,20 @@ public class TFSRestClient extends RestClientBase {
         return "failed".equalsIgnoreCase(getLastRunStatus(planId, suiteId, tcid));
     }
 
-//    public void downloadFilesAsZip(String folder, File targetFile) {
-//        String path = organization + "/" + collection + "/" + project + "/_apis/tfvc/items";
-//        Response response = tfsConnector.downloadItemsInFolderAsZip(path, folder);
-//        storeStreamIntoFile(response, targetFile);
-//    }
-
+    /**
+     * download driver file
+     *
+     * @param filePath   driver file location path
+     * @param targetFile target file to storage
+     */
     public void downloadFile(String filePath, File targetFile) {
-        String path = organization + "/" + collection + "/" + project + "/_apis/tfvc/items";
+        String resourceProject = PropertyResolver.getResourceTFSProject();
+        String path = organization + "/" + collection + "/" + resourceProject + "/_apis/tfvc/items";
         Response response = tfsConnector.downloadItem(path, filePath);
+        if (!isSuccessful(response)) {//in case failed, try with current tfs project
+            path = organization + "/" + collection + "/" + project + "/_apis/tfvc/items";
+            response = tfsConnector.downloadItem(path, filePath);
+        }
         storeStreamIntoFile(response, targetFile);
     }
 
@@ -366,8 +367,10 @@ public class TFSRestClient extends RestClientBase {
      * @return map
      */
     public Map<Integer, String> getItemsMap(String scopePath, String fileName, Boolean isFirstLookUp) {
-        String path = organization + "/" + collection + "/" + project + "/_apis/tfvc/items";
+        String resourceProject = PropertyResolver.getResourceTFSProject();
+        String path = organization + "/" + collection + "/" + resourceProject + "/_apis/tfvc/items";
         Map<String, String> params = new HashMap<>(3);
+        //decode url path back to plain text with white space
         if (scopePath.contains("%")) {
             scopePath = URLDecoder.decode(scopePath, StandardCharsets.UTF_8);
         }
@@ -375,6 +378,10 @@ public class TFSRestClient extends RestClientBase {
         params.put("download", "false");
         params.put("recursionLevel", "full");
         Response response = tfsConnector.get(path, params);
+        if (!isSuccessful(response)) {//in case failed, try with current tfs project
+            path = organization + "/" + collection + "/" + project + "/_apis/tfvc/items";
+            response = tfsConnector.get(path, params);
+        }
         JsonNode result = getResponseNode(response, "Fail to get item list!");
         int size = result.get("count").asInt();
         if (size > 0) {

@@ -78,6 +78,7 @@ public class RestClientBase {
             SystemLogger.trace("Write to target: " + targetFile.getAbsolutePath());
             try {
                 Files.copy(response.readEntity(InputStream.class), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                SystemLogger.trace("Storage File Successful: " + targetFile.getName());
             } catch (IOException ex) {
                 SystemLogger.debug("Failed while write stream to file: " + targetFile.getPath());
                 SystemLogger.error(ex);

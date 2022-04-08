@@ -65,7 +65,7 @@ public class TestRunManager {
     }
 
     /**
-     * allow add extra plain text attachment for single test case
+     * allow adding extra plain text attachment for single test case
      *
      * @param filePath file path
      */
@@ -73,22 +73,15 @@ public class TestRunManager {
 
         List<String> extensions = asList("txt", "csv", "log", "out");
         if (extensions.contains(FileOperation.getFileNameExtension(filePath))) {
-
-            File attachment = new File(filePath);
-            if (attachment.exists()) {
-                ReportBuilder.addExtraAttachment4TestCase(attachment);
-            } else {
-                warn("Extra Attachment File does not exist! ->" + filePath);
-            }
+            addExtraAttachment4TestCase(filePath);
         } else {
-
             warn("The file extension is not allowed for attachment! Only allowed extensions: "
                     + extensions.stream().map(String::valueOf).collect(Collectors.joining(",")));
         }
     }
 
     /**
-     * allow add extra attachment for single test case
+     * allow adding extra attachment for single test case
      *
      * @param filePath file path
      */
@@ -229,21 +222,22 @@ public class TestRunManager {
 
     /**
      * Checks if multiple testcases have the same name or id.
+     *
      * @param testCaseObjects list of type testCaseObject.
      * @throws RuntimeException if duplicate found.
      */
-    private static void checkDuplicateNaming(List<TestCaseObject> testCaseObjects){
+    private static void checkDuplicateNaming(List<TestCaseObject> testCaseObjects) {
         Set<String> testCaseNames = new HashSet<>();
         Set<String> testCaseIds = new HashSet<>();
 
-        for (TestCaseObject testCaseObject:testCaseObjects){
-            if (!testCaseNames.add(testCaseObject.getName())){
-                throw new RuntimeException("Defined multiple testcases with name "+testCaseObject.getName()+".");
+        for (TestCaseObject testCaseObject : testCaseObjects) {
+            if (!testCaseNames.add(testCaseObject.getName())) {
+                throw new RuntimeException("Defined multiple testcases with name " + testCaseObject.getName() + ".");
             }
             //If ID is set, check if duplicate
-            if (!testCaseObject.getTestCaseId().equals("") && !testCaseObject.getTestCaseId().equals("-")){
-                if (!testCaseIds.add(testCaseObject.getTestCaseId())){
-                    throw new RuntimeException("Defined multiple testcases with ID "+testCaseObject.getTestCaseId()+".");
+            if (!testCaseObject.getTestCaseId().equals("") && !testCaseObject.getTestCaseId().equals("-")) {
+                if (!testCaseIds.add(testCaseObject.getTestCaseId())) {
+                    throw new RuntimeException("Defined multiple testcases with ID " + testCaseObject.getTestCaseId() + ".");
                 }
             }
 
@@ -460,6 +454,7 @@ public class TestRunManager {
      * @param testCaseObjects test case objects after test run
      */
     public static void tfsFeedback(List<TestCaseObject> testCaseObjects) {
+        trace("Feedback Test Result back to TFS...");
         //get data from test case object
         Map<String, TestRunResult> testRunResultMap = new HashMap<>(testCaseObjects.size());
         for (TestCaseObject testCaseObject : testCaseObjects) {
@@ -498,6 +493,7 @@ public class TestRunManager {
     }
 
     public static void jiraFeedback(List<TestCaseObject> testCaseObjects) {
+        trace("Feedback Test Result back to JIRA...");
         //get data from test case object
         Map<String, TestRunResult> testRunResultMap = new HashMap<>(testCaseObjects.size());
         for (TestCaseObject testCaseObject : testCaseObjects) {
@@ -516,9 +512,8 @@ public class TestRunManager {
      * copy resources files in defined locations to current local folder.
      */
     public static void retrieveResources(String propertyFilePath) {
-        boolean isDefaultPath = PropertyResolver.loadTestRunProperties(propertyFilePath);
-        try {
-            if (isDefaultPath) {
+        try {//load properties from file, return true in case the path is default
+            if (PropertyResolver.loadTestRunProperties(propertyFilePath)) {
                 URL folderInJar = TestRunManager.class.getClassLoader().getResource("properties");
                 if (folderInJar != null && folderInJar.toURI().getScheme().equals("jar")) {
                     File jarFile = new File(folderInJar.getFile()).getParentFile();
@@ -585,7 +580,6 @@ public class TestRunManager {
     public static void restoreSessions(WebDriver webDriver) {
         if (new File("target/logs/cookies.data").exists()) {
             List<Cookie> cookies = (ArrayList<Cookie>) readObject(new ArrayList<Cookie>(), "target/logs/cookies.data");
-//            List<Cookie> cookies = CookieHandler.readCookie("target/logs/cookies.data");
             String currentURL = (String) readObject("", "target/logs/currentURL.data");
             if (currentURL != null && !currentURL.isEmpty()) {
                 webDriver.navigate().to(currentURL);
@@ -608,7 +602,6 @@ public class TestRunManager {
      */
     public static void storeSessions(WebDriver webDriver) {
         WriteObject(new ArrayList<>(webDriver.manage().getCookies()), "target/logs/cookies.data");
-//        CookieHandler.saveCookie(webDriver, "target/logs/cookies.data");
         WriteObject(webDriver.getCurrentUrl(), "target/logs/currentURL.data");
     }
 

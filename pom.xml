@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ch.qa.testautomation</groupId>
     <artifactId>framework</artifactId>
-    <version>3.7.00-qa-RELEASE</version>
+    <version>3.7.01-qa-RELEASE</version>
     <name>testautomation-framework</name>
 
     <properties>
@@ -30,7 +30,7 @@
         <jackson.version>2.13.2</jackson.version>
         <jakarta.version>2.1.0</jakarta.version>
         <log4j.version>2.17.1</log4j.version>
-        <ms.sqlserver.version>10.2.0.jre8</ms.sqlserver.version>
+        <ms.sqlserver.version>9.4.1.jre11</ms.sqlserver.version>
         <poi.version>5.2.0</poi.version>
         <reflection.version>0.10.2</reflection.version>
         <selenide.version>6.3.4</selenide.version>
@@ -415,15 +415,6 @@
         </profile>
 
     </profiles>
-
-    <!--    <distributionManagement>-->
-    <!--        <repository>-->
-    <!--            <id>Test_Services_Release</id>-->
-    <!--            <name>Test_Services_Release</name>-->
-    <!--            <url>http://rchrepository:8081/repository/Test_Services_Release</url>-->
-    <!--        </repository>-->
-    <!--    </distributionManagement>-->
-
     <distributionManagement>
         <repository>
             <id>localRepo</id>
@@ -431,7 +422,4 @@
             <url>file://${user.home}/.m2/repository</url>
         </repository>
     </distributionManagement>
-
-
-    <!-->http://rchrepository:8080/nexus/content/repositories/Test_Services_Snapshot-->
 </project>
