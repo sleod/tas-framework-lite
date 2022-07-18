@@ -1,5 +1,5 @@
 {
-  "host": "http://qc.ad.ch:8080/qcbin",
+  "host": "https://ad.ch:8080/qcbin",
   "domain": "DEFAULT",
   "project": "TEST_Automation_S2_2018",
   "testplan.rootfolder": "Subject/Trash",

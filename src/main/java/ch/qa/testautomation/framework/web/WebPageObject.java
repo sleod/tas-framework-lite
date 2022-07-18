@@ -24,6 +24,8 @@ public abstract class WebPageObject extends SingleTestObject {
         WebDriverRunner.setWebDriver(driver);
         SelenidePageFactory selenidePageFactory = new SelenidePageFactory();
         selenidePageFactory.initElements(WebDriverRunner.driver(), null, this, null);
+//        selenidePageFactory.initElements(new SelenideFieldDecorator(selenidePageFactory, WebDriverRunner.driver(), WebDriverRunner.getWebDriver()), this);
+//        PageFactory.initElements(new DefaultFieldDecorator(new DefaultElementLocatorFactory(driver)), this);
     }
 
     /**
@@ -32,7 +34,8 @@ public abstract class WebPageObject extends SingleTestObject {
      * Some fields can be displayed later after some action
      */
     @Deprecated
-    public void checkFields() {}
+    public void checkFields() {
+    }
 
 }
 

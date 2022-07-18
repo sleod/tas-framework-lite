@@ -1,6 +1,7 @@
 package ch.qa.testautomation.framework.common.IOUtils;
 
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
+import jakarta.validation.constraints.NotNull;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -13,10 +14,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Stream;
-
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.warn;
-import static java.lang.Integer.MAX_VALUE;
 
 public class FileLocator {
 
@@ -71,7 +68,7 @@ public class FileLocator {
             throw new RuntimeException("Error by list files with name <" + name + "> in folder " + sDir + " --> " + e.getMessage());
         }
         if (paths.isEmpty()) {
-            warn("File <" + name + "> was not found in folder " + sDir);
+            SystemLogger.warn("File <" + name + "> was not found in folder " + sDir);
         }
         return paths;
     }
@@ -91,7 +88,7 @@ public class FileLocator {
         } catch (IOException e) {
             throw new RuntimeException("Error by search exact file with name <" + name + "> in folder " + startDir + " --> " + e.getMessage());
         }
-        if (paths.isEmpty()) {
+        if (!paths.isPresent()) {
             throw new RuntimeException("File <" + name + "> was not found in folder " + startDir);
         }
         return paths.get();
@@ -106,24 +103,14 @@ public class FileLocator {
      * @throws IOException ex
      */
     public static List<Path> walkThrough(Path path) throws IOException {
-        return  walkThrough(path, MAX_VALUE);
-    }
-
-    /**
-     * walk through folder and get files only
-     *
-     * @param path folder path
-     * @return list of path of files only
-     * @throws IOException ex
-     */
-    public static List<Path> walkThrough(Path path, int maxDepth) throws IOException {
         List<Path> paths = new LinkedList<>();
-        Stream<Path> walk = Files.walk(path, maxDepth);
+        Stream<Path> walk = Files.walk(path);
         for (Iterator<Path> it = walk.iterator(); it.hasNext(); ) {
             Path filePath = it.next();
+//            SystemLogger.trace("Found Path: " + filePath.toString());
             if (!Files.isDirectory(filePath)) {
                 paths.add(filePath);
-              SystemLogger.trace("Found File: " + filePath);
+//              SystemLogger.trace("Found File: " + filePath.toString());
             }
         }
         return paths;
@@ -135,6 +122,7 @@ public class FileLocator {
      * @param relativePath path of file don't need "/" at beginning
      * @return path of target
      */
+    @NotNull
     public static Path findResource(String relativePath) {
         String location;
         //clean up first '/'
@@ -164,10 +152,10 @@ public class FileLocator {
     public static Path findLocalResource(String relativePath) {
         Path path = findResource(relativePath);
         if (!path.toString().contains("jar!")) {
-            trace("Found Local Path: " + relativePath);
+            SystemLogger.trace("Found Local Path: " + relativePath);
             return path;
         } else {
-            warn("Local Path: " + relativePath + " can not be found!");
+            SystemLogger.warn("Local Path: " + relativePath + " can not be found!");
             return null;
         }
     }

@@ -1,5 +1,6 @@
 package ch.qa.testautomation.framework.common.utils;
 
+import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import org.jsoup.Jsoup;
 
 import java.util.regex.Matcher;
@@ -23,7 +24,7 @@ public class StringTextUtils {
             String resultCount = matcher.group(1);
             return resultCount;
         } else {
-            log("INFO", "Wrong content: \n" + content);
+            SystemLogger.log("INFO", "Wrong content: \n" + content);
             return null;
         }
     }

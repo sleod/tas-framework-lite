@@ -11,13 +11,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static ch.qa.testautomation.framework.common.logging.SystemLogger.*;
 import static java.util.Arrays.asList;
 
 public class FileOperation {
-
-    private static final String UUID_REGEX = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-5][0-9a-fA-F]{3}-[089ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}";
 
     /**
      * @param filePath is absolute path from file to read
@@ -342,7 +341,6 @@ public class FileOperation {
         }
     }
 
-    //TODO diese 2 UUID müssen woanders hin
     /**
      * Prueft ob es sich um eine UUID handelt
      *
@@ -350,39 +348,21 @@ public class FileOperation {
      * @return if string match to uuid regex
      */
     public static boolean isUUID(String uuid) {
-        return uuid.matches("^" + UUID_REGEX + "$");
+        Pattern p = Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-5][0-9a-fA-F]{3}-[089ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$");
+        java.util.regex.Matcher matcher = p.matcher(uuid);
+        return matcher.matches();
     }
 
-    /**
-     * Prueft ob der String mit UUID startet
-     * @param valueToCheck value der geprüft werden soll
-     * @return true wenn im String eine UUID gefunden wurde
-     */
-    public static boolean startWithUUID(String valueToCheck) {
-        return valueToCheck.matches("^" + UUID_REGEX + "().+");
-    }
-
-    /**
-     * Move File to dir
-     *
-     * @param srcFile source file
-     * @param tarFile target file
-     */
     public static void moveFileTo(Path srcFile, Path tarFile) {
         try {
             Files.move(srcFile, tarFile, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {
             warn("IOException while moving file " + srcFile + " to " + tarFile + "!\n" + ex.getMessage());
+            error(ex);
         }
     }
 
-    /**
-     * Copy File to dir
-     *
-     * @param srcFile source file
-     * @param tarFile target file
-     */
-    public static void copyFileTo(Path srcFile, Path tarFile) {
+    public static void copyFileTo(Path srcFile, Path tarFile){
         try {
             Files.copy(srcFile, tarFile, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {

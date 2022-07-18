@@ -1,8 +1,8 @@
 {
-  "type": "mssql",
-  "host": "",
-  "port": "1433",
-  "user": "",
-  "password": "",
-  "instance.name": ""
+  "type": "oracle-SN",
+  "host": "E1-ORADEV-DLBE2-SCAN",
+  "port": "1532",
+  "user": "PEDAS_CORE",
+  "password": "cDNkYSRfcjBDa3M=",
+  "service-name": "PEDAS_2205.e1.pnet.ch"
 }

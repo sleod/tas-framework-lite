@@ -1,14 +1,11 @@
 package ch.qa.testautomation.framework.rest.allure.connection;
 
 import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 
 import java.io.File;
 import java.util.List;
-
-import static ch.qa.testautomation.framework.core.json.ObjectMapperSingleton.getObjectMapper;
 
 /**
  * Stellt Methoden zur Verfügung um benötigte Transfer Files
@@ -21,25 +18,29 @@ public class TransferFileBuilder {
     public static final String RESULTS_NODE = "results";
 
     /**
-     * Sammelt die benoetigten JSON Files aus dem allure-result Ordner und erstellt ein
+     * Sammelt die benötigten JSON Files aus dem allure-result Ordner und erstellt ein
      * Transfers Object json
      *
      * @return JSON mit encoded Base64 String
      */
-    public ObjectNode prepareFileTransferContainer(List<String> listOfFilesPathToSend) {
-        ObjectMapper mapper = getObjectMapper();
-        ObjectNode transferContainer = mapper.createObjectNode();
-        ArrayNode results = mapper.createArrayNode();
+    @SuppressWarnings({"unchecked"})
+    public JSONObject prepareFileTransferContainer( List<String> listOfFilesPathToSend) {
+
+        JSONObject transferContainer = new JSONObject();
+        JSONArray results = new JSONArray();
+
         for (String path : listOfFilesPathToSend) {
+
             String encoded64Content = FileOperation.encodeFileToBase64(new File(path));
-            ObjectNode fileData = mapper.createObjectNode();
+            JSONObject fileData = new JSONObject();
             fileData.put(CONTENT_BASE_64_NODE, encoded64Content);
             //Die Methode JSONContainerFactory.getAllureResults() liefert zwei // zurück, daher diese entfernen
             fileData.put(FILE_NAME_NODE, FileOperation.getFileName(path));
+
             results.add(fileData);
         }
 
-        transferContainer.set(RESULTS_NODE, results);
+        transferContainer.put(RESULTS_NODE, results);
 
         return transferContainer;
     }

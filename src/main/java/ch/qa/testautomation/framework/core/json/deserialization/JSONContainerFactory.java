@@ -2,14 +2,11 @@ package ch.qa.testautomation.framework.core.json.deserialization;
 
 import ch.qa.testautomation.framework.common.IOUtils.FileLocator;
 import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
+import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
-import ch.qa.testautomation.framework.core.json.ObjectMapperSingleton;
 import ch.qa.testautomation.framework.core.json.container.*;
-import ch.qa.testautomation.framework.exception.JsonProcessException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import net.sf.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,9 +15,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.error;
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.warn;
-import static ch.qa.testautomation.framework.core.json.ObjectMapperSingleton.getObjectMapper;
 import static java.util.Arrays.asList;
 
 public class JSONContainerFactory {
@@ -33,10 +27,6 @@ public class JSONContainerFactory {
     public static final String REPORT_NAME = "reportName";
     private static int currentOrder;
 
-    private static final ObjectMapper mapper = new ObjectMapper();
-
-    private JSONContainerFactory() {
-    }
 
     /**
      * checkFields the test case object via test case file
@@ -46,14 +36,12 @@ public class JSONContainerFactory {
      * @throws IOException io exception
      */
     public static JSONTestCase buildJSONTestCaseObject(String jsonFilePath) throws IOException {
-
-        var path = FileLocator.findResource(jsonFilePath).toString();
-        var jsonString = FileOperation.readFileToLinedString(path);
-        var objectMapper = getObjectMapper();
-        var jsonTestCase = objectMapper.readValue(jsonString, JSONTestCase.class);
-        var testCaseFile = new File(path);
-
-        var packageName = "Default";
+        String path = FileLocator.findResource(jsonFilePath).toString();
+        String jsonString = FileOperation.readFileToLinedString(path);
+        JSONObject jsonObject = JSONObject.fromObject(jsonString);
+        JSONTestCase jsonTestCase = new ObjectMapper().readValue(jsonObject.toString(), JSONTestCase.class);
+        File testCaseFile = new File(path);
+        String packageName = "Default";
         String[] token = testCaseFile.getParentFile().getAbsolutePath().replace("\\", "/")
                 .split(PropertyResolver.getDefaultTestCaseLocation());
         if (token.length == 2) {
@@ -65,35 +53,6 @@ public class JSONContainerFactory {
     }
 
     /**
-     * Basic Method to traverse JsonNode
-     *
-     * @param root root node
-     */
-    public static void traverse(JsonNode root) {
-
-        if (root.isObject()) {
-            Iterator<String> fieldNames = root.fieldNames();
-
-            while (fieldNames.hasNext()) {
-
-                String fieldName = fieldNames.next();
-                JsonNode fieldValue = root.get(fieldName);
-                traverse(fieldValue);
-            }
-        } else if (root.isArray()) {
-
-            var arrayNode = (ArrayNode) root;
-            for (var i = 0; i < arrayNode.size(); i++) {
-                JsonNode arrayElement = arrayNode.get(i);
-                traverse(arrayElement);
-            }
-        } else {
-            // JsonNode root represents a single value field - do something with it.
-
-        }
-    }
-
-    /**
      * build web page configuration of web element selectors with json file
      *
      * @param jsonFilePath file path
@@ -101,8 +60,9 @@ public class JSONContainerFactory {
      * @throws IOException io exception
      */
     public static JSONPageConfig buildTestObjectConfig(String jsonFilePath) throws IOException {
-        var jsonString = FileOperation.readFileToLinedString(FileLocator.findResource(jsonFilePath).toString());
-        return getObjectMapper().readValue(jsonString, JSONPageConfig.class);
+        String jsonString = FileOperation.readFileToLinedString(FileLocator.findResource(jsonFilePath).toString());
+        JSONObject jsonObject = JSONObject.fromObject(jsonString);
+        return new ObjectMapper().readValue(jsonObject.toString(), JSONPageConfig.class);
     }
 
     /**
@@ -113,8 +73,9 @@ public class JSONContainerFactory {
      * @throws IOException io exception
      */
     public static JSONTestResult buildJSONTestResult(String jsonFilePath) throws IOException {
-        var jsonString = FileOperation.readFileToLinedString(jsonFilePath);
-        return ObjectMapperSingleton.getObjectMapper().readValue(jsonString, JSONTestResult.class);
+        String jsonString = FileOperation.readFileToLinedString(jsonFilePath);
+        JSONObject jsonObject = JSONObject.fromObject(jsonString);
+        return new ObjectMapper().readValue(jsonObject.toString(), JSONTestResult.class);
     }
 
     /**
@@ -125,8 +86,9 @@ public class JSONContainerFactory {
      * @throws IOException io exception
      */
     public static JSONDriverConfig getDriverConfig(String jsonFileName) throws IOException {
-        var jsonString = FileOperation.readFileToLinedString(FileLocator.findResource(jsonFileName).toString());
-        return getObjectMapper().readValue(jsonString, JSONDriverConfig.class);
+        String jsonString = FileOperation.readFileToLinedString(FileLocator.findResource(jsonFileName).toString());
+        JSONObject jsonObject = JSONObject.fromObject(jsonString);
+        return new ObjectMapper().readValue(jsonObject.toString(), JSONDriverConfig.class);
     }
 
     /**
@@ -141,13 +103,10 @@ public class JSONContainerFactory {
         LinkedList<JSONDriverConfig> configs = new LinkedList<>();
         for (File file : files) {
             if (file.getName().endsWith(".json")) {
-
-                var objectMapper = getObjectMapper();
-                var jsonString = FileOperation.readFileToLinedString(file.getPath());
-                var jsonNode = objectMapper.readTree(jsonString);
-
-                if (jsonNode.has(HUB_URL_KEY)) {
-                    JSONDriverConfig driverConfig = objectMapper.readValue(jsonString, JSONDriverConfig.class);
+                String jsonString = FileOperation.readFileToLinedString(file.getPath());
+                JSONObject jsonObject = JSONObject.fromObject(jsonString);
+                if (jsonObject.containsKey(HUB_URL_KEY)) {
+                    JSONDriverConfig driverConfig = new ObjectMapper().readValue(jsonObject.toString(), JSONDriverConfig.class);
                     if (file.getName().equalsIgnoreCase(defaultConfigFileName)) {
                         configs.addFirst(driverConfig);
                     } else {
@@ -167,9 +126,23 @@ public class JSONContainerFactory {
      * @throws IOException io exception
      */
     public static JSONRunnerConfig getRunnerConfig(String jsonFileName) throws IOException {
+        String jsonString = FileOperation.readFileToLinedString(FileLocator.findResource(jsonFileName).toString());
+        JSONObject jsonObject = JSONObject.fromObject(jsonString);
+        return new ObjectMapper().readValue(jsonObject.toString(), JSONRunnerConfig.class);
+    }
 
-        var jsonString = FileOperation.readFileToLinedString(FileLocator.findResource(jsonFileName).toString());
-        return getObjectMapper().readValue(jsonString, JSONRunnerConfig.class);
+
+    /**
+     * fetch runner configuration in json file
+     *
+     * @param jsonFileName json file path
+     * @return JSONDriverConfig
+     * @throws IOException io exception
+     */
+    public static JSONRunnerConfig loadRunnerConfig(String jsonFileName) throws IOException {
+        String jsonString = FileOperation.readFileToLinedString(FileLocator.loadResource(jsonFileName));
+        JSONObject jsonObject = JSONObject.fromObject(jsonString);
+        return new ObjectMapper().readValue(jsonObject.toString(), JSONRunnerConfig.class);
     }
 
     /**
@@ -207,7 +180,7 @@ public class JSONContainerFactory {
         if (new File(dirPath).exists()) {
             return FileLocator.findPaths(new File(dirPath).toPath(), Collections.singletonList("*.json"), Collections.singletonList(""), dirPath);
         } else {
-            warn("No History File of Allure Report found!");
+            SystemLogger.warn("No History File of Allure Report found!");
             return Collections.emptyList();
         }
     }
@@ -219,16 +192,16 @@ public class JSONContainerFactory {
      */
     public static void regenerateAllureResults(List<JSONTestResult> results) {
         String resultsDir = PropertyResolver.getAllureResultsDir();
-        var dir = new File(resultsDir);
+        File dir = new File(resultsDir);
         if (!dir.exists()) {
             dir.mkdirs();
         }
         results.forEach(result -> {
             try {
-                var serialized = getObjectMapper().writeValueAsString(result);
+                String serialized = new ObjectMapper().writeValueAsString(result);
                 FileOperation.writeBytesToFile(serialized.getBytes(), new File(resultsDir + result.getUuid() + "-result.json"));
             } catch (IOException ex) {
-                error(ex);
+                SystemLogger.error(ex);
             }
         });
     }
@@ -237,37 +210,30 @@ public class JSONContainerFactory {
      * Generate executor json and set current order of run
      */
     public static void generateExecutorJSON() {
-
-        var objectMapper = getObjectMapper();
-        var executor = objectMapper.createObjectNode();
-
+        JSONObject executor = new JSONObject();
         String url = System.getProperty(MAIN_BUILD_URL_KEY, "http://localhost:63342/framework/target/allure-report/");
-        var buildOrder = 1;
+        int buildOrder = 1;
         String content = getExecutorContent();
-        JsonNode existingExecutor = null;
+        JSONObject existingExecutor = null;
         if (!content.isEmpty()) {
-            try {
-                existingExecutor = objectMapper.readTree(content);
-            } catch (JsonProcessingException e) {
-                throw new JsonProcessException(e);
-            }
+            existingExecutor = JSONObject.fromObject(content);
         }
         if (existingExecutor != null) {
-            buildOrder = existingExecutor.get(BUILD_ORDER_KEY).asInt() + 1;
+            buildOrder = existingExecutor.getInt(BUILD_ORDER_KEY) + 1;
         }
         String buildName = System.getProperty(BUILD_NAME_KEY, "Automated_Test_Run") + "/#" + buildOrder;
-        executor.put("name", PropertyResolver.getSystemUser())
-                .put("type", "junit")
-                .put("url", url)
-                .put(BUILD_ORDER_KEY, buildOrder)
-                .put(BUILD_NAME_KEY, buildName)
-                .put(REPORT_URL, url + "run" + buildOrder)
-                .put(REPORT_NAME, "Allure Report of Test Run" + buildOrder);
+        executor.element("name", PropertyResolver.getSystemUser())
+                .element("type", "junit")
+                .element("url", url)
+                .element(BUILD_ORDER_KEY, buildOrder)
+                .element(BUILD_NAME_KEY, buildName)
+                .element(REPORT_URL, url + "run" + buildOrder)
+                .element(REPORT_NAME, "Allure Report of Test Run" + buildOrder);
         try {
             FileOperation.writeBytesToFile(executor.toString().getBytes(),
                     new File(PropertyResolver.getAllureResultsDir() + "executor.json"));
         } catch (IOException ex) {
-            error(ex);
+            SystemLogger.error(ex);
         }
         currentOrder = buildOrder;
     }
@@ -277,19 +243,9 @@ public class JSONContainerFactory {
     }
 
 
-    public static JsonNode getAllureResultObject(Path path) {
-        var content = FileOperation.readFileToLinedString(path.toString());
-
-        JsonNode node;
-        try {
-
-            node = getObjectMapper().readTree(content);
-        } catch (JsonProcessingException e) {
-
-            throw new JsonProcessException(e);
-        }
-
-        return node;
+    public static JSONObject getAllureResultObject(Path path) {
+        String content = FileOperation.readFileToLinedString(path.toString());
+        return JSONObject.fromObject(content);
     }
 
     /**
@@ -346,9 +302,11 @@ public class JSONContainerFactory {
 
     public static void archiveResults(int order) {
         String resultsDir = PropertyResolver.getAllureResultsDir();
-        var targetDir = new File(resultsDir + "run" + order);
+        File targetDir = new File(resultsDir + "run" + order);
         targetDir.mkdir();
-        listCurrentAllureResults().forEach(filePath -> FileOperation.moveFileTo(filePath, Paths.get(targetDir.getAbsolutePath() + "/" + filePath.getFileName())));
+        listCurrentAllureResults().forEach(filePath -> {
+            FileOperation.moveFileTo(filePath, Paths.get(targetDir.getAbsolutePath() + "/" + filePath.getFileName()));
+        });
     }
 
     /**
@@ -375,17 +333,10 @@ public class JSONContainerFactory {
      * @param filePath file path of config file
      * @return json object of config file
      */
-    public static JsonNode getConfig(String filePath) {
-
-        var path = FileLocator.findResource(filePath).toString();
-        var content = FileOperation.readFileToLinedString(path);
-        JsonNode fileData;
-        try {
-            fileData = mapper.readTree(content);
-        } catch (JsonProcessingException e) {
-            throw new JsonProcessException(e);
-        }
-        return fileData;
+    public static JSONObject getConfig(String filePath) {
+        String path = FileLocator.findResource(filePath).toString();
+        String content = FileOperation.readFileToLinedString(path);
+        return JSONObject.fromObject(content);
     }
 
     /**

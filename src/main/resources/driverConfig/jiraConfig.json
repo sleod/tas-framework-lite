@@ -1,8 +1,9 @@
+
 {
   "user": "",
   "password": "",
-  "host": "https://jira.rch.cloud",
-  "pat": "NTQzMzk2OTU4MjA3OuNob0I0Z4+HnUD66Y/bIw6UvNIG",
+  "host": "",
+  "pat": "",
   "customFields": {
     "execution": {
       "tests": "customfield_10216"

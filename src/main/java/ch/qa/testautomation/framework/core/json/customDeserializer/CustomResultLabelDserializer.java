@@ -22,7 +22,7 @@ public class CustomResultLabelDserializer extends StdDeserializer<List<JSONResul
 
     @Override
     public List<JSONResultLabel> deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
-        List<JSONResultLabel> labels = new ObjectMapper().readValue(jsonParser, new TypeReference<>() {
+        List<JSONResultLabel> labels = new ObjectMapper().readValue(jsonParser, new TypeReference<List<JSONResultLabel>>() {
         });
         return labels;
     }

@@ -1,9 +1,8 @@
 package ch.qa.testautomation.framework.common.utils;
 
-import java.io.*;
+import ch.qa.testautomation.framework.common.logging.SystemLogger;
 
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.error;
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
+import java.io.*;
 
 /**
  * Read and Write Serializable Object
@@ -25,10 +24,10 @@ public class ObjectWriterReader {
             objectOutputStream.close();
             fileOutputStream.close();
         } catch (FileNotFoundException e) {
-            trace("File not found: " + fileName);
+            SystemLogger.trace("File not found: " + fileName);
         } catch (IOException e) {
-            trace("IO Exception of Stream!");
-            error(e);
+            SystemLogger.trace("IO Exception of Stream!");
+            SystemLogger.error(e);
         }
     }
 
@@ -46,13 +45,13 @@ public class ObjectWriterReader {
             // Read objects
             object = objectInputStream.readObject();
         } catch (FileNotFoundException e) {
-            trace("File not found: " + fileName);
+            SystemLogger.trace("File not found: " + fileName);
         } catch (IOException e) {
-            trace("IO Exception of Stream!");
-            error(e);
+            SystemLogger.trace("IO Exception of Stream!");
+            SystemLogger.error(e);
         } catch (ClassNotFoundException e) {
-            trace("Read Object failed! Object class can not be found!");
-            error(e);
+            SystemLogger.trace("Read Object failed! Object class can not be found!");
+            SystemLogger.error(e);
         }
         return object;
     }

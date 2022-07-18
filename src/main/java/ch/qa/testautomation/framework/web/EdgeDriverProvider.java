@@ -11,11 +11,11 @@ public class EdgeDriverProvider extends WebDriverProvider {
 
     public void initialize() {
         EdgeOptions options = new EdgeOptions();
-        if(isHeadless()){
+        if (isHeadless()) {
             options.addArguments("headless", "disable-gpu");
         }
         EdgeDriver edgeDriver = new EdgeDriver(options);
-        edgeDriver.manage().window().setPosition(new Point(0,0));
+        edgeDriver.manage().window().setPosition(new Point(0, 0));
         edgeDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
         configureWindowSize(edgeDriver, isIEMaximised());
         setDriver(edgeDriver);
@@ -28,4 +28,5 @@ public class EdgeDriverProvider extends WebDriverProvider {
     private boolean isHeadless() {
         return PropertyResolver.useHeadlessMode();
     }
+
 }

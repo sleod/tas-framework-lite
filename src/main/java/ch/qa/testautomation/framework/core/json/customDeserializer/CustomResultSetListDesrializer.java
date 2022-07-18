@@ -21,7 +21,7 @@ public class CustomResultSetListDesrializer extends StdDeserializer<List<JSONRes
 
     @Override
     public List<JSONResultSet> deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
-        List<JSONResultSet> steps = new ObjectMapper().readValue(jsonParser, new TypeReference<>() {
+        List<JSONResultSet> steps = new ObjectMapper().readValue(jsonParser, new TypeReference<List<JSONResultSet>>() {
         });
         return steps;
     }

@@ -65,9 +65,9 @@ public abstract class PerformableTestCases {
     @BeforeClass
     public static void beforeTests() {
         info("Starting Test Run...");
-        //environment.properties file for report
+        //environment.properties file
         ReportBuilder.generateEnvironmentProperties();
-        //executor.json file for report
+        //executor.json file
         JSONContainerFactory.generateExecutorJSON();
     }
 
@@ -172,11 +172,13 @@ public abstract class PerformableTestCases {
     protected static void endingTests() {
         DriverManager.closeDriver();
         if (!testCaseObjects.isEmpty() && !testCaseObjects.get(0).getTestRunResult().getStepResults().isEmpty()) {
-            //generate allure html report on server
             TestRunManager.generateReportOnService();
-            //generate allure html report locally
             generateAllureHTMLReport();
             generateMavenTestXMLReport(testCaseObjects);
+            if (PropertyResolver.isStoreResultsToDBEnabled()) {
+                trace("Storage Result into DB...");
+                TestRunManager.storeResultsToDB(testCaseObjects);
+            }
         } else {
             throw new RuntimeException("No test case found with meta filter or not selected!");
         }
@@ -190,7 +192,7 @@ public abstract class PerformableTestCases {
      * @return file format suffix
      */
     protected String getTestCaseFileFormat() {
-        return ".tas";
+        return ".json";
     }
 
     /**

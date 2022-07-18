@@ -1,0 +1,10 @@
+{
+  "bankselector": {
+    "how": "css",
+    "using": "#bankselector__input"
+  },
+  "firstValueFromList": {
+    "how": "css",
+    "using": "#select_bank_0 > div"
+  }
+}

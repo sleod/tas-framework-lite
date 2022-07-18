@@ -1,12 +1,10 @@
 package ch.qa.testautomation.framework.common.utils;
 
+import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 
 import java.io.File;
 import java.io.IOException;
-
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.error;
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
 
 public class WindowsUtils {
 
@@ -19,10 +17,10 @@ public class WindowsUtils {
             driverName += ".exe";
         }
         try {
-            trace("Try to clean up remain running driver services: " + driverName);
+            SystemLogger.trace("Try to clean up remain running driver services: " + driverName);
             Runtime.getRuntime().exec("taskkill /f /fi \"pid gt 0\" /im " + driverName);
         } catch (IOException e) {
-            error(e);
+            SystemLogger.error(e);
         }
 
     }

@@ -1,6 +1,7 @@
 package ch.qa.testautomation.framework.common.utils;
 
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
+import org.apache.logging.log4j.core.config.Configuration;
 
 import java.sql.*;
 import java.util.*;
@@ -11,31 +12,24 @@ import java.util.*;
  * configured only for mysql and oracle now
  */
 public class DBConnector {
-    /**
-     * @deprecated use {@link DBConnector#connectAndExecute(String, String, String, String, String, String, String, boolean)}
-     */
-    @Deprecated
-    public static List<Map<String, Object>> connectAndExcute(String dbType, String host, String user, String port,
-                                                             String dbName, String password, String sql) {
-        return connectAndExecute(dbType, host, user, port, dbName, password, sql, true);
-    }
 
+    public static boolean traceInfo = false;
+    public static boolean printResult = false;
 
     /**
-     * Connect to DB and execute statement
+     * connect DB and execute sql. (make sure that the driver of db exists.)
      *
-     * @param dbType    type of db, like mysql, oracle-SID, oracle-SN, mssql
-     * @param host      host
-     * @param user      username
-     * @param port      port
-     * @param dbName    dbname or service name or service id
-     * @param password  password
-     * @param sql       sql statement
-     * @param traceInfo true or false to decide showing information or not
-     * @return list of map represent the result table
+     * @param dbType   mysql, oracle-SID,oracle-SN,mssql
+     * @param host     db host
+     * @param user     user
+     * @param port     port
+     * @param dbName   db name or service name or sid...
+     * @param password password
+     * @param sql      sql statement
+     * @return list of map for the statement
      */
-    public static List<Map<String, Object>> connectAndExecute(String dbType, String host, String user, String port,
-                                                              String dbName, String password, String sql, boolean traceInfo) {
+    public static List<Map<String, Object>> connectAndExecute(String dbType, String host, String user,
+                                                              String port, String dbName, String password, String sql) {
         Connection connect = null;
         List<Map<String, Object>> results = new ArrayList<>();
         String url = "";
@@ -49,13 +43,13 @@ public class DBConnector {
                 case "oracle-SID":
                     // Load driver
                     Class.forName("oracle.jdbc.OracleDriver");
-                    // Setup the connection of DB with SID
+                    // Setup the connection with the DB with SID
                     url = "jdbc:oracle:thin:@" + host + ":" + port + ":" + dbName;
                     break;
                 case "oracle-SN":
                     // Load driver
                     Class.forName("oracle.jdbc.OracleDriver");
-                    // Setup the connection of DB with Service Name
+                    // Setup the connection with the DB Service Name
                     url = "jdbc:oracle:thin:@" + host + ":" + port + "/" + dbName;
                     break;
                 case "mssql":
@@ -65,7 +59,9 @@ public class DBConnector {
                     break;
             }
             if (!url.isEmpty()) {
-                SystemLogger.trace("Try to connect to DB: " + url);
+                if (traceInfo) {
+                    SystemLogger.trace("Try to connect to DB: " + url);
+                }
                 // Setup the connection with the DB
                 connect = DriverManager.getConnection(url, user, password);
             } else {
@@ -75,8 +71,10 @@ public class DBConnector {
             Statement statement = Objects.requireNonNull(connect).createStatement();
             // Result set get the result of the SQL query
             ResultSet resultSet = statement.executeQuery(sql);
-            SystemLogger.trace("Execute SQL: " + sql);
-            results = writeResultSet(resultSet, traceInfo);
+            if (traceInfo) {
+                SystemLogger.trace("Execute SQL: " + sql);
+            }
+            results = writeResultSet(resultSet, printResult);
         } catch (ClassNotFoundException | SQLException e) {
             SystemLogger.error(e);
         } finally {
@@ -92,7 +90,7 @@ public class DBConnector {
     }
 
     /**
-     * use to write db result-set into list of map
+     * use to write db resultset into list of map
      *
      * @param resultSet db result set
      * @return list of rows in map

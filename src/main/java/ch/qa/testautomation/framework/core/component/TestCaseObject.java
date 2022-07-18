@@ -1,15 +1,13 @@
 package ch.qa.testautomation.framework.core.component;
 
-import ch.qa.testautomation.framework.common.enumerations.PropertyKey;
 import ch.qa.testautomation.framework.common.enumerations.TestStatus;
 import ch.qa.testautomation.framework.common.enumerations.TestType;
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
+import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.common.utils.AnnotationReflector;
 import ch.qa.testautomation.framework.common.utils.AnnotationUtils;
-import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.annotations.AfterTest;
 import ch.qa.testautomation.framework.core.annotations.BeforeTest;
-import ch.qa.testautomation.framework.core.annotations.NonHeadless;
 import ch.qa.testautomation.framework.core.annotations.TestObject;
 import ch.qa.testautomation.framework.core.json.container.JSONPageConfig;
 import ch.qa.testautomation.framework.core.json.container.JSONTestCase;
@@ -25,8 +23,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.*;
 
 public class TestCaseObject extends TestSuite implements Runnable, Comparable<TestCaseObject> {
 
@@ -56,8 +52,8 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
         try {
             initTestObjects(testCase.getTestObjectNames());
         } catch (IOException | NoSuchFieldException | IllegalAccessException ex) {
-            warn("Test Case Object initialization failed: " + jsonTestCase.getName());
-            error(ex);
+            SystemLogger.warn("Test Case Object initialization failed: " + jsonTestCase.getName());
+            SystemLogger.error(ex);
         }
         testDataContainer = new TestDataContainer(testCase.getTestDataRef(), testCase.getAdditionalTestDataFile());
         initTestSteps(testCase.getSteps());
@@ -86,8 +82,8 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
         try {
             initTestObjects(testCase.getTestObjectNames());
         } catch (IOException | NoSuchFieldException | IllegalAccessException e) {
-            warn("Test Case Object initialization failed: " + jsonTestCase.getName());
-            error(e);
+            SystemLogger.warn("Test Case Object initialization failed: " + jsonTestCase.getName());
+            SystemLogger.error(e);
         }
         testDataContainer = new TestDataContainer(testDataContent, testCase.getAdditionalTestDataFile());
         initTestSteps(testCase.getSteps());
@@ -246,56 +242,21 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
         return seriesNumber;
     }
 
-    @Override
-    public int compareTo(TestCaseObject tco) {
-        int result = 0;
-        String keyIn = tco.getSeriesNumber();
-        String keyThis = this.getSeriesNumber();
-        if (keyIn != null && !keyIn.isEmpty() && keyThis != null && !keyThis.isEmpty()) {
-            try {
-                int orderIn = Integer.parseInt(keyIn.substring(keyIn.lastIndexOf(".") + 1));
-                int orderThis = Integer.parseInt(keyThis.substring(keyThis.lastIndexOf(".") + 1));
-                result = orderThis - orderIn;
-            } catch (NumberFormatException ex) {
-                warn("Order Number has Wrong format: " + keyThis + ", " + keyIn);
-                error(ex);
-            }
-        }
-        return result;
-    }
-
-    public String getDescription() {
-        return this.description;
-    }
-
-
     /**
      * after test
      */
     private void afterTest() {
         testStepMonitor.afterTest(); // finish last test step and also the test case
-        log("INFO", "Finish Test Case: {}", getName());
+        SystemLogger.log("INFO", "Finish Test Case: {}", getName());
         invokeWithAnnotation(AfterTest.class);
         testRunResult.stopNow("Test Case Ends: " + getName());
         //default after test: build Report
         ReportBuilder.stopRecordingTest(testRunResult);
         ImageHandler.finishVideoRecording(testRunResult);
-        if (PropertyResolver.isTFSSyncEnabled()) {
-            TestRunManager.tfsFeedback(Collections.singletonList(this));
-        }
-        if (PropertyResolver.isJIRAConnectEnabled()) {
-            TestRunManager.jiraFeedback(Collections.singletonList(this));
-        }
-        log("TRACE", "Generate Allure Result: {}", getName());
-        //generate allure results files for this test case
+        SystemLogger.log("TRACE", "Generate Allure Result: {}", getName());
         ReportBuilder.generateReport(Collections.singletonList(this));
         if (PropertyResolver.isAllureReportService()) {
             TestRunManager.uploadSingleTestRunReport();
-        }
-        //restart driver
-        if (PropertyResolver.isRestartDriverAfterExecution()) {
-            trace("Driver closing ... ");
-            DriverManager.closeDriver();
         }
     }
 
@@ -303,14 +264,12 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
      * before test
      */
     private void beforeTest() {
-        //check @NonHeadless Annotation to reset driver option
-        checkNonHeadlessMethod();
         TestRunManager.loadDriver(getTestCase(), getName());
         testRunResult.setName(getObjectId());
         ImageHandler.prepareVideoRecording(testRunResult);
         testStepMonitor.beforeTest(getObjectId()); // prepare test step monitor
         testRunResult.startNow("Test Case Begin: " + getName());
-        log("INFO", "Start Test Case: {}", getName());
+        SystemLogger.log("INFO", "Start Test Case: {}", getName());
         invokeWithAnnotation(BeforeTest.class);
         if (testCase.getType().contains("web_app")) {
             String url = testCase.getStartURL();
@@ -337,9 +296,9 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
                 try {
                     methods.get(0).invoke(TestRunManager.getPerformer());
                 } catch (IllegalAccessException ex) {
-                    error(ex);
+                    SystemLogger.error(ex);
                 } catch (InvocationTargetException ex) {
-                    error(ex.getTargetException());
+                    SystemLogger.error(ex.getTargetException());
                 }
             }
         }
@@ -371,25 +330,31 @@ public class TestCaseObject extends TestSuite implements Runnable, Comparable<Te
                     Field field = clazz.getDeclaredField(fieldName);
                     if (testType.equals(TestType.WEB_APP) || testType.equals(TestType.MOBILE_WEB_APP)) {
                         AnnotationUtils.changeFindByValue(field, value);
-                    } else if (testType.equals(TestType.MOBILE_ANDROID)) {
-                        AnnotationUtils.changeAndroidFindByValue(field, value);
-                    } else if (testType.equals(TestType.MOBILE_IOS)) {
-                        AnnotationUtils.changeIOSFindByValue(field, value);
                     }
                 }
             }
         }
     }
 
-    private void checkNonHeadlessMethod() {
-        //preset non-headless method not exists
-        PropertyResolver.setProperty(PropertyKey.METHOD_NONHEADLESS_EXISTS.key(), "false");
-        for (Class aClass : pageObjects.values()) {
-            List<Method> methods = AnnotationReflector.getAnnotatedMethods(aClass, NonHeadless.class);
-            if (!methods.isEmpty()) {
-                PropertyResolver.setProperty(PropertyKey.METHOD_NONHEADLESS_EXISTS.key(), "true");
-                break;
+    @Override
+    public int compareTo(TestCaseObject tco) {
+        int result = 0;
+        String keyIn = tco.getSeriesNumber();
+        String keyThis = this.getSeriesNumber();
+        if (keyIn != null && !keyIn.isEmpty() && keyThis != null && !keyThis.isEmpty()) {
+            try {
+                int orderIn = Integer.parseInt(keyIn.substring(keyIn.lastIndexOf(".") + 1));
+                int orderThis = Integer.parseInt(keyThis.substring(keyThis.lastIndexOf(".") + 1));
+                result = orderThis - orderIn;
+            } catch (NumberFormatException ex) {
+                SystemLogger.warn("Order Number has Wrong format: " + keyThis + ", " + keyIn);
+                SystemLogger.error(ex);
             }
         }
+        return result;
+    }
+
+    public String getDescription() {
+        return this.description;
     }
 }

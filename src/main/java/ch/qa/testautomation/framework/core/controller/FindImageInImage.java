@@ -1,9 +1,10 @@
 package ch.qa.testautomation.framework.core.controller;
 
+import ch.qa.testautomation.framework.common.logging.SystemLogger;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
 import static org.junit.Assert.assertNotNull;
 
 
@@ -11,10 +12,10 @@ public class FindImageInImage {
 
     public static Rectangle findSubImage(BufferedImage subImage, int subWidth, int subHeight, BufferedImage img, int width, int height,
                                          double allowedPixelFailsPercent, int allowedPixelColorDifference) {
-        trace("SUB_IMAGE_TOTAL_PIXELS=" + subWidth * subHeight);
-        trace("IMAGE_TOTAL_PIXELS=" + width * height);
+        SystemLogger.trace("SUB_IMAGE_TOTAL_PIXELS=" + subWidth * subHeight);
+        SystemLogger.trace("IMAGE_TOTAL_PIXELS=" + width * height);
         int allowedPixelFailsCount = (int) (((double) (subWidth * subHeight) / 100.0) * allowedPixelFailsPercent);
-        trace("ALLOWED_PIXEL_FAILS_COUNT=" + allowedPixelFailsCount);
+        SystemLogger.trace("ALLOWED_PIXEL_FAILS_COUNT=" + allowedPixelFailsCount);
         long startMillis = System.currentTimeMillis();
         int xOffsetMax = width - subWidth;
         Rectangle rectangle = null;
@@ -22,18 +23,18 @@ public class FindImageInImage {
             int yOffsetMax = height - subHeight;
             for (int yOffset = 0; yOffset <= yOffsetMax; yOffset++) {
                 if (subImageIsAtOffset(subImage, img, xOffset, yOffset, allowedPixelFailsCount, allowedPixelColorDifference)) {
-                    trace("FOUND=YES");
-                    trace("FOUND_AT_X=" + xOffset);
-                    trace("FOUND_AT_Y=" + yOffset);
-                    trace("RUN_TIME_MILLIS=" + (System.currentTimeMillis() - startMillis));
+                    SystemLogger.trace("FOUND=YES");
+                    SystemLogger.trace("FOUND_AT_X=" + xOffset);
+                    SystemLogger.trace("FOUND_AT_Y=" + yOffset);
+                    SystemLogger.trace("RUN_TIME_MILLIS=" + (System.currentTimeMillis() - startMillis));
                     rectangle = new Rectangle(xOffset, yOffset, subWidth, subHeight);
                 }
             }
         }
         if (rectangle == null) {
-            trace("FOUND=NO");
+            SystemLogger.trace("FOUND=NO");
         }
-        trace("RUN_TIME_MILLIS=" + (System.currentTimeMillis() - startMillis));
+        SystemLogger.trace("RUN_TIME_MILLIS=" + (System.currentTimeMillis() - startMillis));
         assertNotNull("The given image was not found!", rectangle);
         return rectangle;
     }
@@ -48,12 +49,12 @@ public class FindImageInImage {
 
         for (int subImageX = 0; subImageX < subWidth; subImageX++) {
             if (xOffset + subImageX >= width) {
-                trace("Should not occur-1");
+                SystemLogger.trace("Should not occur-1");
                 return false;
             }
             for (int subImageY = 0; subImageY < subHeight; subImageY++) {
                 if (yOffset + subImageY >= height) {
-                    trace("Should not occur-2");
+                    SystemLogger.trace("Should not occur-2");
                     return false;
                 }
                 int subImagePixel = subImage.getRGB(subImageX, subImageY);
@@ -78,9 +79,9 @@ public class FindImageInImage {
                 }
             }
         }
-        trace("FAILED_PIXEL_COUNT=" + actualPixelFailsCount);
+        SystemLogger.trace("FAILED_PIXEL_COUNT=" + actualPixelFailsCount);
         double p = actualPixelFailsCount / ((double) subWidth * (double) subHeight / 100.0);
-        trace("FAILED_PIXEL_PERCENT=" + p);
+        SystemLogger.trace("FAILED_PIXEL_PERCENT=" + p);
         return true;
     }
 }

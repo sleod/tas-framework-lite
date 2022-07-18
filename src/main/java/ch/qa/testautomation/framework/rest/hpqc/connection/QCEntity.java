@@ -1,5 +1,7 @@
 package ch.qa.testautomation.framework.rest.hpqc.connection;
 
+import ch.qa.testautomation.framework.common.logging.SystemLogger;
+
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -25,7 +27,7 @@ public class QCEntity {
         this.entityType = entityType;
         entityFields = QCEntities.getRequiredFields(xmlSchema);
         if (!verifyAttributs(entityFields, fields)) {
-            entityFields.forEach((kk, vv) -> log("INFO", kk + " -> " + vv));
+            entityFields.forEach((kk, vv) -> SystemLogger.log("INFO", kk + " -> " + vv));
             throw new IllegalArgumentException("QCEntity unsatisfied! Required Value of Field is missing! Check up the fields Definition for the Entity!");
         }
     }

@@ -4,9 +4,9 @@ import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.logging.Screenshot;
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.core.component.TestRunResult;
-import jakarta.ws.rs.core.Response;
 
 import javax.swing.tree.DefaultMutableTreeNode;
+import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -762,10 +762,10 @@ public class QCRestClient {
     private Response appendAttachment(int entityType, String entityId, String fileName, byte[] content) {
         if (content != null) {
             Response resp = qcConnector.appendAttachmentsToQCEntity(domain, project, entityId, entityType, fileName, content);
-            log("INFO", "Attachment appened: " + resp.getStatusInfo().getReasonPhrase());
+            SystemLogger.log("INFO", "Attachment appened: " + resp.getStatusInfo().getReasonPhrase());
             return resp;
         } else {
-            log("INFO", "File Content is null, no Attachment appended.");
+            SystemLogger.log("INFO", "File Content is null, no Attachment appended.");
             return null;
         }
     }
@@ -774,12 +774,12 @@ public class QCRestClient {
         byte[] content = null;
         if (file.exists()) {
             try {
-                log("INFO", "Try to read File for Attachment: " + file.getAbsolutePath());
+                SystemLogger.log("INFO", "Try to read File for Attachment: " + file.getAbsolutePath());
                 content = FileOperation.readFileToByteArray(file);
             } catch (IOException ex) {
                 SystemLogger.error(ex);
             }
-            log("INFO", "Try to Upload Attachment: " + file.getName());
+            SystemLogger.log("INFO", "Try to Upload Attachment: " + file.getName());
             return appendAttachment(entityType, id, file.getName(), content);
         } else {
             return null;
@@ -798,7 +798,7 @@ public class QCRestClient {
         String statusInfo = QCConstants.getReturnStatus(resp.getStatus());
         String entry = resp.readEntity(String.class);
         String message = MessageFormat.format(messagePattern, statusInfo);
-        log("DEBUG", message + entry);
+        SystemLogger.log("DEBUG", message + entry);
         QCResponseMessage qcrm = new QCResponseMessage(getFirstEntityInResponse(entry), message, entry);
         return qcrm;
     }

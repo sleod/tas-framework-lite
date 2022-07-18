@@ -4,9 +4,8 @@ import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.framework.rest.allure.connection.AllureRestClient;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -27,7 +26,6 @@ public class ReportBuilderAllureService {
     public static final String FILE_NAME_NODE = "file_name";
     public static final String RESULTS_NODE = "results";
     public static final String resultsDir = PropertyResolver.getAllureResultsDir() + "upload/";
-    private static final String ATTACHMENT = "-attachment.";
     private AllureRestClient restClient;
 
     /**
@@ -87,8 +85,8 @@ public class ReportBuilderAllureService {
 
     protected AllureRestClient initAllureRestClient() {
 
-        JsonNode config = JSONContainerFactory.getConfig(PropertyResolver.getReportServiceRunnerConfigFile());
-        return new AllureRestClient((ObjectNode) config.get(ALLURE_SERVICE_CONFIG));
+        JSONObject config = JSONContainerFactory.getConfig(PropertyResolver.getReportServiceRunnerConfigFile());
+        return new AllureRestClient((JSONObject) config.get(ALLURE_SERVICE_CONFIG));
     }
 
     /**
@@ -104,7 +102,7 @@ public class ReportBuilderAllureService {
             //change: list only result files of current run
             List<Path> resultFilesPaths = JSONContainerFactory.listCurrentAllureResults();
             for (Path resultFilePath : resultFilesPaths) {
-                JsonNode allureResultObject = JSONContainerFactory.getAllureResultObject(resultFilePath);
+                JSONObject allureResultObject = JSONContainerFactory.getAllureResultObject(resultFilePath);
                 changedAttachmentSourcePath = changeAttachmentsPathInResultFile(allureResultObject);
                 //Geänderte Result File mit neuen Pfaden im Ordner allure-result ueberschreiben
                 String newFilePath = resultsDir + resultFilePath.getFileName();
@@ -140,7 +138,7 @@ public class ReportBuilderAllureService {
      *
      * @param allureResultObject allure result object
      */
-    protected Map<String, String> changeAttachmentsPathInResultFile(JsonNode allureResultObject) {
+    protected Map<String, String> changeAttachmentsPathInResultFile(JSONObject allureResultObject) {
 
         Map<String, String> changedSourcePathList = new HashMap<>();
 
@@ -148,10 +146,10 @@ public class ReportBuilderAllureService {
         replaceSourcePathWithUUID(changedSourcePathList, allureResultObject);
 
         //Ueber den Inhalt in den Steps iterieren
-        ArrayNode steps = (ArrayNode) allureResultObject.get("steps");
-        for (JsonNode stepObject : steps) {
+        JSONArray steps = (JSONArray) allureResultObject.get("steps");
+        for (Object stepObject : steps) {
 
-            ObjectNode step = (ObjectNode) stepObject;
+            JSONObject step = (JSONObject) stepObject;
             replaceSourcePathWithUUID(changedSourcePathList, step);
         }
         return changedSourcePathList;
@@ -162,22 +160,21 @@ public class ReportBuilderAllureService {
      * source path durch eine UUID
      *
      * @param changedSourcePath List welche Pfade geaendert wurden
-     * @param jsonObject        Inhalt des -result.json welche verändert wird
+     * @param jsonObject        Inhalt des -result.json
      */
-    protected void replaceSourcePathWithUUID(Map<String, String> changedSourcePath, JsonNode jsonObject) {
+    protected void replaceSourcePathWithUUID(Map<String, String> changedSourcePath, JSONObject jsonObject) {
 
         String attachmentNode = "attachments";
         String sourceNode = "source";
 
-        ArrayNode attachments = (ArrayNode) jsonObject.get(attachmentNode);
+        JSONArray attachments = (JSONArray) jsonObject.get(attachmentNode);
 
-        for (JsonNode attachmentObject : attachments) {
+        for (Object attachmentObject : attachments) {
 
-            ObjectNode attachment = (ObjectNode) attachmentObject;
-            String sourceValue = attachment.get(sourceNode).asText();
+            JSONObject attachment = (JSONObject) attachmentObject;
+            String sourceValue = (String) attachment.get(sourceNode);
 
-            //Prüfen ob bereits eine UUID-attachment. existiert
-            if (!sourceValue.isEmpty() && !FileOperation.startWithUUID(sourceValue)) {
+            if (!sourceValue.isEmpty() && !FileOperation.isUUID(sourceValue.substring(0, sourceValue.lastIndexOf("-")))) {
 
                 String extension = FileOperation.getFileNameExtension(sourceValue);
                 String uuidFilePath = UUID.randomUUID() + "-attachment." + extension;

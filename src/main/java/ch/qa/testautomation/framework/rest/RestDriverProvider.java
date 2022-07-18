@@ -8,7 +8,7 @@ public class RestDriverProvider implements DriverProvider {
     private String user = "";
     private String password = "";
     private String host;
-    private String token = "";
+    private String basic = "";
 
     public void setUser(String user) {
         this.user = user;
@@ -22,8 +22,8 @@ public class RestDriverProvider implements DriverProvider {
         this.host = host;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setBasic(String basic) {
+        this.basic = basic;
     }
 
     public RestDriverProvider(String user, String password, String host) {
@@ -35,12 +35,12 @@ public class RestDriverProvider implements DriverProvider {
     /**
      * Construction with encoded basic key
      *
-     * @param host  host
-     * @param token 'Basic base64.encode(user:password)' or 'Bearer PAT'
+     * @param host       host
+     * @param encodedKey base64 encoded key of user:password
      */
-    public RestDriverProvider(String host, String token) {
+    public RestDriverProvider(String host, String encodedKey) {
         this.host = host;
-        this.token = token;
+        this.basic = "Basic " + encodedKey;
     }
 
     @Override
@@ -52,16 +52,9 @@ public class RestDriverProvider implements DriverProvider {
         return restfulDriver;
     }
 
-    /**
-     * get driver with host and token
-     *
-     * @param host  host
-     * @param token is 'Basic base64.encode(user:password)' or 'Bearer PAT'
-     * @return rest driver
-     */
-    public RestfulDriver getDriver(String host, String token) {
+    public RestfulDriver getDriver(String host, String encodedKey) {
         setHost(host);
-        setToken(token);
+        setBasic(encodedKey);
         initialize();
         return restfulDriver;
     }
@@ -86,8 +79,8 @@ public class RestDriverProvider implements DriverProvider {
         if (!host.isEmpty()) {
             if (!user.isEmpty() && !password.isEmpty()) {
                 restfulDriver = new RestfulDriver(host, user, password);
-            } else if (!token.isEmpty()) {
-                restfulDriver = new RestfulDriver(host, token);
+            } else if (!basic.isEmpty()) {
+                restfulDriver = new RestfulDriver(host, basic);
             } else {
                 throw new RuntimeException("Neither user/password nor basic key was given! REST Driver Init failed!");
             }

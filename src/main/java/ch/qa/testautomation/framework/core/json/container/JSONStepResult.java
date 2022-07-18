@@ -120,7 +120,7 @@ public class JSONStepResult {
 
         TestStepResult stepResult = testCaseStep.getTestStepResult();
         String location = new File(logFilePath).getParentFile().getAbsolutePath();
-        File target = new File(location + stepResult.getName().replace("/"," ") + ".txt");
+        File target = new File(location + stepResult.getName() + ".txt");
         FileOperation.writeBytesToFile(stepResult.getInfo().getBytes(), target);
         attachments.add(new JSONAttachment("Step Log", "text/plain", target.getAbsolutePath()));
     }

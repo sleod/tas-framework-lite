@@ -1,7 +1,6 @@
 package ch.qa.testautomation.framework.common.utils;
 
-import io.appium.java_client.pagefactory.AndroidFindBy;
-import io.appium.java_client.pagefactory.iOSXCUITFindBy;
+import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import org.openqa.selenium.support.FindBy;
 
 import java.lang.annotation.Annotation;
@@ -9,8 +8,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Map;
-
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
 
 /**
  * Changes the annotation value for the given key of the given annotation to newValue and returns
@@ -20,18 +17,6 @@ import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
 
 public class AnnotationUtils {
 
-    /**
-     * change FindBy annotation special in current thread
-     *
-     * @param field  field with annotation
-     * @param config contains how and using
-     * @throws NoSuchFieldException   for fetch private fields internal annotation handler
-     * @throws IllegalAccessException access privilege violation
-     */
-    public static void changeIOSFindByValue(Field field, Map<String, String> config) throws NoSuchFieldException, IllegalAccessException {
-        final iOSXCUITFindBy fieldAnnotation = field.getAnnotation(iOSXCUITFindBy.class);
-        changeAnnotationValue(fieldAnnotation, config, iOSXCUITFindBy.class);
-    }
 
     /**
      * change annotation value in runtime
@@ -56,22 +41,8 @@ public class AnnotationUtils {
         String how = config.get("how");
         String using = config.get("using");
         memberValues.put(how, using);
-        trace("modified field annotation to: " + how + " = " + using);
+        SystemLogger.trace("modified field annotation to: " + how + " = " + using);
     }
-
-    /**
-     * change FindBy annotation special in current thread
-     *
-     * @param field  field with annotation
-     * @param config contains how and using
-     * @throws NoSuchFieldException   for fetch private fields internal annotation handler
-     * @throws IllegalAccessException access privilege violation
-     */
-    public static void changeAndroidFindByValue(Field field, Map<String, String> config) throws NoSuchFieldException, IllegalAccessException {
-        final AndroidFindBy fieldAnnotation = field.getAnnotation(AndroidFindBy.class);
-        changeAnnotationValue(fieldAnnotation, config, AndroidFindBy.class);
-    }
-
 
     /**
      * change FindBy annotation special in current thread

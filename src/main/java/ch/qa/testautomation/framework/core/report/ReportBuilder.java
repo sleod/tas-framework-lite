@@ -3,6 +3,8 @@ package ch.qa.testautomation.framework.core.report;
 import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.enumerations.PropertyKey;
 import ch.qa.testautomation.framework.common.enumerations.TestStatus;
+import ch.qa.testautomation.framework.common.logging.Screenshot;
+import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.common.utils.TimeUtils;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.component.TestCaseObject;
@@ -10,12 +12,10 @@ import ch.qa.testautomation.framework.core.component.TestCaseStep;
 import ch.qa.testautomation.framework.core.component.TestRunResult;
 import ch.qa.testautomation.framework.core.component.TestStepResult;
 import ch.qa.testautomation.framework.core.controller.ExternAppController;
+import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.framework.core.json.container.JSONStepResult;
 import ch.qa.testautomation.framework.core.json.container.JSONTestResult;
-import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import net.sf.json.JSONObject;
 import org.apache.commons.collections4.properties.SortedProperties;
 
 import java.io.File;
@@ -26,10 +26,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
-
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.error;
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.warn;
-import static ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory.*;
 
 public class ReportBuilder {
 
@@ -71,7 +67,7 @@ public class ReportBuilder {
         try {
             FileOperation.writeBytesToFile(logContent.toString().getBytes(), new File(testRunResult.getLogFilePath()));
         } catch (IOException ex) {
-            error(ex);
+            SystemLogger.error(ex);
         }
     }
 
@@ -79,14 +75,17 @@ public class ReportBuilder {
      * generate report with test case objects
      *
      * @param testCaseObjects test case objects
+     * @throws IOException io exception
      */
     public static void generateReport(List<TestCaseObject> testCaseObjects) {
         try {
             if (PropertyResolver.getReportViewType().equalsIgnoreCase("default")) {
                 generateDefaultAllureResults(testCaseObjects);
+            } else if (PropertyResolver.getReportViewType().equalsIgnoreCase("junit")) {
+                generateJunitAllureResults(testCaseObjects);
             }
         } catch (IOException ex) {
-            warn("IO Exception while generate report after test run!\n" + ex.getMessage());
+            SystemLogger.warn("IO Exception while generate report after test run!\n" + ex.getMessage());
         }
     }
 
@@ -102,7 +101,7 @@ public class ReportBuilder {
         try {
             MavenReportWriter.generateMavenTestXML(testCaseObjects, fileName, backupFile);
         } catch (IOException ex) {
-            warn("IOException while generate Maven XML Report!\n" + ex.getMessage());
+            SystemLogger.warn("IOException while generate Maven XML Report!\n" + ex.getMessage());
         }
     }
 
@@ -171,7 +170,7 @@ public class ReportBuilder {
         //get last run history data
         restoreHistory(currentOrder - 1);
         ExternAppController.executeCommand("allure generate " + resultsPath + " -o " + reportPath + "run" + currentOrder);
-        archiveResults(currentOrder);
+        JSONContainerFactory.archiveResults(currentOrder);
         if (PropertyResolver.isRebaseAllureReport()) {
             rebaseExistingAllureResults();
         }
@@ -190,14 +189,14 @@ public class ReportBuilder {
             fileWriter = new FileWriter(environment);
             propertiesSorted.store(fileWriter, "Save to environment properties file.");
         } catch (IOException ex) {
-            warn("IO Exception while generate environment file!\n" + ex.getMessage());
+            SystemLogger.warn("IO Exception while generate environment file!\n" + ex.getMessage());
         } finally {
             try {
                 if (fileWriter != null) {
                     fileWriter.close();
                 }
             } catch (IOException e) {
-                error(e);
+                SystemLogger.error(e);
             }
         }
     }
@@ -205,31 +204,30 @@ public class ReportBuilder {
     /**
      * rebase existing allure result because of diff on History id
      */
+    @SuppressWarnings("unchecked")
     private static void rebaseExistingAllureResults() {
-        String historyContent = getHistoryContent();
-        List<JsonNode> rebasedAllureResults = new LinkedList<>();
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            for (String filePath : getAllureResults()) {
-                JsonNode result = mapper.readTree(FileOperation.readFileToLinedString(filePath));
-                String historyId = result.get("historyId").asText();
-                String rebaseHisId = buildHistoryId(result.get("labels").get(0).get("value").asText() + "." + result.get("name").asText());
-                if (!rebaseHisId.equals(historyId)) {
-                    historyContent = historyContent.replace(historyId, rebaseHisId);
-                    ((ObjectNode) result).put("historyId", rebaseHisId);
-                }
-                rebasedAllureResults.add(result);
+        String historyContent = JSONContainerFactory.getHistoryContent();
+        List<JSONObject> rebasedAllureResults = new LinkedList<>();
+        for (String filePath : JSONContainerFactory.getAllureResults()) {
+            JSONObject result = JSONObject.fromObject(FileOperation.readFileToLinedString(filePath));
+            String historyId = result.getString("historyId");
+            String rebaseHisId = buildHistoryId(result.getJSONArray("labels").getJSONObject(0).getString("value") + "." + result.getString("name"));
+            if (!rebaseHisId.equals(historyId)) {
+                historyContent = historyContent.replace(historyId, rebaseHisId);
+                result.replace("historyId", historyId, rebaseHisId);
             }
-
+            rebasedAllureResults.add(result);
+        }
+        try {
             if (!historyContent.isEmpty()) {
                 String filePath = PropertyResolver.getAllureResultsDir() + "history/history.json";
                 FileOperation.writeBytesToFile(historyContent.getBytes(), new File(filePath));
             }
-            for (JsonNode result : rebasedAllureResults) {
-                FileOperation.writeBytesToFile(result.toString().getBytes(), new File(PropertyResolver.getAllureResultsDir() + result.get("uuid").asText() + "-result.json"));
+            for (JSONObject result : rebasedAllureResults) {
+                FileOperation.writeBytesToFile(result.toString().getBytes(), new File(PropertyResolver.getAllureResultsDir() + result.getString("uuid") + "-result.json"));
             }
         } catch (IOException ex) {
-            warn("IOException while rebase existing allure results! \n" + ex.getMessage());
+            SystemLogger.warn("IOException while rebase existing allure results! \n" + ex.getMessage());
         }
     }
 
@@ -263,8 +261,44 @@ public class ReportBuilder {
                 }
             }
         } catch (IOException ex) {
-            warn("IO Exception while restore history file after test run!\n" + ex.getMessage());
+            SystemLogger.warn("IO Exception while restore history file after test run!\n" + ex.getMessage());
         }
+    }
+
+    /**
+     * generate allure results in json files for allure report
+     *
+     * @param testCaseObjects test cases
+     */
+    private static void generateJunitAllureResults(List<TestCaseObject> testCaseObjects) {
+        List<JSONTestResult> allureResults = new LinkedList<>();
+        String attachType = "image/" + PropertyResolver.getDefaultScreenshotFormat().toLowerCase();
+        testCaseObjects.forEach(testCaseObject -> testCaseObject.getTestRunResult().getStepResults().forEach(stepResult -> {
+            JSONTestResult jsonTestResult = new JSONTestResult(stepResult.getName(), testCaseObject.getName() + "@" + stepResult.getName(),
+                    testCaseObject.getDescription(), stepResult.getStatus().text(), stepResult.getStart(), stepResult.getStop(), "finished",
+                    testCaseObject.getName() + " #" + stepResult.getStepOrder());
+            jsonTestResult.addLabel("suite", testCaseObject.getName());
+            jsonTestResult.addLabel("testClass", stepResult.getName());
+            jsonTestResult.addLabel("testMethod", stepResult.getTestMethod());
+            jsonTestResult.setStatusDetails("known", true);
+            jsonTestResult.setStatusDetails("muted", false);
+            jsonTestResult.setStatusDetails("flaky", false);
+            if (stepResult.getStatus().equals(TestStatus.FAIL) || stepResult.getStatus().equals(TestStatus.BROKEN)) {
+                jsonTestResult.setStatusDetails("message", stepResult.getTestFailure().getMessage());
+                jsonTestResult.setStatusDetails("trace", stepResult.getTestFailure().getTrace());
+            } else {
+                jsonTestResult.setStatusDetails("message", "Log Info: ");
+                jsonTestResult.setStatusDetails("trace", stepResult.getInfo());
+            }
+            for (Screenshot screenshot : stepResult.getScreenshots()) {
+                jsonTestResult.addAttachment(screenshot.getTestCaseName(), attachType, screenshot.getScreenshotFile().getAbsolutePath());
+                if (screenshot.hasPageFile()) {
+                    jsonTestResult.addAttachment(screenshot.getTestCaseName(), "text/html", screenshot.getPageFile().getAbsolutePath());
+                }
+            }
+            allureResults.add(jsonTestResult);
+        }));
+        JSONContainerFactory.regenerateAllureResults(allureResults);
     }
 
     private static void addLabels(JSONTestResult jsonTestResult, TestCaseObject testCaseObject) {
@@ -308,7 +342,7 @@ public class ReportBuilder {
 
     private static SortedProperties sortProperties(Properties properties) {
         SortedProperties sortedProperties = new SortedProperties();
-        sortedProperties.putAll(properties);
+        properties.forEach(sortedProperties::put);
         return sortedProperties;
     }
 }

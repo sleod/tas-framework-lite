@@ -3,19 +3,13 @@ package ch.qa.testautomation.framework.core.component;
 import ch.qa.testautomation.framework.common.IOUtils.FileLocator;
 import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.enumerations.FileFormat;
+import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.common.utils.DBConnector;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
-import ch.qa.testautomation.framework.core.json.ObjectMapperSingleton;
 import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
-import ch.qa.testautomation.framework.exception.ApollonBaseException;
-import ch.qa.testautomation.framework.exception.JsonProcessException;
 import ch.qa.testautomation.framework.intefaces.DBDataCollector;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
@@ -23,20 +17,18 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.*;
-import static ch.qa.testautomation.framework.exception.ApollonErrorKeys.KEY_NOT_FOUND_IN_TEST_DATA_SOURCE;
+import static java.util.Arrays.asList;
 
 public class TestDataContainer {
 
     private final Map<Class<?>, Object> instances = new LinkedHashMap<>();
-    private JsonNode jsonData;
+    private JSONObject jsonData;
     private FileFormat fileFormat;
     private List<Map<String, Object>> dataContent;
     private boolean repeat = false;
-    private static JsonNode globalTestData;
+    private static JSONObject globalTestData;
     private static final Map<String, Object> tempData = new LinkedHashMap<>();
     private boolean additionalData = false;
-    private final static ObjectMapper mapper = ObjectMapperSingleton.getObjectMapper();
 
     public TestDataContainer(String testDataRef, String additional) {
         if (testDataRef == null || testDataRef.isEmpty()) {
@@ -76,18 +68,11 @@ public class TestDataContainer {
     }
 
     public List<Map<String, Object>> getDataContent() {
-
         if (dataContent == null) {
-
-            Map<String, Object> mapJsonData = mapper.convertValue(jsonData, new TypeReference<>() {
-            });
-            return Collections.singletonList(mapJsonData);
+            return Collections.singletonList(jsonData);
         }
-
-        return mapper.convertValue(dataContent, new TypeReference<List<Map<String, Object>>>() {
-        });
+        return dataContent;
     }
-
 
     private void loadAdditionalTestData(String fileRef) {
         if (fileRef == null || fileRef.isEmpty()) {
@@ -109,20 +94,12 @@ public class TestDataContainer {
      * @param key to name
      * @return object can be null
      */
-    public static JsonNode getGlobalTestDataReturnJsonNode(String key) {
-        return globalTestData.get(key);
-    }
-
     public static Object getGlobalTestData(String key) {
         Object value = globalTestData.get(key);
-        if (value instanceof ArrayNode) {
-
-            return mapper.convertValue(value, new TypeReference<Object[]>() {
-            });
-        } else if (value instanceof ObjectNode) {
-
-            return mapper.convertValue(value, new TypeReference<Map<String, Object>>() {
-            });
+        if (value instanceof JSONArray) {
+            return ((JSONArray) value).toArray().clone();
+        } else if (value instanceof JSONObject) {
+            return JSONObject.fromObject(value);
         } else return value;
     }
 
@@ -151,7 +128,6 @@ public class TestDataContainer {
     }
 
     private boolean checkDataContentContainsKey(String key) {
-
         return dataContent.get(0).containsKey(key);
     }
 
@@ -159,41 +135,36 @@ public class TestDataContainer {
         return dataContent.size();
     }
 
-    private Object getTestDataInJSON(String key, JsonNode storage) {
+
+    private Object getTestDataInJSON(String key, JSONObject storage) {
         if (key.contains(".")) {
             String[] layers = key.split("\\.");
             Object current = storage.get(layers[0]);
             for (int index = 1; index < layers.length - 1; index++) {
-                if (current instanceof ObjectNode) {
-                    current = ((JsonNode) current).get(layers[index]);
+                if (current instanceof JSONObject) {
+                    current = ((JSONObject) current).get(layers[index]);
                 } else {
                     throw new RuntimeException("Check Parameter definition with given KEY. JSONArray has no key for value!");
                 }
             }
-            if (current instanceof ObjectNode) {
-
-                return ((JsonNode) current).get(layers[layers.length - 1]);
-
-            } else if (current instanceof ArrayNode && key.endsWith(".values")) {
-
-                return (ArrayNode) current;
-
+            if (current instanceof JSONObject) {
+                return ((JSONObject) current).get(layers[layers.length - 1]);
+            } else if (current instanceof JSONArray && key.endsWith(".values")) {
+                return asList(((JSONArray) current).toArray());
             } else {
-
                 throw new RuntimeException("Check Parameter definition with given KEY! No Test Data can be Selected.");
             }
         } else {
 
-            if (storage.has(key)) {
+            if (storage.containsKey(key)) {
                 return storage.get(key);
             } else {
-                throw new ApollonBaseException(KEY_NOT_FOUND_IN_TEST_DATA_SOURCE, key);
+                return key;
             }
         }
     }
 
     private void loadTestData(String testDataRef) {
-
         String[] token = testDataRef.split(":");
         if (!"db".equalsIgnoreCase(token[0])) {
             String filePath;
@@ -209,11 +180,11 @@ public class TestDataContainer {
                     filePath = filePaths.get(0).toString();
                 }
             }
-            trace("Take test data file: " + filePath);
+            SystemLogger.trace("Take test data file: " + filePath);
             if ("file".equalsIgnoreCase(token[0])) {
                 loadWithFile(filePath);
             } else
-                throw new RuntimeException("Test Data Reference can not be loaded: no 'File:' header found!");
+                throw new RuntimeException("Test Data Reference can not be loaded: no 'File:' ,'SQL:' or 'DB:' header found!");
         } else loadDBDataWith(token[1]);
 
     }
@@ -223,8 +194,8 @@ public class TestDataContainer {
             DBDataCollector dbDataCollector = (DBDataCollector) Class.forName(className).getDeclaredConstructor().newInstance();
             dataContent = dbDataCollector.getData();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException ex) {
-            info("The given Class Name of DB Data Collector may not correct or it does not implement the required interface 'DBDataCollector'!");
-            error(ex);
+            SystemLogger.info("The given Class Name of DB Data Collector may not correct or it does not implement the required interface 'DBDataCollector'!");
+            SystemLogger.error(ex);
         }
     }
 
@@ -252,8 +223,7 @@ public class TestDataContainer {
                     loadJSONContent(testDataRef);
                     break;
                 default:
-                    throw new RuntimeException("Test Data Reference can not be loaded: File Format is not supported jet! "
-                            + "<" + testDataRef + ">");
+                    throw new RuntimeException("Test Data Reference can not be loaded: File Format is not supported jet! " + "<" + testDataRef + ">");
             }
         }
     }
@@ -264,12 +234,9 @@ public class TestDataContainer {
 
     public static void loadGlobalTestData(Path path) {
         String content = FileOperation.readFileToLinedString(path.toString());
-        try {
-            globalTestData = new ObjectMapper().readTree(content);
-        } catch (JsonProcessingException e) {
-            throw new JsonProcessException(e);
-        }
+        globalTestData = JSONObject.fromObject(content);
     }
+
 
     /**
      * load CSV content and regarding comment sign like #, //, "/* .. \*\/
@@ -283,17 +250,17 @@ public class TestDataContainer {
                 dataContent = new LinkedList<>();
             }
             if (content.size() == 1) {
-                warn("CSV data has no content or no header!");
-            } else setRepeat(content.size() != 2);
+                SystemLogger.warn("CSV data has no content or no header!");
+            } else setRepeat(content.size() > 2);
             parseCSVNonComment(content);
         }
     }
 
     private void parseCSVNonComment(List<String> lines) {
-        String[] columns = lines.get(0).split(";");
+        String[] colums = lines.get(0).split(";");
         boolean commentBlockClosed = true;
         for (int rowNumber = 1; rowNumber < lines.size(); rowNumber++) {
-            Map<String, Object> rowContent = new HashMap<>(columns.length);
+            Map<String, Object> rowContent = new HashMap<>(colums.length);
             String line = lines.get(rowNumber);
             if (line.startsWith("//") || line.startsWith("#")) {
                 continue;
@@ -306,12 +273,11 @@ public class TestDataContainer {
             }
             if (commentBlockClosed) {
                 Object[] values = line.split(";");
-                if (values.length != columns.length) {
-                    throw new RuntimeException("In der Zeilennummer " + rowNumber
-                            + " stimmt die Anzahl der Werte nicht mit der Anzahl im CSV Header überrein");
+                if (values.length != colums.length) {
+                    throw new RuntimeException("In der Zeilennummer " + rowNumber + " stimmt die Anzahl der Werte nicht mit der Anzahl im CSV Header überrein");
                 }
-                for (int i = 0; i < columns.length; i++) {
-                    rowContent.put(columns[i], values[i]);
+                for (int i = 0; i < colums.length; i++) {
+                    rowContent.put(colums[i], values[i]);
                 }
                 dataContent.add(rowContent);
             }
@@ -320,12 +286,11 @@ public class TestDataContainer {
 
     private void loadDBContent(String testDataRef) {
         String sql = FileOperation.readFileToLinedString(testDataRef);
-        JsonNode config = JSONContainerFactory.getConfig(PropertyResolver.getDBConfigFile());
-        dataContent = DBConnector.connectAndExecute(config.get("type").textValue(), config.get("host").textValue(),
-                config.get("user").textValue(), config.get("port").textValue(), config.get("instance.name").textValue(),
-                config.get("password").textValue(), sql, PropertyResolver.getDefaultRunModeDebug());
+        JSONObject config = JSONContainerFactory.getConfig(PropertyResolver.getDBConfigFile());
+        dataContent = DBConnector.connectAndExecute(config.getString("type"), config.getString("host"),
+                config.getString("user"), config.getString("port"), config.getString("service-name"), PropertyResolver.decodeBase64(config.getString("password")), sql);
+        setRepeat(dataContent.size() > 1);
     }
-
 
     //todo: define xml content loader
     private void loadXMLContent(String testDataRef) {
@@ -337,30 +302,12 @@ public class TestDataContainer {
         String content = FileOperation.readFileToLinedString(testDataRef);
     }
 
-    //756955 JSON Remove
+    @SuppressWarnings("unchecked")
     private void loadJSONContent(String testDataRef) {
         String content = FileOperation.readFileToLinedString(testDataRef);
-        ObjectNode data = null;
-
-        try {
-            data = (ObjectNode) mapper.readTree(content);
-            Iterator<Map.Entry<String, JsonNode>> fields = data.fields();
-            if (additionalData && jsonData != null) {
-                ObjectNode workingNode = jsonData.deepCopy();
-                while (fields.hasNext()) {
-                    Map.Entry<String, JsonNode> field = fields.next();
-                    String key = field.getKey();
-                    JsonNode fieldValue = field.getValue();
-                    if (!workingNode.has(field.getKey())) {
-                        workingNode.set(key, fieldValue);
-                    }
-                }
-                jsonData = workingNode;
-            } else {
-                jsonData = data;
-            }
-        } catch (JsonProcessingException e) {
-            throw new JsonProcessException("An error occurred while reading " + content);
-        }
+        JSONObject data = JSONObject.fromObject(content);
+        if (additionalData && jsonData != null) {
+            data.forEach((key, value) -> jsonData.putIfAbsent(key, value));
+        } else jsonData = data;
     }
 }

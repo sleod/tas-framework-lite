@@ -1,8 +1,8 @@
 package ch.qa.testautomation.framework.common.logging;
 
+import ch.qa.testautomation.framework.intefaces.ScreenshotTaker;
 import ch.qa.testautomation.framework.core.component.TestStepMonitor;
 import ch.qa.testautomation.framework.core.controller.UserRobot;
-import ch.qa.testautomation.framework.intefaces.ScreenshotTaker;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -10,9 +10,6 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.error;
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.info;
 
 public class ScreenCapture {
 
@@ -31,7 +28,7 @@ public class ScreenCapture {
         try {
             screenshot = new Screenshot(UserRobot.captureMainFullScreen(), testCaseName, stepName);
         } catch (AWTException | IOException ex) {
-            error(new RuntimeException("Exception while capture screen!"));
+            SystemLogger.error(new RuntimeException("Exception while capture screen!"));
         }
         return screenshot;
     }
@@ -77,13 +74,13 @@ public class ScreenCapture {
         String stepName = testStepMonitor.getLastStep().getMethodName();
         Screenshot screenshot = null;
         if (driver != null) {
-            info("*** save screenshot to Report for Test Case: " + testCaseName + " -> " + stepName);
+            SystemLogger.info("*** save screenshot to Report for Test Case: " + testCaseName + " -> " + stepName);
             byte[] imageData = driver.getScreenshotAs(OutputType.BYTES);
             try {
 //                screenshot = new Screenshot(imageData, testCaseName, stepName, driver.getPageSource());
                 screenshot = new Screenshot(imageData, testCaseName, stepName, "");
             } catch (RuntimeException | IOException ex) {
-                error(ex);
+                SystemLogger.error(ex);
             }
         }
         return screenshot;

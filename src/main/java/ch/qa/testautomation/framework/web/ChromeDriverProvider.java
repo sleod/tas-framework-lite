@@ -10,6 +10,7 @@ import org.openqa.selenium.remote.*;
 import org.openqa.selenium.remote.codec.w3c.W3CHttpCommandCodec;
 import org.openqa.selenium.remote.codec.w3c.W3CHttpResponseCodec;
 
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -20,7 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 
 public class ChromeDriverProvider extends WebDriverProvider {
-    private final ChromeOptions options;
+    private ChromeOptions options;
 
     public ChromeDriverProvider() {
         options = null;
@@ -46,6 +47,8 @@ public class ChromeDriverProvider extends WebDriverProvider {
         configureWindowSize(chromeDriver, isChromeMaximised());
         setDriver(chromeDriver);
     }
+
+
 
     private static ChromeOptions getChromeOptions() {
         ChromeOptions options = new ChromeOptions();
@@ -110,7 +113,6 @@ public class ChromeDriverProvider extends WebDriverProvider {
                         Field commandCodec = this.getClass().getSuperclass().getDeclaredField("commandCodec");
                         commandCodec.setAccessible(true);
                         commandCodec.set(this, new W3CHttpCommandCodec());
-
                         Field responseCodec;
                         responseCodec = this.getClass().getSuperclass().getDeclaredField("responseCodec");
                         responseCodec.setAccessible(true);

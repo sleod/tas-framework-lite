@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static ch.qa.testautomation.framework.common.logging.SystemLogger.log;
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.logStepInfo;
 
 /**
  * TestStep Monitor for each testcase
@@ -84,7 +83,7 @@ public class TestStepMonitor {
         if (!skip.get(getTid())) {
             notifier.fireTestStarted(allDescriptions.get(step));
         }
-        logStepInfo(getTid(), "Step Start: " + step);
+        SystemLogger.logStepInfo(getTid(), "Step Start: " + step);
     }
 
     /**
@@ -94,8 +93,8 @@ public class TestStepMonitor {
      * @param ex   exception
      */
     public synchronized void failed(String step, Throwable ex, boolean stop) {
-        logStepInfo(getTid(), "Step failed: " + step);
-        logStepInfo(getTid(), "Reason: " + ex.getMessage());
+        SystemLogger.logStepInfo(getTid(), "Step failed: " + step);
+        SystemLogger.logStepInfo(getTid(), "Reason: " + ex.getMessage());
         Description currentStep = allDescriptions.get(step);
         notifier.fireTestFailure(new Failure(currentStep, ex));
         notifier.fireTestFinished(currentStep);
@@ -110,9 +109,9 @@ public class TestStepMonitor {
      * @param ex   exception
      */
     public synchronized void broken(String step, Throwable ex) {
-        log("WARN", "Step Broken: {} (cause: {})", step, ex.getMessage());
-        logStepInfo(getTid(), "Step broken: " + step);
-        logStepInfo(getTid(), "Reason: " + ex.getMessage());
+        SystemLogger.log("WARN", "Step Broken: {} (cause: {})", step, ex.getMessage());
+        SystemLogger.logStepInfo(getTid(), "Step broken: " + step);
+        SystemLogger.logStepInfo(getTid(), "Reason: " + ex.getMessage());
         Description currentStep = allDescriptions.get(step);
         notifier.fireTestFailure(new Failure(currentStep, ex));
         notifier.fireTestFinished(currentStep);
@@ -128,7 +127,7 @@ public class TestStepMonitor {
      */
     public synchronized void succeed(String step) {
         Description currentStep = allDescriptions.get(step);
-        logStepInfo(getTid(), "Step Successful: " + step);
+        SystemLogger.logStepInfo(getTid(), "Step Successful: " + step);
         notifier.fireTestFinished(currentStep);
         lastSteps.put(getTid(), currentStep);
         skip.put(getTid(), false);
@@ -136,7 +135,7 @@ public class TestStepMonitor {
 
     public synchronized void ignorable(String step) {
         Description currentStep = allDescriptions.get(step);
-        logStepInfo(getTid(), "Step Ignored: " + step);
+        SystemLogger.logStepInfo(getTid(), "Step Ignored: " + step);
         notifier.fireTestIgnored(currentStep);
         lastSteps.put(getTid(), currentStep);
         skip.put(getTid(), true);
@@ -167,7 +166,7 @@ public class TestStepMonitor {
         } else {
             stringBuilder.append(" Without Parameter.");
         }
-        logStepInfo(getTid(), stringBuilder.toString());
+        SystemLogger.logStepInfo(getTid(), stringBuilder.toString());
     }
 
     private String getTid() {
