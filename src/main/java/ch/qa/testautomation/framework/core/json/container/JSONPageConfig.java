@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class JSONPageConfig {
+public class JSONPageConfig extends JSONContainer{
 
     private Map<String, Map<String, String>> configurations = new LinkedHashMap<>();
 

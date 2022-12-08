@@ -1,36 +1,39 @@
 package ch.qa.testautomation.framework.common.logging;
 
-import ch.qa.testautomation.framework.intefaces.ScreenshotTaker;
 import ch.qa.testautomation.framework.core.component.TestStepMonitor;
 import ch.qa.testautomation.framework.core.controller.UserRobot;
+import ch.qa.testautomation.framework.exception.ApollonBaseException;
+import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
+import ch.qa.testautomation.framework.intefaces.ScreenshotTaker;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.remote.RemoteWebDriver;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Base64;
+
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.info;
 
 public class ScreenCapture {
 
     private static ScreenshotTaker screenShotTaker = null;
 
     /**
-     * capture screen shot in windows os with Robot
+     * capture screenshot in Windows os with Robot
      *
-     * @param testStepMonitor step monitor
      * @return Screenshot instance
      */
-    public static Screenshot captureFullScreen(TestStepMonitor testStepMonitor) {
-        String testCaseName = testStepMonitor.getCurrentTestCase().getDisplayName();
-        String stepName = testStepMonitor.getLastStep().getMethodName();
-        Screenshot screenshot = null;
+    public static Screenshot captureFullScreen() {
+        String testCaseName = TestStepMonitor.getCurrentTestCaseName();
+        String stepName = TestStepMonitor.getCurrentTestStepName();
         try {
-            screenshot = new Screenshot(UserRobot.captureMainFullScreen(), testCaseName, stepName);
-        } catch (AWTException | IOException ex) {
-            SystemLogger.error(new RuntimeException("Exception while capture screen!"));
+            return new Screenshot(UserRobot.captureMainFullScreen(), testCaseName, stepName, "");
+        } catch (AWTException ex) {
+            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_SCREEN_CAPTURE, ex);
         }
-        return screenshot;
     }
 
     public static void setScreenTaker(ScreenshotTaker taker) {
@@ -40,14 +43,13 @@ public class ScreenCapture {
     /**
      * command to take screenshot
      *
-     * @param testStepMonitor test step monitor for test
      * @return Screenshot instance
      */
-    public static Screenshot takeScreenShot(TestStepMonitor testStepMonitor) {
+    public static Screenshot takeScreenShot() {
         if (screenShotTaker != null) {
-            return screenShotTaker.takeScreenShot(testStepMonitor);
+            return screenShotTaker.takeScreenShot();
         } else {
-            return captureFullScreen(testStepMonitor);
+            return captureFullScreen();
         }
     }
 
@@ -57,30 +59,33 @@ public class ScreenCapture {
      * @param shooter screenshots taker
      * @return BufferedImage
      */
-    public static BufferedImage takeScreenShot(TakesScreenshot shooter) throws IOException {
-        byte[] imageData = shooter.getScreenshotAs(OutputType.BYTES);
-        return Screenshot.createImageFromBytes(imageData);
+    public static BufferedImage takeScreenShot(TakesScreenshot shooter) {
+        try {
+            return ImageIO.read(shooter.getScreenshotAs(OutputType.FILE));
+        } catch (IOException ex) {
+            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_SCREEN_CAPTURE, ex);
+        }
+
     }
 
     /**
      * standard method for taking screen
      *
-     * @param testStepMonitor test step monitor
-     * @param driver          RemoteWebDriver
+     * @param shooter TakesScreenshot
      * @return screenshot
      */
-    public static Screenshot getScreenshot(TestStepMonitor testStepMonitor, RemoteWebDriver driver) {
-        String testCaseName = testStepMonitor.getCurrentTestCase().getDisplayName();
-        String stepName = testStepMonitor.getLastStep().getMethodName();
+    public static Screenshot getScreenshot(TakesScreenshot shooter) {
+        String testCaseName = TestStepMonitor.getCurrentTestCaseName();
+        String stepName = TestStepMonitor.getCurrentTestStepName();
         Screenshot screenshot = null;
-        if (driver != null) {
-            SystemLogger.info("*** save screenshot to Report for Test Case: " + testCaseName + " -> " + stepName);
-            byte[] imageData = driver.getScreenshotAs(OutputType.BYTES);
+        if (shooter != null) {
+            info("*** save screenshot to Report for Test Case: " + testCaseName + " -> " + stepName);
+            String imageData = shooter.getScreenshotAs(OutputType.BASE64);
+            byte[] decodedBytes = Base64.getMimeDecoder().decode(imageData);
             try {
-//                screenshot = new Screenshot(imageData, testCaseName, stepName, driver.getPageSource());
-                screenshot = new Screenshot(imageData, testCaseName, stepName, "");
-            } catch (RuntimeException | IOException ex) {
-                SystemLogger.error(ex);
+                screenshot = new Screenshot(ImageIO.read(new ByteArrayInputStream(decodedBytes)), testCaseName, stepName, "");
+            } catch (ApollonBaseException | IOException ex) {
+                throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_SCREEN_CAPTURE, ex);
             }
         }
         return screenshot;

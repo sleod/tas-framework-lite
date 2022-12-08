@@ -1,19 +1,12 @@
 package ch.qa.testautomation.framework.core.json.container;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-public class JSONResultLabel {
-    @JsonProperty
+public class JSONResultLabel extends JSONContainer {
     private String name;
-    @JsonProperty
     private String value;
 
     public JSONResultLabel(String name, String value) {
         this.name = name;
         this.value = value;
-    }
-
-    public JSONResultLabel() {
     }
 
     public String getName() {

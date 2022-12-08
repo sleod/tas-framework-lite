@@ -1,8 +1,9 @@
 package ch.qa.testautomation.framework.rest.hpqc.connection;
 
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.common.utils.StringTextUtils;
 import ch.qa.testautomation.framework.common.utils.XMLUtils;
+import ch.qa.testautomation.framework.exception.ApollonBaseException;
+import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -30,12 +31,12 @@ public class QCEntities {
             Element root = XMLUtils.getDocumentFromXML(searchResult).getRootElement();
             if (root.getName().equalsIgnoreCase("Entity")) {
                 qcEntities.add(getQCEntityFromDocElement(root));
-            }
-            return fetchQCEntitiesFromDocument(root, "Entity");
+                return qcEntities;
+            } else
+                return fetchQCEntitiesFromDocument(root, "Entity");
         } catch (IOException | JDOMException ex) {
-            SystemLogger.error(ex);
+            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Exception while fetching results!", ex);
         }
-        return qcEntities;
     }
 
     /**
@@ -98,14 +99,12 @@ public class QCEntities {
             fields.forEach(field -> requiredFields.put(field.getAttributeValue("Name"), ""));
             return requiredFields;
         } catch (IOException | JDOMException ex) {
-            SystemLogger.error(ex);
+            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Exception while getting XML Schema from QC!", ex);
         }
-        return requiredFields;
     }
 
     private static QCEntity getQCEntityFromDocElement(Element element) {
-        QCEntity qce = QCEntityBuilder.buildEntityWithEntityDocElement(element);
-        return qce;
+        return QCEntityBuilder.buildEntityWithEntityDocElement(element);
     }
 
 }

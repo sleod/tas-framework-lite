@@ -1,13 +1,8 @@
 package ch.qa.testautomation.framework.core.json.container;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-public class JSONAttachment {
-    @JsonProperty
+public class JSONAttachment extends JSONContainer{
     private String name;
-    @JsonProperty
     private String type;
-    @JsonProperty
     private String source;
 
     public JSONAttachment(String name, String type, String source) {

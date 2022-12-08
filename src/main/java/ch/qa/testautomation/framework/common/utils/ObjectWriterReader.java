@@ -1,6 +1,7 @@
 package ch.qa.testautomation.framework.common.utils;
 
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
+import ch.qa.testautomation.framework.exception.ApollonBaseException;
+import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
 
 import java.io.*;
 
@@ -23,37 +24,30 @@ public class ObjectWriterReader {
             objectOutputStream.writeObject(object);
             objectOutputStream.close();
             fileOutputStream.close();
-        } catch (FileNotFoundException e) {
-            SystemLogger.trace("File not found: " + fileName);
-        } catch (IOException e) {
-            SystemLogger.trace("IO Exception of Stream!");
-            SystemLogger.error(e);
+        } catch (IOException ex) {
+            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_WRITING, ex, fileName);
         }
     }
 
     /**
      * read local file to deserialize object
      *
-     * @param object   object with given type
      * @param fileName file name
      * @return deserialized object
      */
-    public static Object readObject(Object object, String fileName) {
+    public static <T> T readObject(Class<T> targetClass, String fileName) {
+        Object object;
         try {
             FileInputStream fileInputStream = new FileInputStream(fileName);
             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
             // Read objects
             object = objectInputStream.readObject();
-        } catch (FileNotFoundException e) {
-            SystemLogger.trace("File not found: " + fileName);
-        } catch (IOException e) {
-            SystemLogger.trace("IO Exception of Stream!");
-            SystemLogger.error(e);
-        } catch (ClassNotFoundException e) {
-            SystemLogger.trace("Read Object failed! Object class can not be found!");
-            SystemLogger.error(e);
+        } catch (IOException ex) {
+            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_READING, ex, fileName);
+        } catch (ClassNotFoundException ex) {
+            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, ex, "Read Object failed! Object class can not be found!" + targetClass);
         }
-        return object;
+        return (T) object;
     }
 
 }

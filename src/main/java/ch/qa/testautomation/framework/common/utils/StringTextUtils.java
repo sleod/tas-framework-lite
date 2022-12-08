@@ -1,8 +1,8 @@
 package ch.qa.testautomation.framework.common.utils;
 
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import org.jsoup.Jsoup;
 
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,10 +21,9 @@ public class StringTextUtils {
         Pattern patt = Pattern.compile(pattern);
         Matcher matcher = patt.matcher(content);
         if (matcher.find()) {
-            String resultCount = matcher.group(1);
-            return resultCount;
+            return matcher.group(1);
         } else {
-            SystemLogger.log("INFO", "Wrong content: \n" + content);
+            log("INFO", "Wrong content: \n" + content);
             return null;
         }
     }
@@ -54,6 +53,10 @@ public class StringTextUtils {
      */
     public static String replaceAllHTMLTags(String text) {
         return Jsoup.parseBodyFragment(text).text();
+    }
+
+    public static boolean isValid(Object value) {
+        return Objects.nonNull(value) && !value.toString().isEmpty();
     }
 
 }

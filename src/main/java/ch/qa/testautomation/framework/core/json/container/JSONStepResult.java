@@ -8,41 +8,29 @@ import ch.qa.testautomation.framework.core.component.TestStepResult;
 import ch.qa.testautomation.framework.core.json.customDeserializer.CustomAttachmentListDeserializer;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-public class JSONStepResult {
-    @JsonProperty
+public class JSONStepResult extends JSONContainer {
     private String name;
-    @JsonProperty
     private String status;
-    @JsonProperty
     private long start;
-    @JsonProperty
     private long stop;
-    @JsonProperty
-    private List<JSONAttachment> attachments = new LinkedList<>();
-    @JsonProperty
-    private Map<String, Object> statusDetails = new LinkedHashMap<>();
+    private List<JSONAttachment> attachments;
+    private Map<String, Object> statusDetails;
 
     private final String logFilePath;
 
-    public JSONStepResult(TestCaseStep testCaseStep, String logFilePath) throws IOException {
-
+    public JSONStepResult(TestCaseStep testCaseStep, String logFilePath) {
         TestStepResult testStepResult = testCaseStep.getTestStepResult();
         this.name = testStepResult.getName();
         this.status = testStepResult.getStatus().text();
         this.start = testStepResult.getStart();
         this.stop = testStepResult.getStop();
         this.logFilePath = logFilePath;
-
+        attachments = new LinkedList<>();
         addAttachments(testCaseStep);
     }
 
@@ -93,17 +81,18 @@ public class JSONStepResult {
 
     @JsonAnySetter
     public void setStatusDetails(String key, Object value) {
-        this.statusDetails.put(key, value);
+        if (Objects.isNull(statusDetails)) {
+            statusDetails = new LinkedHashMap<>();
+        }
+        statusDetails.put(key, value);
     }
 
     @JsonIgnore
     public void setStatusDetailsMap(Map<String, Object> detailsMap) {
-        this.statusDetails = detailsMap;
+        statusDetails = detailsMap;
     }
 
-    private void addAttachments(TestCaseStep testCaseStep) throws IOException {
-
-        attachments = new LinkedList<>();
+    private void addAttachments(TestCaseStep testCaseStep) {
         addComment(testCaseStep);
         addLogs(testCaseStep);
         addScreenshots(testCaseStep);
@@ -111,23 +100,22 @@ public class JSONStepResult {
 
     private void addComment(TestCaseStep testCaseStep) {
         String comment = testCaseStep.getComment();
-        if(comment != null && !comment.isEmpty()){
+        if (comment != null && !comment.isEmpty()) {
             attachments.add(new JSONAttachment("Comment: " + comment, "text/json", ""));
         }
     }
 
-    private void addLogs(TestCaseStep testCaseStep) throws IOException {
-
+    private void addLogs(TestCaseStep testCaseStep) {
         TestStepResult stepResult = testCaseStep.getTestStepResult();
         String location = new File(logFilePath).getParentFile().getAbsolutePath();
-        File target = new File(location + stepResult.getName() + ".txt");
-        FileOperation.writeBytesToFile(stepResult.getInfo().getBytes(), target);
+        File target = new File(location + stepResult.getName().replace("/", "-") + ".txt");
+        FileOperation.writeStringToFile(stepResult.getInfo(), target);
         attachments.add(new JSONAttachment("Step Log", "text/plain", target.getAbsolutePath()));
     }
 
     private void addScreenshots(TestCaseStep testCaseStep) {
         TestStepResult stepResult = testCaseStep.getTestStepResult();
-        String attachType = "image/" + PropertyResolver.getDefaultScreenshotFormat().toLowerCase();
+        String attachType = "image/" + PropertyResolver.getScreenshotFormat().toLowerCase();
         List<Screenshot> screenshots = stepResult.getScreenshots();
         for (Screenshot screenshot : screenshots) {
             attachments.add(new JSONAttachment("Screenshot", attachType, screenshot.getScreenshotFile().getAbsolutePath()));

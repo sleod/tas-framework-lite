@@ -1,10 +1,18 @@
 package ch.qa.testautomation.framework.common.utils;
 
+import ch.qa.testautomation.framework.common.IOUtils.FileLocator;
+import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
-import org.apache.logging.log4j.core.config.Configuration;
+import ch.qa.testautomation.framework.configuration.PropertyResolver;
+import ch.qa.testautomation.framework.exception.ApollonBaseException;
+import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
 
 import java.sql.*;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static ch.qa.testautomation.framework.configuration.PropertyResolver.*;
 
 
 /**
@@ -13,76 +21,176 @@ import java.util.*;
  */
 public class DBConnector {
 
-    public static boolean traceInfo = false;
-    public static boolean printResult = false;
+    /**
+     * get SQL Statement with given content or file name in testdata location
+     *
+     * @param sqlContentOrFilename content or file name
+     * @return SQL Statement
+     */
+    public static String getSQLStatement(String sqlContentOrFilename) {
+        String sqlStatement = sqlContentOrFilename;
+        if (sqlContentOrFilename.endsWith(".sql")) {//read sql file
+            String location = FileLocator.findResource(PropertyResolver.getTestDataLocation()).toString();
+            sqlStatement = FileOperation.readFileToLinedString(FileLocator.findExactFile(location, 5, sqlContentOrFilename).toString());
+            if (sqlStatement.isEmpty()) {
+                throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Given .sql File can not be found in test data! SQL: " + sqlContentOrFilename);
+            }
+        } else if (!sqlContentOrFilename.toLowerCase().startsWith("select")) {//
+            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Given Context is neither .sql file nor Select Statement");
+        }
+        return sqlStatement;
+    }
 
     /**
-     * connect DB and execute sql. (make sure that the driver of db exists.)
+     * find line with given data in result set
      *
-     * @param dbType   mysql, oracle-SID,oracle-SN,mssql
-     * @param host     db host
-     * @param user     user
+     * @param key       column or key of data
+     * @param data      value of data
+     * @param resultSet statement or response
+     * @return values in map
+     */
+    public static Map<String, Object> findLineWithDataInResultSet(String key, Object data, List<Map<String, Object>> resultSet) {
+        return resultSet.stream().filter(line -> line.get(key).equals(data)).findAny().orElse(Collections.emptyMap());
+    }
+
+    public static Map<String, String> normalizeDBData(Map<String, Object> dbData) {
+        return dbData.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue())));
+    }
+
+    public static Map<String, String> normalizeDBData(Map<String, Object> dbData, String replaceNull) {
+        return dbData.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> replaceNull(e.getValue(), replaceNull)));
+    }
+
+    private static String replaceNull(Object dbValue, String replacement) {
+        return Objects.isNull(dbValue) ? replacement : dbValue.toString();
+    }
+
+    public static String formatDate(Object date, String srcFormat, String tarFormat) {
+        if (Objects.nonNull(srcFormat) && Objects.nonNull(tarFormat) && !srcFormat.isEmpty() && !tarFormat.isEmpty()) {
+            return DateTimeUtils.formatSimpleDate(date.toString(), srcFormat, tarFormat);
+        } else {
+            return date.toString();
+        }
+    }
+
+    public static Map<String, Map<String, Object>> fetchDBDataIntoMap(String key, List<Map<String, Object>> dbData) {
+        Map<String, Map<String, Object>> dbMap = new HashMap<>(dbData.size());
+        dbData.forEach(row -> {
+            dbMap.put(row.get(key).toString(), row);
+        });
+        return dbMap;
+    }
+
+    public static Map<String, Map<String, Object>> fetchDBDataIntoMapWithCombKeys(List<Map<String, Object>> dbData, String... keys) {
+        Map<String, Map<String, Object>> dbMap = new HashMap<>(dbData.size());
+        dbData.forEach(row -> {
+            StringBuilder builder = new StringBuilder();
+            Stream.of(keys).forEach(key -> builder.append(row.get(key).toString()));
+            dbMap.put(builder.toString(), row);
+        });
+        return dbMap;
+    }
+
+    public static Map<String, List<Map<String, Object>>> fetchDBDataIntoMapListWithKey(String key, List<Map<String, Object>> dbData) {
+        Map<String, List<Map<String, Object>>> dbMapList = new HashMap<>(dbData.size());
+        dbData.forEach(row -> {
+            String uniqueKey = String.valueOf(row.get(key));
+            if (dbMapList.containsKey(uniqueKey)) {
+                dbMapList.get(uniqueKey).add(row);
+            } else {
+                LinkedList<Map<String, Object>> innerList = new LinkedList<>();
+                innerList.add(row);
+                dbMapList.put(uniqueKey, innerList);
+            }
+        });
+        return dbMapList;
+    }
+
+    public static Map<String, Object> convertKeyTo(Map<String, Object> dataMap, boolean isToLowercase) {
+        if (Objects.nonNull(dataMap) && !dataMap.isEmpty()) {
+            Map<String, Object> theMap = new HashMap<>(dataMap.size());
+            dataMap.forEach((key, value) -> theMap.put(isToLowercase ? key.toLowerCase() : key.toUpperCase(), value));
+            return theMap;
+        } else {
+            return dataMap;
+        }
+    }
+
+
+    /**
+     * Connect and execute sql in case DB config is well set
+     *
+     * @param sql sql statement
+     * @return table content
+     */
+    public static List<Map<String, Object>> connectAndExecute(String sql) {
+        return connectAndExecute(getDBType(), getDBHost(), getDBUser(), getDBPort(), getDBName(), decodeBase64(getDBPassword()), sql);
+    }
+
+    /**
+     * Connect to DB and execute statement
+     *
+     * @param dbType   type of db, like mysql, oracle-SID, oracle-SN, mssql
+     * @param host     host
+     * @param user     username
      * @param port     port
-     * @param dbName   db name or service name or sid...
+     * @param dbName   dbname or service name or service id
      * @param password password
      * @param sql      sql statement
-     * @return list of map for the statement
+     * @return list of map represent the result table
      */
-    public static List<Map<String, Object>> connectAndExecute(String dbType, String host, String user,
-                                                              String port, String dbName, String password, String sql) {
+    public static List<Map<String, Object>> connectAndExecute(String dbType, String host, String user, String port,
+                                                              String dbName, String password, String sql) {
+        boolean traceInfo = PropertyResolver.isPrintTrace();
         Connection connect = null;
-        List<Map<String, Object>> results = new ArrayList<>();
+        List<Map<String, Object>> results;
         String url = "";
         try {
             switch (dbType) {
-                case "mysql":
+                case "mysql" -> {
                     // Load driver
                     Class.forName("com.mysql.jdbc.Driver");
                     url = "jdbc:mysql://" + host;
-                    break;
-                case "oracle-SID":
+                }
+                case "oracle-SID" -> {
                     // Load driver
                     Class.forName("oracle.jdbc.OracleDriver");
-                    // Setup the connection with the DB with SID
+                    // Set up the connection of DB with SID
                     url = "jdbc:oracle:thin:@" + host + ":" + port + ":" + dbName;
-                    break;
-                case "oracle-SN":
+                }
+                case "oracle-SN" -> {
                     // Load driver
                     Class.forName("oracle.jdbc.OracleDriver");
-                    // Setup the connection with the DB Service Name
+                    // Set up the connection of DB with Service Name
                     url = "jdbc:oracle:thin:@" + host + ":" + port + "/" + dbName;
-                    break;
-                case "mssql":
+                }
+                case "mssql" -> {
                     Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-                    // Setup the connection with the DB
+                    // Set up the connection with the DB
                     url = "jdbc:sqlserver://" + host + ":" + port + ";databaseName=" + dbName;
-                    break;
+                }
             }
             if (!url.isEmpty()) {
-                if (traceInfo) {
-                    SystemLogger.trace("Try to connect to DB: " + url);
-                }
-                // Setup the connection with the DB
-                connect = DriverManager.getConnection(url, user, password);
+                SystemLogger.trace("Try to connect to DB: " + url);
+                // Set up the connection with the DB
+                connect = DriverManager.getConnection(url, user, PropertyResolver.decodeBase64(password));
             } else {
-                throw new RuntimeException("Info for Connection DB is not well set!");
+                throw new ApollonBaseException(ApollonErrorKeys.CONNECTION_TO_DB_IS_NOT_SET_WELL);
             }
             // Statements allow to issue SQL queries to the database
             Statement statement = Objects.requireNonNull(connect).createStatement();
             // Result set get the result of the SQL query
             ResultSet resultSet = statement.executeQuery(sql);
-            if (traceInfo) {
-                SystemLogger.trace("Execute SQL: " + sql);
-            }
-            results = writeResultSet(resultSet, printResult);
-        } catch (ClassNotFoundException | SQLException e) {
-            SystemLogger.error(e);
+            SystemLogger.trace("Execute SQL: " + sql);
+            results = writeResultSet(resultSet, traceInfo);
+        } catch (ClassNotFoundException | SQLException ex) {
+            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Exception while connect to DB and execute SQL!", ex);
         } finally {
             if (connect != null) {
                 try {
                     connect.close();
-                } catch (SQLException e) {
-                    SystemLogger.error(e);
+                } catch (SQLException ex) {
+                    throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Exception by trying to close connection!", ex);
                 }
             }
         }
@@ -90,7 +198,7 @@ public class DBConnector {
     }
 
     /**
-     * use to write db resultset into list of map
+     * use to write db result-set into list of map
      *
      * @param resultSet db result set
      * @return list of rows in map

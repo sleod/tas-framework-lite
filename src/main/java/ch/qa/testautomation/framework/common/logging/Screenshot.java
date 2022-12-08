@@ -2,13 +2,13 @@ package ch.qa.testautomation.framework.common.logging;
 
 import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.enumerations.ImageFormat;
+import ch.qa.testautomation.framework.common.utils.DateTimeUtils;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
-import ch.qa.testautomation.framework.common.utils.TimeUtils;
+import ch.qa.testautomation.framework.exception.ApollonBaseException;
+import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
@@ -20,13 +20,12 @@ import java.time.LocalDateTime;
  */
 public class Screenshot {
 
-    private final BufferedImage image;
-    private final LocalDateTime timeStamp = TimeUtils.getLocalDateTimeNow();
-    private final LocalDate today = TimeUtils.getLocalDateToday();
+    private final LocalDateTime timeStamp = DateTimeUtils.getLocalDateTimeNow();
+    private final LocalDate today = DateTimeUtils.getLocalDateToday();
     private final String testCaseName;
     private final String stepName;
     private final File screenshotFile;
-    private ImageFormat format = ImageFormat.getFormat(PropertyResolver.getDefaultScreenshotFormat());
+    private final ImageFormat format = ImageFormat.getFormat(PropertyResolver.getScreenshotFormat());
     private final String pageSource;
     private File pageFile = null;
 
@@ -44,91 +43,57 @@ public class Screenshot {
 
     public File getPageFile() {
         if (pageFile == null) {
-            try {
-                if (hasPageFile()) {
-                    pageFile = writePageFile(pageSource, PropertyResolver.getDefaultTestCaseReportLocation());
-                }
-            } catch (IOException ex) {
-                SystemLogger.error(ex);
+            if (hasPageFile()) {
+                pageFile = writePageFile(pageSource, PropertyResolver.getTestCaseReportLocation());
             }
         }
         return pageFile;
     }
 
-    public Screenshot(byte[] imageData, String testCaseName, String stepName, String pageSource) throws IOException {
-        this.image = createImageFromBytes(imageData);
+    public Screenshot(BufferedImage imageData, String testCaseName, String stepName, String pageSource) {
         this.testCaseName = testCaseName;
         this.stepName = stepName;
         this.pageSource = pageSource;
-        this.screenshotFile = writeImageToLocalFile(PropertyResolver.getDefaultTestCaseReportLocation());
-    }
-
-    public Screenshot(BufferedImage imageData, String testCaseName, String stepName) throws IOException {
-        this.image = imageData;
-        this.testCaseName = testCaseName;
-        this.stepName = stepName;
-        this.pageSource = "";
-        this.screenshotFile = writeImageToLocalFile(PropertyResolver.getDefaultTestCaseReportLocation());
-    }
-
-
-    /**
-     * create Image with byte array
-     *
-     * @param imageData byte array
-     * @return BufferedImage
-     */
-    public static BufferedImage createImageFromBytes(byte[] imageData) throws IOException {
-        ByteArrayInputStream bais = new ByteArrayInputStream(imageData);
-        return ImageIO.read(bais);
+        this.screenshotFile = writeImageToLocalFile(imageData, PropertyResolver.getTestCaseReportLocation());
     }
 
     public boolean hasPageFile() {
         return !pageSource.isEmpty();
     }
 
-    public File writePageFile(String pageSource, String folderPath) throws IOException {
+    public File writePageFile(String pageSource, String folderPath) {
         if (pageSource.isEmpty()) {
             return null;
         }
-        String location = folderPath + TimeUtils.getFormattedDate(today, "yyyy-MM-dd") + "/" + testCaseName + "/";
+        String location = folderPath + DateTimeUtils.getFormattedDate(today, "yyyy-MM-dd") + "/" + testCaseName + "/";
         File folder = new File(location);
-        String filePath = location + stepName + "_" + TimeUtils.formatLocalDateTime(timeStamp, "yyyy-MM-dd_HH-mm-ss") + ".html";
+        String filePath = location + stepName + "_" + DateTimeUtils.formatLocalDateTime(timeStamp, "yyyy-MM-dd_HH-mm-ss") + ".html";
         File target = new File(filePath);
         if (!folder.exists()) {
             folder.mkdirs();
         }
-        FileOperation.writeBytesToFile(pageSource.getBytes(), target);
+        FileOperation.writeStringToFile(pageSource, target);
         return target;
     }
-
-    /**
-     * convert buffered image to bytes
-     *
-     * @param imageData buffered image
-     * @return bytes
-     */
-    private byte[] convertToBytes(BufferedImage imageData) throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ImageIO.write(image, format.value(), out);
-        return out.toByteArray();
-    }
-
 
     /**
      * write image file to local
      *
      * @return image file
      */
-    private File writeImageToLocalFile(String folderPath) throws IOException {
-        String location = folderPath + TimeUtils.getFormattedDate(today, "yyyy-MM-dd") + "/" + testCaseName + "/";
+    private File writeImageToLocalFile(BufferedImage image, String folderPath) {
+        String location = folderPath + DateTimeUtils.getFormattedDate(today, "yyyy-MM-dd") + "/" + testCaseName + "/";
         File folder = new File(location);
-        String filePath = location + stepName + "_" + TimeUtils.formatLocalDateTime(timeStamp, "yyyy-MM-dd_HH-mm-ss") + "." + format.value();
+        String filePath = location + stepName + "_" + DateTimeUtils.formatLocalDateTime(timeStamp, "yyyy-MM-dd_HH-mm-ss") + "." + format.value();
         File target = new File(filePath);
         if (!folder.exists()) {
             folder.mkdirs();
         }
-        ImageIO.write(image, format.value(), target);
+        try {
+            ImageIO.write(image, format.value(), target);
+        } catch (IOException ex) {
+            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, ex, "Exception while taking screenshot with driver!");
+        }
         return target;
     }
 }

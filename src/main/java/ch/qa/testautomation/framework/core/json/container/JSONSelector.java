@@ -2,7 +2,7 @@ package ch.qa.testautomation.framework.core.json.container;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class JSONSelector {
+public class JSONSelector extends JSONContainer {
 
     private String how;
 

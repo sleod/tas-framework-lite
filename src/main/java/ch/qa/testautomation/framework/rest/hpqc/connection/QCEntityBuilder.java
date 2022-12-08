@@ -1,8 +1,9 @@
 package ch.qa.testautomation.framework.rest.hpqc.connection;
 
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
-import ch.qa.testautomation.framework.common.utils.TimeUtils;
+import ch.qa.testautomation.framework.common.utils.DateTimeUtils;
 import ch.qa.testautomation.framework.common.utils.XMLUtils;
+import ch.qa.testautomation.framework.exception.ApollonBaseException;
+import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -21,11 +22,10 @@ public class QCEntityBuilder {
     public static String buildEntityXMLContent(QCEntity qce) {
         String template = QCConstants.ENTITY_TEMPLATE;
         try {
-            template = buildContext(XMLUtils.getDocumentFromXML(template), qce);
+            return buildContext(XMLUtils.getDocumentFromXML(template), qce);
         } catch (IOException | JDOMException ex) {
-            SystemLogger.error(ex);
+            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Exception while build QC Entity!", ex);
         }
-        return template;
     }
 
     /**
@@ -65,8 +65,8 @@ public class QCEntityBuilder {
         String testId = qcInsEntity.getFieldValue("test-id");
         String instanceId = qcInsEntity.getFieldValue("id");
         LinkedHashMap<String, String> runAttris = new LinkedHashMap<>();
-        String dateTime = TimeUtils.getFormattedDateTimeNow("MM-dd_HH-mm");
-        String dateNow = TimeUtils.getFormattedDateNow("yyyy-MM-dd");
+        String dateTime = DateTimeUtils.getFormattedDateTimeNow("MM-dd_HH-mm");
+        String dateNow = DateTimeUtils.getFormattedDateNow("yyyy-MM-dd");
         runAttris.put("name", "Run_" + dateTime);
         runAttris.put("test-id", testId);
         runAttris.put("testcycl-id", instanceId);
@@ -74,8 +74,7 @@ public class QCEntityBuilder {
         runAttris.put("owner", owner);
         runAttris.put("execution-date", dateNow);
         runAttris.put("subtype-id", "hp.qc.run.MANUAL");
-        QCEntity qce = new QCEntity(runAttris, requiredFields, entityType);
-        return qce;
+        return new QCEntity(runAttris, requiredFields, entityType);
     }
 
     /**
@@ -92,8 +91,7 @@ public class QCEntityBuilder {
         LinkedHashMap<String, String> attributes = new LinkedHashMap<>();
         attributes.put("parent-id", parentId);
         attributes.put("name", dirName);
-        QCEntity qce = new QCEntity(attributes, requiredFields, entityType);
-        return qce;
+        return new QCEntity(attributes, requiredFields, entityType);
     }
 
     /**
@@ -105,8 +103,7 @@ public class QCEntityBuilder {
     public static QCEntity buildEntityWithEntityDocElement(Element element) {
         String eType = element.getAttributeValue("Type");
         int entityType = QCConstants.getEntityType(eType);
-        QCEntity qce = new QCEntity(fetchEntityFieldsOfEntityDocElement(element), entityType);
-        return qce;
+        return new QCEntity(fetchEntityFieldsOfEntityDocElement(element), entityType);
     }
 
     /**
@@ -240,7 +237,7 @@ public class QCEntityBuilder {
         stepAttris.put("desstep-id", designStepId);
         stepAttris.put("test-id", testId);
         stepAttris.put("parent-id", runId);
-        stepAttris.put("execution-date", TimeUtils.getFormattedDateNow("yyyy-MM-dd"));
+        stepAttris.put("execution-date", DateTimeUtils.getFormattedDateNow("yyyy-MM-dd"));
         stepAttris.put("status", status);
         return buildEntityWithAttributes(stepAttris, entityType, required);
     }

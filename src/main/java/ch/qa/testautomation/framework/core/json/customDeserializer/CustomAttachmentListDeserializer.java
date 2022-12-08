@@ -21,8 +21,6 @@ public class CustomAttachmentListDeserializer extends StdDeserializer<List<JSONA
 
     @Override
     public List<JSONAttachment> deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
-        List<JSONAttachment> attachments = new ObjectMapper().readValue(jsonParser, new TypeReference<List<JSONAttachment>>() {
-        });
-        return attachments;
+        return new ObjectMapper().readValue(jsonParser, new TypeReference<>() {});
     }
 }

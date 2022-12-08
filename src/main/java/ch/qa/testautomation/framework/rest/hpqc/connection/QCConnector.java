@@ -1,21 +1,22 @@
 package ch.qa.testautomation.framework.rest.hpqc.connection;
 
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
-import ch.qa.testautomation.framework.intefaces.RestDriver;
 import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
-import net.sf.json.JSONObject;
-
+import ch.qa.testautomation.framework.intefaces.RestDriver;
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.io.UnsupportedEncodingException;
+
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.*;
 
 
 public class QCConnector implements RestDriver {
@@ -51,10 +52,10 @@ public class QCConnector implements RestDriver {
      * @param configFilePath config file path
      */
     public QCConnector(String configFilePath) {
-        JSONObject config = JSONContainerFactory.getConfig(configFilePath);
-        this.host = config.getString("host");
-        this.user = config.getString("user");
-        this.password = config.getString("password");
+        JsonNode config = JSONContainerFactory.getConfig(configFilePath);
+        this.host = config.get("host").asText();
+        this.user = config.get("user").asText();
+        this.password = config.get("password").asText();
         initialize();
     }
 
@@ -155,19 +156,19 @@ public class QCConnector implements RestDriver {
     public Response updateQCEntityWithVersion(String domain, String project, int entityType, String entityId, String upToDate) {
         //lock entity
         response = lockAndUnlockQCEntity(domain, project, entityType, entityId, "lock");
-        SystemLogger.log("INFO", "Locked: " + entityType + " with id: " + entityId);
+        log("INFO", "Locked: " + entityType + " with id: " + entityId);
         //Check out
         response = checkOutQCEntity(domain, project, entityType, entityId);
-        SystemLogger.log("INFO", "Checked out: " + entityType + " with id: " + entityId);
+        log("INFO", "Checked out: " + entityType + " with id: " + entityId);
         //update entity
         response = updateQCEntity(domain, project, entityType, entityId, upToDate);
-        SystemLogger.log("INFO", "updated: " + entityType + " with id: " + entityId);
+        log("INFO", "updated: " + entityType + " with id: " + entityId);
         //check in
         response = checkInQCEntity(domain, project, entityType, entityId, response.readEntity(String.class));
-        SystemLogger.log("INFO", "Checked in: " + +entityType + " with id: " + entityId);
+        log("INFO", "Checked in: " + entityType + " with id: " + entityId);
         //unlock
         response = lockAndUnlockQCEntity(domain, project, entityType, entityId, "unlock");
-        SystemLogger.log("INFO", "unlocked: " + +entityType + " with id: " + entityId);
+        log("INFO", "unlocked: " + entityType + " with id: " + entityId);
 
         return response;
     }
@@ -245,7 +246,7 @@ public class QCConnector implements RestDriver {
 
     @Override
     public Response delete(String path) {
-        SystemLogger.log("INFO", "DELETE: path-> " + path);
+        log("INFO", "DELETE: path-> " + path);
         response = webTarget.path(path)
                 .request(mediaType)
                 .header("Cookie", cookies)
@@ -255,7 +256,7 @@ public class QCConnector implements RestDriver {
 
     @Override
     public Response put(String path, String xml) {
-        SystemLogger.log("INFO", "PUT: path-> " + path + "\nXML-> " + xml);
+        log("INFO", "PUT: path-> " + path + "\nXML-> " + xml);
         response = webTarget.path(path)
                 .request(mediaType)
                 .header("Cookie", cookies)
@@ -294,7 +295,7 @@ public class QCConnector implements RestDriver {
 
     @Override
     public Response get(String path) {
-        SystemLogger.log("INFO", "GET: path-> " + path);
+        log("INFO", "GET: path-> " + path);
         response = webTarget.path(path)
                 .request(mediaType)
                 .header("Cookie", cookies)
@@ -304,18 +305,13 @@ public class QCConnector implements RestDriver {
 
     @Override
     public Response get(String path, String query) {
-        try {
-            SystemLogger.log("INFO", "Get: path-> " + path + "\nQuery-> " + query);
-            response = webTarget.path(path)
-                    .queryParam("query", URLEncoder.encode(query, "UTF-8"))
-                    .request(mediaType)
-                    .header("Cookie", cookies)
-                    .get();
+        log("INFO", "Get: path-> " + path + "\nQuery-> " + query);
+        response = webTarget.path(path)
+                .queryParam("query", URLEncoder.encode(query, StandardCharsets.UTF_8))
+                .request(mediaType)
+                .header("Cookie", cookies)
+                .get();
 
-        } catch (UnsupportedEncodingException ex) {
-            close();
-            SystemLogger.error(ex);
-        }
         return response;
     }
 
@@ -329,7 +325,7 @@ public class QCConnector implements RestDriver {
      */
     @Override
     public Response get(String path, String key, String value) {
-        SystemLogger.log("TRACE", "Request Get: " + path + "\nWith Query: " + key + "=" + value);
+        log("TRACE", "Request Get: " + path + "\nWith Query: " + key + "=" + value);
         response = webTarget.path(path)
                 .queryParam(key, value)
                 .request(mediaType)
@@ -341,17 +337,17 @@ public class QCConnector implements RestDriver {
 
     @Override
     public Response get(String path, Map<String, String> params) {
-        SystemLogger.trace("Request Get: " + path);
+        trace("Request Get: " + path);
         for (Map.Entry<String, String> entry : params.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
             webTarget = webTarget.queryParam(key, value);
-            SystemLogger.trace("Query: " + key + "=" + value);
+            trace("Query: " + key + "=" + value);
         }
         response = webTarget.path(path).request(mediaType)
                 .header("Cookie", cookies)
                 .get();
-        connect();
+        connect();//reset to host
         return response;
     }
 
@@ -362,7 +358,7 @@ public class QCConnector implements RestDriver {
 
     @Override
     public Response post(String path, String xml) {
-        SystemLogger.log("INFO", "POST: path-> " + path + "\nXML-> " + xml);
+        log("INFO", "POST: path-> " + path + "\nXML-> " + xml);
         response = webTarget.path(path)
                 .request(mediaType)
                 .header("Cookie", cookies)
@@ -374,7 +370,7 @@ public class QCConnector implements RestDriver {
      * basic authentication
      *
      * @param path     "api/authentication/sign-in"
-     * @param username user name
+     * @param username username
      * @param passw    password
      * @return response of query
      */
@@ -389,12 +385,12 @@ public class QCConnector implements RestDriver {
      * @param all if print all
      */
     public String printResponse(boolean all) {
-        SystemLogger.log("INFO", "\n============getResponse============");
-        SystemLogger.log("INFO", String.valueOf(response.getStatus()));
+        log("INFO", "\n============getResponse============");
+        log("INFO", String.valueOf(response.getStatus()));
         String entry = "";
         if (all) {
             entry = response.readEntity(String.class);
-            SystemLogger.log("INFO", entry);
+            log("INFO", entry);
         }
         return entry;
     }
@@ -425,16 +421,16 @@ public class QCConnector implements RestDriver {
     }
 
     private Response signIn(String path, String encoded) {
-        SystemLogger.trace("Sign-in: " + path);
+        trace("Sign-in: " + path);
         return webTarget.path(path).request().header("Authorization ", "Basic " + encoded).post(null);
     }
 
     private void printCookies() {
-        response.getCookies().forEach((key, value) -> SystemLogger.trace("Cookie: " + key + "->" + value));
+        response.getCookies().forEach((key, value) -> trace("Cookie: " + key + "->" + value));
     }
 
     private Response signOut(String path, String encoded) {
-        SystemLogger.info("Sign-out: " + path);
+        info("Sign-out: " + path);
         return webTarget.path(path).request().header("Authorization ", "Basic " + encoded).get();
     }
 

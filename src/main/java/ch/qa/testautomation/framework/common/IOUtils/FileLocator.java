@@ -1,7 +1,8 @@
 package ch.qa.testautomation.framework.common.IOUtils;
 
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
-import jakarta.validation.constraints.NotNull;
+import ch.qa.testautomation.framework.exception.ApollonBaseException;
+import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -13,7 +14,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.warn;
+import static java.lang.Integer.MAX_VALUE;
 
 public class FileLocator {
 
@@ -44,11 +50,14 @@ public class FileLocator {
      * @param sDir    start dir
      * @param maxDeep max deep
      * @return list of paths
-     * @throws IOException io exception
      */
-    public static List<Path> listRegularFilesRecursive(String sDir, int maxDeep) throws IOException {
-        List<Path> paths = new LinkedList<>();
-        Files.find(Paths.get(sDir), maxDeep, (p, bfa) -> bfa.isRegularFile()).forEach(paths::add);
+    public static List<Path> listRegularFilesRecursive(String sDir, int maxDeep) {
+        List<Path> paths;
+        try {
+            paths = Files.find(Paths.get(sDir), maxDeep, (p, bfa) -> bfa.isRegularFile()).collect(Collectors.toList());
+        } catch (IOException ex) {
+            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_READING, ex, sDir);
+        }
         return paths;
     }
 
@@ -61,14 +70,15 @@ public class FileLocator {
      * @return list of paths
      */
     public static List<Path> listRegularFilesRecursiveMatchedToName(String sDir, int maxDeep, String name) {
-        List<Path> paths = new LinkedList<>();
+        List<Path> paths;
         try {
-            Files.find(Paths.get(sDir), maxDeep, (p, bfa) -> bfa.isRegularFile() && p.getFileName().toString().matches(".*" + name + ".*")).forEach(paths::add);
-        } catch (IOException e) {
-            throw new RuntimeException("Error by list files with name <" + name + "> in folder " + sDir + " --> " + e.getMessage());
+            paths = Files.find(Paths.get(sDir), maxDeep, (p, bfa) -> bfa.isRegularFile() && p.getFileName().toString().matches(".*" + name + ".*"))
+                    .collect(Collectors.toList());
+        } catch (IOException ex) {
+            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_READING, ex, sDir + "/" + name);
         }
         if (paths.isEmpty()) {
-            SystemLogger.warn("File <" + name + "> was not found in folder " + sDir);
+            trace("File with name '" + name + "' was not found in folder " + sDir);
         }
         return paths;
     }
@@ -77,19 +87,19 @@ public class FileLocator {
      * find all regular file paths within dir with max deep
      * (p, bfa) -> bfa.isRegularFile()&& p.getFileName().toString().matches(".*\\.jpg")
      *
-     * @param startDir start dir
-     * @param maxDeep  max deep
+     * @param sDir    start dir
+     * @param maxDeep max deep
      * @return list of paths
      */
-    public static Path findExactFile(String startDir, int maxDeep, String name) {
+    public static Path findExactFile(String sDir, int maxDeep, String name) {
         Optional<Path> paths;
         try {
-            paths = Files.find(Paths.get(startDir), maxDeep, (p, bfa) -> bfa.isRegularFile() && p.getFileName().toString().matches(name)).findFirst();
-        } catch (IOException e) {
-            throw new RuntimeException("Error by search exact file with name <" + name + "> in folder " + startDir + " --> " + e.getMessage());
+            paths = Files.find(Paths.get(sDir), maxDeep, (p, bfa) -> bfa.isRegularFile() && p.getFileName().toString().matches(name)).findFirst();
+        } catch (IOException ex) {
+            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_READING, ex, sDir + "/" + name);
         }
-        if (!paths.isPresent()) {
-            throw new RuntimeException("File <" + name + "> was not found in folder " + startDir);
+        if (paths.isEmpty()) {
+            throw new ApollonBaseException(ApollonErrorKeys.OBJECT_NOT_FOUND, sDir + "/" + name);
         }
         return paths.get();
     }
@@ -103,14 +113,24 @@ public class FileLocator {
      * @throws IOException ex
      */
     public static List<Path> walkThrough(Path path) throws IOException {
+        return walkThrough(path, MAX_VALUE);
+    }
+
+    /**
+     * walk through folder and get files only
+     *
+     * @param path folder path
+     * @return list of path of files only
+     * @throws IOException ex
+     */
+    public static List<Path> walkThrough(Path path, int maxDepth) throws IOException {
         List<Path> paths = new LinkedList<>();
-        Stream<Path> walk = Files.walk(path);
+        Stream<Path> walk = Files.walk(path, maxDepth);
         for (Iterator<Path> it = walk.iterator(); it.hasNext(); ) {
             Path filePath = it.next();
-//            SystemLogger.trace("Found Path: " + filePath.toString());
             if (!Files.isDirectory(filePath)) {
                 paths.add(filePath);
-//              SystemLogger.trace("Found File: " + filePath.toString());
+                SystemLogger.trace("Found File: " + filePath);
             }
         }
         return paths;
@@ -122,24 +142,27 @@ public class FileLocator {
      * @param relativePath path of file don't need "/" at beginning
      * @return path of target
      */
-    @NotNull
     public static Path findResource(String relativePath) {
-        String location;
-        //clean up first '/'
+        if (!isResourceFileExists(relativePath)) {
+            throw new ApollonBaseException(ApollonErrorKeys.OBJECT_NOT_FOUND, relativePath);
+        } else {
+            String location = Objects.requireNonNull(FileLocator.class.getClassLoader().getResource(relativePath)).getPath();
+            return new File(location).toPath();
+        }
+    }
+
+    /**
+     * verify if resource file with relative path exists
+     *
+     * @param relativePath relative file path
+     * @return true be found
+     */
+    public static boolean isResourceFileExists(String relativePath) {
         if (relativePath.startsWith("/")) {
             relativePath = relativePath.substring(1);
         }
-        //in normal case search local resource in resources folder
         URL url = FileLocator.class.getClassLoader().getResource(relativePath);
-        if (url == null) {
-            throw new RuntimeException("Path: " + relativePath + " can not be found!");
-        } else {
-            location = url.getPath();
-            if (location.contains("jar!")) {
-                throw new RuntimeException("Path: " + relativePath + " can not be found! Instead: " + location);
-            }
-        }
-        return new File(location).toPath();
+        return Objects.nonNull(url) && !url.toString().contains("jar!");
     }
 
 
@@ -152,10 +175,10 @@ public class FileLocator {
     public static Path findLocalResource(String relativePath) {
         Path path = findResource(relativePath);
         if (!path.toString().contains("jar!")) {
-            SystemLogger.trace("Found Local Path: " + relativePath);
+            trace("Found Local Path: " + relativePath);
             return path;
         } else {
-            SystemLogger.warn("Local Path: " + relativePath + " can not be found!");
+            warn("Local Path: " + relativePath + " can not be found!");
             return null;
         }
     }

@@ -5,16 +5,22 @@ import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.json.container.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import net.sf.json.JSONObject;
+import ch.qa.testautomation.framework.exception.ApollonBaseException;
+import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.warn;
+import static ch.qa.testautomation.framework.core.json.ObjectMapperSingleton.getObjectMapper;
 import static java.util.Arrays.asList;
 
 public class JSONContainerFactory {
@@ -27,29 +33,45 @@ public class JSONContainerFactory {
     public static final String REPORT_NAME = "reportName";
     private static int currentOrder;
 
-
     /**
      * checkFields the test case object via test case file
      *
      * @param jsonFilePath file path
      * @return JSONTestCase
-     * @throws IOException io exception
      */
-    public static JSONTestCase buildJSONTestCaseObject(String jsonFilePath) throws IOException {
+    public static JSONTestCase buildJSONTestCaseObject(String jsonFilePath) {
         String path = FileLocator.findResource(jsonFilePath).toString();
         String jsonString = FileOperation.readFileToLinedString(path);
-        JSONObject jsonObject = JSONObject.fromObject(jsonString);
-        JSONTestCase jsonTestCase = new ObjectMapper().readValue(jsonObject.toString(), JSONTestCase.class);
-        File testCaseFile = new File(path);
-        String packageName = "Default";
-        String[] token = testCaseFile.getParentFile().getAbsolutePath().replace("\\", "/")
-                .split(PropertyResolver.getDefaultTestCaseLocation());
-        if (token.length == 2) {
-            packageName = token[1].replace("/", ".");
+        return buildJSONObject(jsonString, JSONTestCase.class);
+    }
+
+    /**
+     * Basic Method to traverse JsonNode
+     *
+     * @param root root node
+     */
+    public static void traverse(JsonNode root) {
+
+        if (root.isObject()) {
+            Iterator<String> fieldNames = root.fieldNames();
+
+            while (fieldNames.hasNext()) {
+
+                String fieldName = fieldNames.next();
+                JsonNode fieldValue = root.get(fieldName);
+                traverse(fieldValue);
+            }
+        } else if (root.isArray()) {
+
+            var arrayNode = (ArrayNode) root;
+            for (var i = 0; i < arrayNode.size(); i++) {
+                JsonNode arrayElement = arrayNode.get(i);
+                traverse(arrayElement);
+            }
+        } else {
+            // JsonNode root represents a single value field - do something with it.
+            SystemLogger.trace(root.toString());
         }
-        jsonTestCase.setPackage(packageName);
-        jsonTestCase.setFileName(testCaseFile.getName());
-        return jsonTestCase;
     }
 
     /**
@@ -57,12 +79,10 @@ public class JSONContainerFactory {
      *
      * @param jsonFilePath file path
      * @return JSONPageConfig
-     * @throws IOException io exception
      */
-    public static JSONPageConfig buildTestObjectConfig(String jsonFilePath) throws IOException {
+    public static JSONPageConfig readTestObjectConfig(String jsonFilePath) {
         String jsonString = FileOperation.readFileToLinedString(FileLocator.findResource(jsonFilePath).toString());
-        JSONObject jsonObject = JSONObject.fromObject(jsonString);
-        return new ObjectMapper().readValue(jsonObject.toString(), JSONPageConfig.class);
+        return buildJSONObject(jsonString, JSONPageConfig.class);
     }
 
     /**
@@ -70,47 +90,32 @@ public class JSONContainerFactory {
      *
      * @param jsonFilePath file path
      * @return JSONTestResult
-     * @throws IOException io exception
      */
-    public static JSONTestResult buildJSONTestResult(String jsonFilePath) throws IOException {
+    public static JSONTestResult readJSONTestResult(String jsonFilePath) {
         String jsonString = FileOperation.readFileToLinedString(jsonFilePath);
-        JSONObject jsonObject = JSONObject.fromObject(jsonString);
-        return new ObjectMapper().readValue(jsonObject.toString(), JSONTestResult.class);
-    }
-
-    /**
-     * fetch driver configuration in json file
-     *
-     * @param jsonFileName json file path
-     * @return JSONDriverConfig
-     * @throws IOException io exception
-     */
-    public static JSONDriverConfig getDriverConfig(String jsonFileName) throws IOException {
-        String jsonString = FileOperation.readFileToLinedString(FileLocator.findResource(jsonFileName).toString());
-        JSONObject jsonObject = JSONObject.fromObject(jsonString);
-        return new ObjectMapper().readValue(jsonObject.toString(), JSONDriverConfig.class);
+        return buildJSONObject(jsonString, JSONTestResult.class);
     }
 
     /**
      * fetch driver configuration in json file
      *
      * @param folderPath json config file folder path
-     * @return list of driver config
-     * @throws IOException io exception
+     * @return list of driver configs or preset driver config single
      */
-    public static List<JSONDriverConfig> getDriverConfigs(String folderPath, String defaultConfigFileName) throws IOException {
+    public static Map<String, JSONDriverConfig> getDriverConfigs(String folderPath, String configFileName) {
+        trace("Try to find driver config in: " + folderPath);
         File[] files = FileOperation.getResourceFolderFiles(folderPath);
-        LinkedList<JSONDriverConfig> configs = new LinkedList<>();
+        Map<String, JSONDriverConfig> configs = new LinkedHashMap<>();
         for (File file : files) {
             if (file.getName().endsWith(".json")) {
                 String jsonString = FileOperation.readFileToLinedString(file.getPath());
-                JSONObject jsonObject = JSONObject.fromObject(jsonString);
-                if (jsonObject.containsKey(HUB_URL_KEY)) {
-                    JSONDriverConfig driverConfig = new ObjectMapper().readValue(jsonObject.toString(), JSONDriverConfig.class);
-                    if (file.getName().equalsIgnoreCase(defaultConfigFileName)) {
-                        configs.addFirst(driverConfig);
+                if (jsonString.contains(HUB_URL_KEY)) {
+                    JSONDriverConfig driverConfig = buildJSONObject(jsonString, JSONDriverConfig.class);
+                    if (file.getName().equalsIgnoreCase(configFileName)) {
+                        trace("Load given Driver Config: " + configFileName);
+                        return Collections.singletonMap(configFileName, driverConfig);
                     } else {
-                        configs.addLast(driverConfig);
+                        configs.put(file.getName(), driverConfig);
                     }
                 }
             }
@@ -123,35 +128,18 @@ public class JSONContainerFactory {
      *
      * @param jsonFileName json file path
      * @return JSONDriverConfig
-     * @throws IOException io exception
      */
-    public static JSONRunnerConfig getRunnerConfig(String jsonFileName) throws IOException {
+    public static JSONRunnerConfig getRunnerConfig(String jsonFileName) {
         String jsonString = FileOperation.readFileToLinedString(FileLocator.findResource(jsonFileName).toString());
-        JSONObject jsonObject = JSONObject.fromObject(jsonString);
-        return new ObjectMapper().readValue(jsonObject.toString(), JSONRunnerConfig.class);
-    }
-
-
-    /**
-     * fetch runner configuration in json file
-     *
-     * @param jsonFileName json file path
-     * @return JSONDriverConfig
-     * @throws IOException io exception
-     */
-    public static JSONRunnerConfig loadRunnerConfig(String jsonFileName) throws IOException {
-        String jsonString = FileOperation.readFileToLinedString(FileLocator.loadResource(jsonFileName));
-        JSONObject jsonObject = JSONObject.fromObject(jsonString);
-        return new ObjectMapper().readValue(jsonObject.toString(), JSONRunnerConfig.class);
+        return buildJSONObject(jsonString, JSONRunnerConfig.class);
     }
 
     /**
      * load existing allure-results order by startNow time
      *
      * @return list of json test result objects
-     * @throws IOException io exception
      */
-    public static List<JSONTestResult> loadJSONAllureTestResults() throws IOException {
+    public static List<JSONTestResult> loadJSONAllureTestResults() {
         return sortListWithStartTime((LinkedList<JSONTestResult>) getExistingAllureTestResults());
     }
 
@@ -159,13 +147,12 @@ public class JSONContainerFactory {
      * load existing allure-results order by startNow time
      *
      * @return list of json test result objects
-     * @throws IOException io exception
      */
-    public static List<JSONTestResult> getExistingAllureTestResults() throws IOException {
+    public static List<JSONTestResult> getExistingAllureTestResults() {
         List<String> resultFiles = getAllureResults();
         LinkedList<JSONTestResult> results = new LinkedList<>();
         for (String fpath : resultFiles) {
-            results.add(buildJSONTestResult(fpath));
+            results.add(readJSONTestResult(fpath));
         }
         return results;
     }
@@ -180,7 +167,7 @@ public class JSONContainerFactory {
         if (new File(dirPath).exists()) {
             return FileLocator.findPaths(new File(dirPath).toPath(), Collections.singletonList("*.json"), Collections.singletonList(""), dirPath);
         } else {
-            SystemLogger.warn("No History File of Allure Report found!");
+            warn("No History File of Allure Report found!");
             return Collections.emptyList();
         }
     }
@@ -197,11 +184,12 @@ public class JSONContainerFactory {
             dir.mkdirs();
         }
         results.forEach(result -> {
+            String path = resultsDir + result.getUuid() + "-result.json";
             try {
-                String serialized = new ObjectMapper().writeValueAsString(result);
-                FileOperation.writeBytesToFile(serialized.getBytes(), new File(resultsDir + result.getUuid() + "-result.json"));
+                String serialized = getObjectMapper().writeValueAsString(result);
+                FileOperation.writeStringToFile(serialized, path);
             } catch (IOException ex) {
-                SystemLogger.error(ex);
+                throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_WRITING, ex, path);
             }
         });
     }
@@ -210,31 +198,30 @@ public class JSONContainerFactory {
      * Generate executor json and set current order of run
      */
     public static void generateExecutorJSON() {
-        JSONObject executor = new JSONObject();
+        ObjectNode executor = getObjectMapper().createObjectNode();
         String url = System.getProperty(MAIN_BUILD_URL_KEY, "http://localhost:63342/framework/target/allure-report/");
         int buildOrder = 1;
         String content = getExecutorContent();
-        JSONObject existingExecutor = null;
+        JsonNode existingExecutor = null;
         if (!content.isEmpty()) {
-            existingExecutor = JSONObject.fromObject(content);
+            try {
+                existingExecutor = getObjectMapper().readTree(content);
+            } catch (JsonProcessingException ex) {
+                throw new ApollonBaseException(ApollonErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, content);
+            }
         }
         if (existingExecutor != null) {
-            buildOrder = existingExecutor.getInt(BUILD_ORDER_KEY) + 1;
+            buildOrder = existingExecutor.get(BUILD_ORDER_KEY).asInt() + 1;
         }
         String buildName = System.getProperty(BUILD_NAME_KEY, "Automated_Test_Run") + "/#" + buildOrder;
-        executor.element("name", PropertyResolver.getSystemUser())
-                .element("type", "junit")
-                .element("url", url)
-                .element(BUILD_ORDER_KEY, buildOrder)
-                .element(BUILD_NAME_KEY, buildName)
-                .element(REPORT_URL, url + "run" + buildOrder)
-                .element(REPORT_NAME, "Allure Report of Test Run" + buildOrder);
-        try {
-            FileOperation.writeBytesToFile(executor.toString().getBytes(),
-                    new File(PropertyResolver.getAllureResultsDir() + "executor.json"));
-        } catch (IOException ex) {
-            SystemLogger.error(ex);
-        }
+        executor.put("name", PropertyResolver.getSystemUser())
+                .put("type", "junit")
+                .put("url", url)
+                .put(BUILD_ORDER_KEY, buildOrder)
+                .put(BUILD_NAME_KEY, buildName)
+                .put(REPORT_URL, url + "run" + buildOrder)
+                .put(REPORT_NAME, "Allure Report of Test Run" + buildOrder);
+        FileOperation.writeStringToFile(executor.toString(), PropertyResolver.getAllureResultsDir() + "executor.json");
         currentOrder = buildOrder;
     }
 
@@ -242,10 +229,15 @@ public class JSONContainerFactory {
         return currentOrder;
     }
 
-
-    public static JSONObject getAllureResultObject(Path path) {
+    public static JsonNode getAllureResultObject(Path path) {
         String content = FileOperation.readFileToLinedString(path.toString());
-        return JSONObject.fromObject(content);
+        JsonNode node;
+        try {
+            node = getObjectMapper().readTree(content);
+        } catch (JsonProcessingException ex) {
+            throw new ApollonBaseException(ApollonErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, path);
+        }
+        return node;
     }
 
     /**
@@ -304,9 +296,7 @@ public class JSONContainerFactory {
         String resultsDir = PropertyResolver.getAllureResultsDir();
         File targetDir = new File(resultsDir + "run" + order);
         targetDir.mkdir();
-        listCurrentAllureResults().forEach(filePath -> {
-            FileOperation.moveFileTo(filePath, Paths.get(targetDir.getAbsolutePath() + "/" + filePath.getFileName()));
-        });
+        listCurrentAllureResults().forEach(filePath -> FileOperation.moveFileTo(filePath, Paths.get(targetDir.getAbsolutePath() + "/" + filePath.getFileName())));
     }
 
     /**
@@ -333,10 +323,16 @@ public class JSONContainerFactory {
      * @param filePath file path of config file
      * @return json object of config file
      */
-    public static JSONObject getConfig(String filePath) {
+    public static JsonNode getConfig(String filePath) {
         String path = FileLocator.findResource(filePath).toString();
         String content = FileOperation.readFileToLinedString(path);
-        return JSONObject.fromObject(content);
+        JsonNode fileData;
+        try {
+            fileData = getObjectMapper().readTree(content);
+        } catch (JsonProcessingException ex) {
+            throw new ApollonBaseException(ApollonErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, filePath);
+        }
+        return fileData;
     }
 
     /**
@@ -346,10 +342,18 @@ public class JSONContainerFactory {
      * @return json object of file
      */
     public static String getJSONFileContent(String filePath) {
-        if (Files.exists(new File(filePath).toPath())) {
+        if (FileOperation.isFileExists(filePath)) {
             return FileOperation.readFileToLinedString(filePath);
         } else {
             return "";
+        }
+    }
+
+    public static <T> T buildJSONObject(String jsonString, Class<T> myClass) {
+        try {
+            return getObjectMapper().readValue(jsonString, myClass);
+        } catch (JsonProcessingException ex) {
+            throw new ApollonBaseException(ApollonErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, myClass.getSimpleName());
         }
     }
 

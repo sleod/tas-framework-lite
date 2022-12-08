@@ -2,27 +2,28 @@ package ch.qa.testautomation.framework.core.component;
 
 import ch.qa.testautomation.framework.common.enumerations.TestStatus;
 import ch.qa.testautomation.framework.common.logging.Screenshot;
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
-import junit.framework.TestResult;
 
 import java.io.File;
 import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 
-public class TestRunResult extends TestResult {
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.getSimpleCustomInfo;
+
+public class TestRunResult {
     private TestStatus status = TestStatus.NO_RUN;
-    private List<TestStepResult> stepResults = new LinkedList<>();
+    private final List<TestStepResult> stepResults = new LinkedList<>();
     private String name;
     private List<File> attachments = new LinkedList<>();
     private long startTime;
     private long stopTime;
-    private TestFailure testFailure = null;
-    private String videoFilePath = "";
-    private String logFilePath = "";
-    private String begin = "";
-    private String end = "";
-    private String description = "";
+    private TestFailure testFailure;
+    private String videoFilePath;
+    private String logFilePath;
+    private String begin;
+    private String end;
+    private String description;
+    private String threadName;
 
     public String getBegin() {
         return begin;
@@ -87,12 +88,12 @@ public class TestRunResult extends TestResult {
 
     public void startNow(String logText) {
         startTime = Instant.now().toEpochMilli();
-        begin = SystemLogger.getSimpleCustomInfo("INFO", logText);
+        begin = getSimpleCustomInfo("INFO", logText);
     }
 
     public void stopNow(String logText) {
         stopTime = Instant.now().toEpochMilli();
-        end = SystemLogger.getSimpleCustomInfo("INFO", logText);
+        end = getSimpleCustomInfo("INFO", logText);
     }
 
     public long getStart() {
@@ -129,5 +130,12 @@ public class TestRunResult extends TestResult {
 
     public String getDescription() {
         return this.description;
+    }
+
+    public String getThreadName() {
+        return threadName;
+    }
+    public void setThreadName(String threadName) {
+        this.threadName = threadName;
     }
 }

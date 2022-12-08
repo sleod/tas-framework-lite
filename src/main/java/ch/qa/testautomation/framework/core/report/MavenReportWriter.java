@@ -9,14 +9,12 @@ import org.jdom2.Element;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 public class MavenReportWriter {
 
-    public static void generateMavenTestXML(List<TestCaseObject> testCaseObjects, String absolutefilename, String backupFileName) throws IOException {
+    public static void generateMavenTestXML(List<TestCaseObject> testCaseObjects, String absolutfilename, String backupFileName) {
         LinkedHashMap<String, Integer> testCaseNames = new LinkedHashMap<>();
         Document document = XMLUtils.createNewDoc("testsuite");
         Element root = document.getRootElement();
@@ -48,8 +46,8 @@ public class MavenReportWriter {
         document.setContent(root);
         XMLOutputter outPutter = new XMLOutputter(Format.getPrettyFormat());
         String xmlString = outPutter.outputString(document);
-        FileOperation.writeBytesToFile(xmlString.getBytes(), new File(absolutefilename));
-        FileOperation.writeBytesToFile(xmlString.getBytes(), new File(backupFileName));
+        FileOperation.writeStringToFile(xmlString, absolutfilename);
+        FileOperation.writeStringToFile(xmlString, backupFileName);
     }
 
     private static void addTestStepResult(Element testcaseNode, TestCaseObject testCaseObject) {

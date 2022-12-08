@@ -1,5 +1,7 @@
 package ch.qa.testautomation.framework.common.IOUtils;
 
+import ch.qa.testautomation.framework.exception.ApollonBaseException;
+import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -7,49 +9,47 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.error;
 
 /**
- * tool class for reading excel files with .xls, .xlsx
+ * tool class for reading Excel files with .xls, .xlsx
  */
 public class ExcelFileLoader {
 
     /**
-     * load excel file with path
+     * load Excel file with path
      *
      * @param path to be read
-     * @return workbook of excel
+     * @return workbook of Excel
      */
     public static Workbook loadExcelFile(String path) {
         Workbook workbook = null;
         try {
-            FileInputStream excelFile = new FileInputStream(new File(path));
+            FileInputStream excelFile = new FileInputStream(path);
             if (path.endsWith(".xlsx")) {
                 workbook = new XSSFWorkbook(excelFile);
             } else {
                 workbook = new HSSFWorkbook(excelFile);
             }
-        } catch (IOException e) {
-            error(e);
+        } catch (IOException ex) {
+            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_GENERAL, ex, "Exception while load Excel file: " + path);
         }
         return workbook;
     }
 
     /**
      * @param workbook    excel
-     * @param sheetName   sheet name case sensitive
+     * @param sheetName   sheet name case-sensitive
      * @param startColumn startNow x vector position (default 0)
      * @param startRow    startNow y vector position (default 0)
      * @return list of rows in sheet
      */
     public static List<Map<String, Object>> readExcelTable(Workbook workbook, String sheetName, int startColumn, int startRow) {
         if (workbook == null) {
-            throw new RuntimeException("Given Excel Sheet is null!");
+            throw new ApollonBaseException(ApollonErrorKeys.NULL_EXCEPTION, "Excel Sheet");
         }
         List<Map<String, Object>> table = new LinkedList<>();
         Sheet dataTypeSheet = workbook.getSheet(sheetName);
@@ -98,15 +98,13 @@ public class ExcelFileLoader {
                     value = currentCell.getCellFormula();
                     break;
                 case BLANK:
-                    break;
                 case _NONE:
-                    break;
                 case ERROR:
                     break;
             }
             if (currentRow.getRowNum() == 0) {//first line for column name
                 if (value == null) {
-                    throw new RuntimeException("Column name should not be null!");
+                    throw new ApollonBaseException(ApollonErrorKeys.NULL_EXCEPTION, "Column Name");
                 }
                 keySet.add(String.valueOf(value));
             } else {

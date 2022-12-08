@@ -1,45 +1,60 @@
 package ch.qa.testautomation.framework.core.json.container;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
-public class JSONRunnerConfig {
-    @JsonProperty
+public class JSONRunnerConfig extends JSONContainer {
     private String runName;
-    @JsonProperty
     private String planId;
-    @JsonProperty
     private String suiteId;
-    @JsonProperty
+    private String testPlanId;
+    private String testExecutionId;
+    private String projectKey;
     private boolean fullRun;
-    @JsonProperty
     private boolean failureRetest;
-    @JsonProperty
-    private boolean feedbackAfterSingleTest;
-    @JsonProperty
     private String configurationId;
-    @JsonProperty
-    private Map<String, String> testCaseFiles = new LinkedHashMap<>();
-    @JsonProperty
+    private Map<String, String> testCaseFiles;
     private String[] selectedTestCaseIds;
-    @JsonProperty
-    private Map<String, String> tfsConfig = new LinkedHashMap<>();
+    private Map<String, String> tfsConfig;
 
-    private Map<String, String> testPlanConfig = new LinkedHashMap<>();
+    private Map<String, String> testPlanConfig;
 
-    @JsonAnySetter
+    public String getTestPlanId() {
+        return testPlanId;
+    }
+
+    public void setTestPlanId(String testPlanId) {
+        this.testPlanId = testPlanId;
+    }
+
+    public String getTestExecutionId() {
+        return Objects.isNull(testExecutionId) ? "" : testExecutionId;
+    }
+
+    public void setTestExecutionId(String testExecutionId) {
+        this.testExecutionId = testExecutionId;
+    }
+
+    public String getProjectKey() {
+        return projectKey;
+    }
+
+    public void setProjectKey(String projectKey) {
+        this.projectKey = projectKey;
+    }
+
     public void setTestCaseFiles(String key, String value) {
+        testCaseFiles = new LinkedHashMap<>();
         this.testCaseFiles.put(key, value);
     }
 
     public void setTfsConfig(String key, String value) {
+        tfsConfig = new LinkedHashMap<>();
         this.tfsConfig.put(key, value);
     }
 
@@ -79,7 +94,6 @@ public class JSONRunnerConfig {
         }
     }
 
-    @JsonAnyGetter
     public Map<String, String> getTestCaseFiles() {
         return testCaseFiles;
     }
@@ -94,10 +108,6 @@ public class JSONRunnerConfig {
 
     public Map<String, String> getTestPlanConfig() {
         return testPlanConfig;
-    }
-
-    public void setFeedbackAfterSingleTest(boolean feedbackAfterSingleTest) {
-        this.feedbackAfterSingleTest = feedbackAfterSingleTest;
     }
 
     public String getConfigurationId() {
@@ -142,13 +152,5 @@ public class JSONRunnerConfig {
 
     public Multimap<String, String> getCoverageMap() {
         return Multimaps.invertFrom(Multimaps.forMap(testCaseFiles), HashMultimap.create());
-    }
-
-    public boolean feedbackAfterSingleTest() {
-        if (System.getProperty("tfs.feedbackAfterSingleTest") == null) {
-            return feedbackAfterSingleTest;
-        } else {
-            return System.getProperty("tfs.feedbackAfterSingleTest").equalsIgnoreCase("true");
-        }
     }
 }

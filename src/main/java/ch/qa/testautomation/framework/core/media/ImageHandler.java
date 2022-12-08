@@ -1,10 +1,12 @@
 package ch.qa.testautomation.framework.core.media;
 
+import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.logging.ScreenCapture;
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
-import ch.qa.testautomation.framework.common.utils.TimeUtils;
+import ch.qa.testautomation.framework.common.utils.DateTimeUtils;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.component.TestRunResult;
+import ch.qa.testautomation.framework.exception.ApollonBaseException;
+import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
@@ -18,34 +20,22 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.UUID;
+import java.util.*;
 
 
 public class ImageHandler {
 
-    private static final LinkedHashMap<String, LinkedList<File>> imageStore = new LinkedHashMap<>();
+    private static final LinkedHashMap<String, List<File>> imageStore = new LinkedHashMap<>();
 
     /**
      * Handle image to take or not
      *
      * @param driver web driver for screen taken
      */
-    public static synchronized void handleImage(WebDriver driver) {
+    public static synchronized void saveScreenshot(WebDriver driver) {
         if (PropertyResolver.isGenerateVideoEnabled()) {
             saveImagesForVideo((TakesScreenshot) driver);
         }
-    }
-
-    /**
-     * before test case, prepare recording with test case name
-     *
-     * @param testRunResult e.g. parentFolderName.testCaseName to make unique id
-     */
-    public static synchronized void prepareVideoRecording(TestRunResult testRunResult) {
-        finishVideoRecording(testRunResult);
     }
 
     /**
@@ -67,17 +57,27 @@ public class ImageHandler {
      */
     private static synchronized void saveImagesForVideo(TakesScreenshot taker) {
         String tid = Thread.currentThread().getName();
-        imageStore.computeIfAbsent(tid, k -> new LinkedList<>());
-        String location = PropertyResolver.getDefaultTestCaseReportLocation() +
-                TimeUtils.getFormattedDate(TimeUtils.getLocalDateToday(), "yyyy-MM-dd") + "/";
+        imageStore.putIfAbsent(tid, new LinkedList<>());
+        String location = PropertyResolver.getTestCaseReportLocation() +
+                DateTimeUtils.getFormattedDate(DateTimeUtils.getLocalDateToday(), "yyyy-MM-dd") + "/";
         String filePath = location + UUID.randomUUID() + ".png";
         File imageFile = new File(filePath);
         try {
             ImageIO.write(ScreenCapture.takeScreenShot(taker), "png", imageFile);
         } catch (IOException ex) {
-            SystemLogger.warn("IO Exception while write image to file! \n" + ex.getMessage());
+            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_WRITING, ex, filePath);
         }
         imageStore.get(tid).add(imageFile);
+    }
+
+    public synchronized static void convertVideoBase64(String base64String, TestRunResult testRunResult) {
+        String filePath = PropertyResolver.getTestCaseReportLocation() +
+                DateTimeUtils.getFormattedDate(DateTimeUtils.getLocalDateToday(), "yyyy-MM-dd") + "/" + testRunResult.getName() + "/"
+                + "MobileAppTest_" + DateTimeUtils.formatLocalDateTime(DateTimeUtils.getLocalDateTimeNow(), "yyyy-MM-dd_HH-mm-ss") + "."
+                + PropertyResolver.getVideoFormat();
+        File video = new File(filePath);
+        testRunResult.setVideoFilePath(video.getAbsolutePath());
+        FileOperation.writeBytesToFile(Base64.getMimeDecoder().decode(base64String), video);
     }
 
     /**
@@ -117,19 +117,18 @@ public class ImageHandler {
      */
     private static synchronized void generateVideo(TestRunResult testRunResult) {
         String tid = Thread.currentThread().getName();
-        String filePath = PropertyResolver.getDefaultTestCaseReportLocation() +
-                TimeUtils.getFormattedDate(TimeUtils.getLocalDateToday(), "yyyy-MM-dd") + "/" + testRunResult.getName() + "/"
-                + "TestRunVideo_" + TimeUtils.formatLocalDateTime(TimeUtils.getLocalDateTimeNow(), "yyyy-MM-dd_HH-mm-ss") + "."
-                + PropertyResolver.getDefaultVideoFormat();
+        String filePath = PropertyResolver.getTestCaseReportLocation() +
+                DateTimeUtils.getFormattedDate(DateTimeUtils.getLocalDateToday(), "yyyy-MM-dd") + "/" + testRunResult.getName() + "/"
+                + "TestRunVideo_" + DateTimeUtils.formatLocalDateTime(DateTimeUtils.getLocalDateTimeNow(), "yyyy-MM-dd_HH-mm-ss") + "."
+                + PropertyResolver.getVideoFormat();
         try {
-            NPGtoMP4Converter.convertImageFiles(imageStore.get(tid), filePath, PropertyResolver.getDefaultVideoFPS());
+            NPGtoMP4Converter.convertImageFiles(imageStore.get(tid), filePath, 1);
             testRunResult.setVideoFilePath(new File(filePath).getAbsolutePath());
             for (File file : imageStore.get(tid)) {
-                file.delete();
+                assert file.delete();
             }
         } catch (IOException ex) {
-            SystemLogger.warn("Video Generation Failed!");
-            SystemLogger.error(ex);
+            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, ex, "Video Generation Failed!");
         }
         imageStore.get(tid).clear();
     }

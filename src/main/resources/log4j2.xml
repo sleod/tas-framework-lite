@@ -5,14 +5,14 @@
     </Properties>
     <Appenders>
         <RollingFile name="RollingFile" fileName="${basePath}/${date:yyyy-MM-dd}/all.trace.log" filePattern="${basePath}/$${date:yyyy-MM-dd}/all.trace-%d{yyyy-MM-dd}-%i.log" ignoreExceptions="false">
-            <PatternLayout pattern="%highlight{%d{ISO8601} [%t] %-5level: %msg%n%throwable}{FATAL=Magenta, ERROR=Bright red, WARN=Yellow, INFO=Blue, DEBUG=Cyan, TRACE=Grey}"/>
+            <PatternLayout pattern="%highlight{%d{ISO8601} [%t] %-5level: %msg%n%throwable}{FATAL=Magenta, ERROR=Bright red, WARN=Yellow, INFO=Blue, DEBUG=Cyan, TRACE=Green}"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="10MB"/>
             </Policies>
             <DefaultRolloverStrategy max="20"/>
         </RollingFile>
         <Console name="Console" target="SYSTEM_OUT" ignoreExceptions="false">
-            <PatternLayout pattern="%highlight{%d{ISO8601} [%t] %-5level: %msg%n%throwable}{FATAL=Magenta, ERROR=Bright red, WARN=Yellow, INFO=Blue, DEBUG=Cyan, TRACE=Grey}" disableAnsi="false"/>
+            <PatternLayout pattern="%highlight{%d{ISO8601} [%t] %-5level: %msg%n%throwable}{FATAL=Magenta, ERROR=Bright red, WARN=Yellow, INFO=Blue, DEBUG=Cyan, TRACE=Green}" disableAnsi="false"/>
         </Console>
     </Appenders>
 

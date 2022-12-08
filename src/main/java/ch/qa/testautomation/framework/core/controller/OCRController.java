@@ -10,7 +10,8 @@ import net.sourceforge.tess4j.Word;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 
 public class OCRController {
 
@@ -50,7 +51,7 @@ public class OCRController {
                 break;
             }
         }
-        assertNotNull("Element with Text: " + text + " was not found on Image!", boundingBox);
+        assertNotNull(boundingBox, "Element with Text: " + text + " was not found on Image!");
         return boundingBox;
     }
 

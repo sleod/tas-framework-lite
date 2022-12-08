@@ -1,55 +1,53 @@
 package ch.qa.testautomation.framework.core.component;
 
-import ch.qa.testautomation.framework.common.enumerations.TestType;
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
+import ch.qa.testautomation.framework.common.utils.OperationSystemUtils;
+import ch.qa.testautomation.framework.common.utils.WaitUtils;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.controller.ExternAppController;
-import ch.qa.testautomation.framework.common.utils.WebOperationUtils;
-import ch.qa.testautomation.framework.core.json.container.JSONDriverConfig;
 import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
+import ch.qa.testautomation.framework.exception.ApollonBaseException;
+import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
 import ch.qa.testautomation.framework.rest.RestDriverProvider;
-import ch.qa.testautomation.framework.rest.RestfulDriver;
+import ch.qa.testautomation.framework.rest.base.RestDriverBase;
 import ch.qa.testautomation.framework.web.ChromeDriverProvider;
 import ch.qa.testautomation.framework.web.EdgeDriverProvider;
-import ch.qa.testautomation.framework.web.RemoteWebDriverProvider;
 import ch.qa.testautomation.framework.web.WebDriverProvider;
-import net.sf.json.JSONObject;
+import com.codeborne.selenide.WebDriverRunner;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.List;
 
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.error;
+import static ch.qa.testautomation.framework.common.enumerations.BrowserName.CHROME;
+import static ch.qa.testautomation.framework.common.enumerations.BrowserName.EDGE;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
 import static ch.qa.testautomation.framework.common.logging.SystemLogger.warn;
-
+import static ch.qa.testautomation.framework.configuration.PropertyResolver.*;
+import static com.codeborne.selenide.Selenide.open;
 
 /**
- * Utility class to manage drivers that will be used for further testing
+ * Utility class to manage drivers that will be used for testing
  */
 public class DriverManager {
 
     private static RestDriverProvider restDriverProvider;
-    private static RemoteWebDriverProvider remoteWebDriverProvider;
     private static File driverFile;
     private static WebDriverProvider webDriverProvider;
     private static NonDriverProvider nonDriverProvider;
 
+    private static String platform = "";
+
     public static void setupWebDriver() {
-        switch (PropertyResolver.getWebDriverName()) {
-            case "safari":
-                webDriverProvider = installSafariDriver();
-                break;
-            case "firefox":
-                webDriverProvider = installFirefoxDriver();
-                break;
-            case "edge":
+        String browserName = getWebDriverName();
+        if (EDGE.getName().equals(browserName)) {
+            if (!(webDriverProvider instanceof EdgeDriverProvider))
                 webDriverProvider = installEdgeDriver();
-                break;
-            default:
+        } else if (CHROME.getName().equals(browserName)) {
+            if (!(webDriverProvider instanceof ChromeDriverProvider))
                 webDriverProvider = installChromeDriver(null);
+        } else {
+            throw new ApollonBaseException(ApollonErrorKeys.BROWSER_NOT_SUPPORTED, browserName);
         }
     }
 
@@ -65,24 +63,18 @@ public class DriverManager {
         webDriverProvider = installChromeDriver(options);
     }
 
-
+    /**
+     * setup rest driver using restConfig.json
+     */
     public static void setupRestDriver() {
-        JSONObject restConfig = JSONContainerFactory.getConfig(PropertyResolver.getRESTConfigFile());
-        restDriverProvider = new RestDriverProvider(restConfig.getString("user"), restConfig.getString("password"), restConfig.getString("host"));
-    }
-
-    public static void setupRemoteWebDriver() {
-        try {
-            List<JSONDriverConfig> configs = JSONContainerFactory.getDriverConfigs(PropertyResolver.getDefaultDriverConfigLocation(), PropertyResolver.getRemoteWebDriverConfig());
-            remoteWebDriverProvider = new RemoteWebDriverProvider(configs);
-        } catch (IOException e) {
-            error(e);
-        }
+        JsonNode restConfig = JSONContainerFactory.getConfig(getRESTConfigFile());
+        restDriverProvider = new RestDriverProvider(restConfig.get("user").asText(), restConfig.get("password").asText(), restConfig.get("host").asText());
     }
 
     public static void setupNonDriver() {
         nonDriverProvider = new NonDriverProvider();
     }
+
 
     /**
      * open page with url
@@ -93,16 +85,12 @@ public class DriverManager {
         boolean displayed = false;
         if (webDriverProvider != null) {
             WebDriver webDriver = getWebDriver();
-            webDriver.get(url);
-            displayed = WebOperationUtils.waitForPageLoad(webDriver);
-        }
-        if (remoteWebDriverProvider != null) {
-            RemoteWebDriver remoteWebDriver = getRemoteWebDriver();
-            remoteWebDriver.get(url);
-            displayed = WebOperationUtils.waitForPageLoad(remoteWebDriver);
+            WebDriverRunner.setWebDriver(webDriver);
+            open(url);
+            displayed = WaitUtils.waitForPageLoad(30).isDisplayed();
         }
         if (!displayed) {
-            throw new RuntimeException("Page is not displayed with url: " + url);
+            warn("Page with Url: " + url + " was not displayed after 30 Sec.");
         }
     }
 
@@ -110,18 +98,26 @@ public class DriverManager {
      * close driver
      */
     public static void closeDriver() {
-        SystemLogger.info("Try to close driver...");
         if (restDriverProvider != null) {
             restDriverProvider.close();
         }
         if (webDriverProvider != null) {
             webDriverProvider.close();
         }
-        if (remoteWebDriverProvider != null) {
-            remoteWebDriverProvider.close();
-        }
         if (nonDriverProvider != null) {
             nonDriverProvider.close();
+        }
+    }
+
+    /**
+     * clean up driver processes in OS
+     */
+    public static void cleanUp() {
+        if (PropertyResolver.isWindows()) {
+            trace("Clean Up Driver and browser session in Windows System!");
+            OperationSystemUtils.cleanUpWindowsDriverProcess();
+        } else {
+            OperationSystemUtils.cleanUpNonWindowsDriverProcess();
         }
     }
 
@@ -129,51 +125,60 @@ public class DriverManager {
         return webDriverProvider;
     }
 
-    public static RemoteWebDriverProvider getRemoteWebDriverProvider() {
-        return remoteWebDriverProvider;
-    }
-
     public static RestDriverProvider getRestDriverProvider() {
         return restDriverProvider;
     }
 
+    /**
+     * get initialized web driver
+     *
+     * @return web driver
+     */
     public static WebDriver getWebDriver() {
         if (webDriverProvider != null) {
             return webDriverProvider.getDriver();
         }
-        if (remoteWebDriverProvider != null) {
-            return remoteWebDriverProvider.getDriver();
-        }
-        throw new RuntimeException("Nether web driver provider nor remote web driver provider was initialized! Please check test type in test case content!");
+        throw new ApollonBaseException(ApollonErrorKeys.NO_WEB_DRIVER_INITIALIZED);
     }
 
-    public static RemoteWebDriver getRemoteWebDriver() {
-        return remoteWebDriverProvider.getDriver();
-    }
-
-    public static RestfulDriver getRestDriver() {
+    /**
+     * get initialized rest driver
+     *
+     * @return rest driver
+     */
+    public static RestDriverBase getRestDriver() {
         return restDriverProvider.getDriver();
     }
 
-    public static RestfulDriver getRestDriverwithParam(String host, String user, String password) {
+    /**
+     * get rest driver with given parameters
+     *
+     * @param host     host of rest
+     * @param user     user of rest
+     * @param password password of rest
+     * @return rest driver
+     */
+    public static RestDriverBase getRestDriverWithParam(String host, String user, String password) {
         return restDriverProvider.getDriver(host, user, password);
     }
 
-    public static RestfulDriver getRestDriverwithParam(String host, String encodedKey) {
-        return restDriverProvider.getDriver(host, encodedKey);
+    /**
+     * get rest driver with given parameters
+     *
+     * @param host               host of rest
+     * @param authorizationToken = 'Basic base64.encode(user:password)' or 'Bearer PAT'
+     * @return rest driver
+     */
+    public static RestDriverBase getRestDriverWithParam(String host, String authorizationToken) {
+        return restDriverProvider.getDriver(host, authorizationToken);
     }
 
     private static WebDriverProvider installChromeDriver(ChromeOptions options) {
-        try {
-            String path = ExternAppController.matchChromeAndDriverVersion().toString();
-            driverFile = new File(path);
-            driverFile.setExecutable(true);
-            PropertyResolver.setChromeDriverPath(driverFile.getPath());
-            PropertyResolver.setChromeDriverFileName(driverFile.getName());
-        } catch (IOException ex) {
-            warn("Install Chrome driver failed!");
-            error(ex);
-        }
+        String path = ExternAppController.prepareChromeDriver().toString();
+        driverFile = new File(path);
+        driverFile.setExecutable(true);
+        setChromeDriverPath(driverFile.getPath());
+        setChromeDriverFileName(driverFile.getName());
         if (options == null) {
             return new ChromeDriverProvider();
         } else {
@@ -182,25 +187,19 @@ public class DriverManager {
     }
 
     private static WebDriverProvider installEdgeDriver() {
-        if (PropertyResolver.isWindows()) {
-            String path = ExternAppController.findEdgeDriver().toString();
-            driverFile = new File(path);
-            driverFile.setExecutable(true);
-            PropertyResolver.setWebDriverEdgeProperty(driverFile.getPath());
-            PropertyResolver.setEdgeDriverFileName(driverFile.getName());
-        } else {
-            throw new RuntimeException("Edge Driver can not be run in non windows OS!");
-        }
+        String path = ExternAppController.prepareEdgeDriver().toString();
+        driverFile = new File(path);
+        driverFile.setExecutable(true);
+        setEdgeDriverPath(driverFile.getPath());
+        setEdgeDriverFileName(driverFile.getName());
         return new EdgeDriverProvider();
     }
 
-    private static WebDriverProvider installFirefoxDriver() {
-        //todo: firefox driver install
-        return null;
+    public static void setCurrentPlatform(String platform) {
+        DriverManager.platform = platform;
     }
 
-    private static WebDriverProvider installSafariDriver() {
-        //todo: safari driver install
-        return null;
+    public static String getCurrentPlatform() {
+        return platform;
     }
 }

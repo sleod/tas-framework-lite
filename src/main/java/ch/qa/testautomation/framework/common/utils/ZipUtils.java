@@ -1,6 +1,7 @@
 package ch.qa.testautomation.framework.common.utils;
 
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
+import ch.qa.testautomation.framework.exception.ApollonBaseException;
+import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -78,7 +79,7 @@ public class ZipUtils {
             zos.closeEntry();
             zos.close();
         } catch (IOException ex) {
-            SystemLogger.error(ex);
+            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_GENERAL, ex, "zip " + file.getName());
         }
         return zipFile;
     }
@@ -86,13 +87,13 @@ public class ZipUtils {
     /**
      * unzip file to target folder
      *
-     * @param zipFilePath path of zip file
-     * @param targetDir   new unzipped file location
+     * @param fileToUZ  path of zip file
+     * @param targetDir new unzipped file location
      */
-    private static void unzip(File zipFilePath, String targetDir) {
+    private static void unzip(File fileToUZ, String targetDir) {
         try {
             // Open the zip file
-            ZipFile zipFile = new ZipFile(zipFilePath);
+            ZipFile zipFile = new ZipFile(fileToUZ);
             Enumeration<?> enu = zipFile.entries();
             while (enu.hasMoreElements()) {
                 ZipEntry zipEntry = (ZipEntry) enu.nextElement();
@@ -125,8 +126,8 @@ public class ZipUtils {
                 fos.close();
             }
             zipFile.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ex) {
+            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_GENERAL, ex, "unzip " + fileToUZ.getName());
         }
     }
 

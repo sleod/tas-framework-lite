@@ -1,28 +1,21 @@
 package ch.qa.testautomation.framework.core.json.container;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.junit.jupiter.api.Assertions;
 
-import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.Set;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 
-public class JSONContainer {
-    public Set<String> getJsonProperties() {
-        Field[] fields = this.getClass().getDeclaredFields();
-        HashSet<String> properties = new HashSet<>(fields.length);
-        for (Field field : fields) {
-            if (field.isAnnotationPresent(JsonProperty.class)) {
-                properties.add(field.getName());
+public abstract class JSONContainer {
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        Arrays.stream(this.getClass().getDeclaredMethods()).filter(method -> method.getName().startsWith("get")).forEach(method -> {
+            try {
+                stringBuilder.append(method.getName().substring(3)).append(": ").append(method.invoke(this)).append("\n");
+            } catch (IllegalAccessException | InvocationTargetException ex) {
+                Assertions.fail("Print DTO Object failed!\n" + ex.getMessage());
             }
-        }
-        return properties;
-    }
-
-    public boolean isProperty(String name) {
-        try {
-            return this.getClass().getDeclaredField(name).isAnnotationPresent(JsonProperty.class);
-        } catch (NoSuchFieldException e) {
-            return false;
-        }
+        });
+        return stringBuilder.toString();
     }
 }

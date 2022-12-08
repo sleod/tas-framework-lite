@@ -1,10 +1,10 @@
 {
   "allureServiceConfig": {
-    "host": "https://xxxxxxx/allure/allure-docker-service",
-    "project_id": "test-automation-upload-test-1",
+    "host": "",
+    "project_id": "apollon-framework-unit-testing",
     "force_project_creation": "true",
     "execution_name": "Automated Test",
     "execution_from": "",
-    "execution_type": "bamboo"
+    "execution_type": "gitlab"
   }
 }

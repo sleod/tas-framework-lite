@@ -1,299 +1,209 @@
 package ch.qa.testautomation.framework.rest.jira.connection;
 
-
-import ch.qa.testautomation.framework.common.utils.TimeUtils;
+import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
+import ch.qa.testautomation.framework.common.utils.DateTimeUtils;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
+import ch.qa.testautomation.framework.core.component.TestRunResult;
+import ch.qa.testautomation.framework.core.json.container.JSONRunnerConfig;
 import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
-import net.rcarz.jiraclient.*;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
+import ch.qa.testautomation.framework.exception.ApollonBaseException;
+import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
+import ch.qa.testautomation.framework.rest.TFS.connection.QUERY_OPTION;
+import ch.qa.testautomation.framework.rest.base.RestClientBase;
+import ch.qa.testautomation.framework.rest.base.RestDriverBase;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.ws.rs.core.Response;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import static java.util.Arrays.asList;
-
-public class JiraRestClient {
-
-    private static final int MAX = 500;
-    private final HashMap<String, Issue> jiraIssueNameIndex = new HashMap<>(MAX);
-    private final HashMap<String, Issue> jiraIssueKeyIndex = new HashMap<>(MAX);
-    private final HashMap<String, Issue> jiraIssueOfSprint = new HashMap<>(MAX);
-    private final JiraClient jira;
-    private JSONObject jiraConfig;
+public class JIRARestClient extends RestClientBase {
+    private String user = "";
+    private static final String GENERAL_PATH = "rest/api/latest/";
+    private static final String XRAY_PATH = "rest/raven/latest/api/";
 
     /**
-     * standard construct that use the basic authentication with defined user in properties
-     */
-    public JiraRestClient() {
-        jira = new JiraClient(jiraConfig.getString("host"), buildCreds());
-        jiraConfig = JSONContainerFactory.getConfig(PropertyResolver.getJiraConfigFile());
-    }
-
-    /**
-     * build jira client with given url, user and password
+     * Constructor with basic authentication
      *
-     * @param url      jira host
-     * @param user     user name
+     * @param username username
      * @param password password
+     * @param host     jiraUrl
      */
-    public JiraRestClient(String url, String user, String password) {
-        jira = new JiraClient(url, new BasicCredentials(user, password));
-        jiraConfig = JSONContainerFactory.getConfig(PropertyResolver.getJiraConfigFile());
+    public JIRARestClient(String host, String username, String password) {
+        super(new RestDriverBase(host, username, password));
+        this.user = username;
     }
 
     /**
-     * build jira client with given host, user, pass and pre-load stories with given projects name and sprint
+     * Create Jira Rest Client with PAT Token
      *
-     * @param url      jira host
-     * @param user     user name
-     * @param pass     password
-     * @param projects project name
-     * @param sprint   sprint name
+     * @param patToken PAT Token
      */
-    public JiraRestClient(String url, String user, String pass, String projects, String sprint) throws JiraException {
-        jira = new JiraClient(url, new BasicCredentials(user, pass));
-        loadStoriesOfSprint(projects, sprint);
-        jiraConfig = JSONContainerFactory.getConfig(PropertyResolver.getJiraConfigFile());
-    }
-
-
-    public HashMap<String, List<Issue>> getClosedIssuesInSprint(String project, String sprint) throws JiraException {
-        HashMap<String, List<Issue>> result = new HashMap<>();
-        List<Issue> ce = jira.searchIssues("project=" + project + " AND type=Epic AND status=Closed AND sprint=\"" + sprint + "\"", MAX).issues;
-        result.put("closedEpics", ce);
-        List<Issue> cs = jira.searchIssues("project=" + project + " AND type=Story AND status=Closed AND sprint=\"" + sprint + "\"", MAX).issues;
-        result.put("closedStories", cs);
-        List<Issue> cb = jira.searchIssues("project=" + project + " AND type=Bug AND status=Closed AND sprint=\"" + sprint + "\"", MAX).issues;
-        result.put("closedBugs", cb);
-        return result;
+    public JIRARestClient(String host, String patToken) {
+        super(new RestDriverBase(host, patToken));
     }
 
     /**
-     * get issue from pre-loaded issues
+     * get issue with key
      *
-     * @param name name of issue
-     * @return issue
+     * @param issueKey issue key
+     * @return issue in JsonNode
      */
-    public Issue getIssueFromNameIndex(String name) {
-        return jiraIssueNameIndex.get(name);
+    public JsonNode getIssue(String issueKey) {
+        Response response = getRestDriver().get(GENERAL_PATH + "issue/" + issueKey);
+        return getResponseNode(response, "Fail on get Issue with key: " + issueKey);
     }
 
     /**
-     * get issue from pre-loaded issues
+     * search issues with JQL
      *
-     * @param key issue key
-     * @return issue
+     * @param jql jql
+     * @return search result
      */
-    public Issue getIssueFromKeyIndex(String key) {
-        return jiraIssueKeyIndex.get(key);
+    public JsonNode searchIssue(String jql) {
+        Response response = getRestDriver().get(GENERAL_PATH + "search", "jql", jql);
+        return getResponseNode(response, "Fail on search Issue with JQL!");
     }
 
     /**
-     * get issue description via issue key. In case the issue does not pre loaded,
-     * Jira client will search the issue with given key.
+     * create test execution
      *
-     * @param issueKey key of issue
-     * @return description
-     * @throws JiraException jira exception
-     */
-    public String getIssueDescription(String issueKey) throws JiraException {
-        if (issueKey != null && !issueKey.equalsIgnoreCase("null")) {
-            if (jiraIssueKeyIndex.containsKey(issueKey)) {
-                return jiraIssueKeyIndex.get(issueKey).getDescription();
-            } else {
-                return jira.getIssue(issueKey).getDescription();
-            }
-        } else {
-            throw new RuntimeException("Issue key can not be null for search!");
-        }
-    }
-
-    /**
-     * get issue Summary via issue key. In case the issue does not pre loaded,
-     * Jira client will search the issue with given key.
-     *
-     * @param issueKey key of issue
-     * @return Summary of issue
-     * @throws JiraException jira exception
-     */
-    public String getIssueSummary(String issueKey) throws JiraException {
-        if (issueKey != null && !issueKey.equalsIgnoreCase("null")) {
-            if (jiraIssueKeyIndex.containsKey(issueKey)) {
-                return jiraIssueKeyIndex.get(issueKey).getSummary();
-            } else {
-                return jira.getIssue(issueKey).getSummary();
-            }
-        } else {
-            throw new RuntimeException("Issue key can not be null for search!");
-        }
-
-    }
-
-    /**
-     * get field of given issue
-     *
-     * @param iss   issue
-     * @param fname field name
-     * @return name
-     */
-    public String getField(Issue iss, String fname) {
-        if (iss == null) {
-            return null;
-        } else {
-            return iss.getField(fname).toString();
-        }
-    }
-
-    /**
-     * find issue with key
-     *
-     * @param key issue key
-     * @return issue
-     * @throws JiraException jira exception
-     */
-    public Issue getIssue(String key) throws JiraException {
-        if (key != null && !key.equalsIgnoreCase("null")) {
-            if (jiraIssueKeyIndex.containsKey(key)) {
-                return jiraIssueKeyIndex.get(key);
-            } else {
-                return jira.getIssue(key);
-            }
-        } else {
-            throw new RuntimeException("Issue key can not be null for search!");
-        }
-    }
-
-    /**
-     * fetch stories of epic
-     *
-     * @param epicKey epic key
-     * @param project project name
-     * @return list of story names
-     */
-    public LinkedList<String> searchStoriesOfEpic(String epicKey, String project) throws JiraException {
-        LinkedList<String> stories = new LinkedList<>();
-        List<Issue> ce = jira.searchIssues("project=" + project + " AND type=story AND 'Epic Link'=" + epicKey, MAX).issues;
-        ce.forEach(iss -> stories.add(iss.getKey()));
-
-        return stories;
-    }
-
-    /**
-     * search issue with key
-     *
-     * @param ikey issue key
-     * @return issue
-     * @throws JiraException jira exception
-     */
-    public Issue searchIssueWithKey(String ikey) throws JiraException {
-        return jira.getIssue(ikey);
-    }
-
-    /**
-     * search project relevant issue with give summary
-     *
-     * @param project   relevant project name
-     * @param summary   summary content
-     * @param issueType issue type like: bug, test...
-     * @return issue
-     */
-    public Issue searchIssueWithSummary(String project, String summary, String issueType) throws JiraException {
-        String[] token = summary.split(" ");
-        Issue issue = null;
-        String jql = "project=" + project + " AND type='" + issueType + "' AND summary ~ '" + token[0] + "'";
-        Issue.SearchResult searchResult = jira.searchIssues(jql);
-        if (searchResult != null) {
-            List<Issue> results = searchResult.issues;
-            for (Issue iss : results) {
-                if (iss.getSummary().equalsIgnoreCase(summary)) {
-                    issue = iss;
-                    break;
-                }
-            }
-        }
-        return issue;
-    }
-
-    /**
-     * create issue with given properties
-     *
-     * @param summary     summary of issue
-     * @param description description of issue
-     * @param issueType   issue type
-     * @return created issue key
-     */
-    public String createIssue(String project, String summary, String description, String issueType) throws RestException, IOException, URISyntaxException {
-        JSONObject payload = buildIssue(project, summary, description, issueType);
-        String resp = executePost(null, payload);
-        return JSONObject.fromObject(resp).get("key").toString();
-    }
-
-    /**
-     * create Xray test case with given properties
-     *
-     * @param project     project
-     * @param summary     summary of test case
-     * @param description description of test case
-     * @param definition  definition of test case
-     * @param planKeys    xray test play key
-     * @return created issue key
-     */
-    public String createXrayTest(String project, String summary, String description, String definition, List<String> planKeys) throws RestException, IOException, URISyntaxException {
-        JSONObject payload = buildXrayTest(project, summary, description, definition, planKeys);
-        String resp = executePost(null, payload);
-        return JSONObject.fromObject(resp).get("key").toString();
-    }
-
-    /**
-     * execute post request with payload
-     *
-     * @param path    path of post
-     * @param payload payload in json format
-     * @return response of post request
-     */
-    public String executePost(String path, JSONObject payload) throws URISyntaxException, IOException, RestException {
-        return jira.getRestClient().post(path, payload).toString();
-    }
-
-    /**
-     * create new issue
-     *
-     * @param project     project name
-     * @param summary     summary of issue
-     * @param description description of issue
-     * @param issueType   type of issue
+     * @param projectKey  project key
+     * @param summary     summary
+     * @param description description
      * @return created issue
      */
-    public Issue createNewIssue(String project, String summary, String description, String issueType) {
-        Issue newIssue = null;
-        try {
-            newIssue = jira.createIssue(project, issueType).field(Field.SUMMARY, summary).field(Field.DESCRIPTION, description).execute();
-        } catch (JiraException e) {
-            e.printStackTrace();
-        }
-        return newIssue;
+    public JsonNode createTestExecution(String projectKey, String summary, String description) {
+        return createIssue(buildIssue(projectKey, summary, description, "Test Execution"));
     }
 
     /**
-     * add xray test case to test plan
+     * generally create issue in jira with payload in case issue with same summery not exists
      *
-     * @param testKeys test case key
-     * @param planKey  test play key
+     * @param payload body to post
+     * @return response in JsonNode
      */
-    public void addTestsToPlan(List<String> testKeys, String planKey) throws RestException, IOException, URISyntaxException {
-        String path = "rest/raven/1.0/api/testplan/" + planKey + "/test";
-        JSONObject payload = new JSONObject();
-        JSONArray keyList = new JSONArray();
-        keyList.addAll(testKeys);
-        payload.element("add", keyList);
-        executePost(path, payload);
-        executePost(path, payload);
+    public JsonNode createIssue(JsonNode payload) {
+        return createIssue(payload.get("fields").get("summary").asText(), payload.toString());
+    }
+
+    /**
+     * generally create issue in jira with payload in case issue with same summery not exists
+     *
+     * @param payload body to post
+     * @param summary summary of issue
+     * @return response in JsonNode
+     */
+    public JsonNode createIssue(String summary, String payload) {
+        String path = GENERAL_PATH + "issue";
+        JsonNode result = searchIssue("summary~'" + encodeUrlPath(summary) + "'");
+        if (result.get("total").asInt() == 0) {
+            return getResponseNode(getRestDriver().post(path, payload),
+                    "Fail on create issue: " + path + "\nwith payload: " + payload);
+        } else {
+            throw new ApollonBaseException(ApollonErrorKeys.JIRA_ISSUE_SUMMARY_EXISTS, summary);
+        }
+    }
+
+
+    /**
+     * generally edit issue in jira with payload {"fields":{...}}
+     *
+     * @param payload  body to post
+     * @param issueKey issueKey
+     * @return response in JsonNode
+     */
+    public JsonNode updateIssue(String issueKey, JsonNode payload) {
+        String path = GENERAL_PATH + "issue/" + issueKey;
+        return getResponseNode(getRestDriver().put(path, payload.toString()),
+                "Fail on update issue: " + path + "\nwith payload: " + payload);
+    }
+
+    /**
+     * get tests in execution
+     *
+     * @param key      test execution key
+     * @param detailed boolean if detailed data retrieved
+     * @return tests information
+     */
+    public JsonNode getTestsInExecution(String key, boolean detailed) {
+        String path = XRAY_PATH + "testexec/" + key + "/test";
+        return getResponseNode(getRestDriver().get(path, "detailed=" + detailed),
+                "Fail on get tests in execution with path: " + path);
+    }
+
+    /**
+     * get test ids in Execution with query option according run status
+     *
+     * @param key          execution key
+     * @param query_option {@link QUERY_OPTION}
+     * @return list of test keys
+     */
+    public List<String> getTestsInExecution(String key, QUERY_OPTION query_option) {
+        JsonNode jiraTests = getTestsInExecution(key, false);
+        List<String> testIds = new LinkedList<>();
+        if (query_option == null || query_option.equals(QUERY_OPTION.ALL)) {
+            jiraTests.forEach(test -> testIds.add(test.get("key").asText()));
+        } else if (query_option.equals(QUERY_OPTION.EXCEPT_SUCCESS)) {
+            jiraTests.forEach(test -> {
+                if (!test.get("status").asText().equalsIgnoreCase(JiraRunStatus.PASS.text())) {
+                    testIds.add(test.get("key").asText());
+                }
+            });
+        } else if (query_option.equals(QUERY_OPTION.FAILED_ONLY)) {
+            jiraTests.forEach(test -> {
+                if (!test.get("status").asText().equalsIgnoreCase(JiraRunStatus.FAIL.text())) {
+                    testIds.add(test.get("key").asText());
+                }
+            });
+        }
+        return testIds;
+    }
+
+    /**
+     * get test runs for every test in test execution
+     *
+     * @param key test execution key
+     * @return test runs
+     */
+    public JsonNode getTestRunsInExecution(String key) {
+        String path = XRAY_PATH + "testruns";
+        return getResponseNode(getRestDriver().get(path, "testExecKey", key),
+                "Fail on get test runs in execution with path: " + path);
+    }
+
+    /**
+     * get test run key:id map of tests in execution
+     *
+     * @param key test execution key
+     * @return test run key:id map
+     */
+    public Map<String, Integer> getTestRunKeyIdMapInExecution(String key) {
+        JsonNode runs = getTestRunsInExecution(key);
+        Map<String, Integer> idKeyMap = new HashMap<>(runs.size());
+        runs.forEach(run -> idKeyMap.put(run.get("testKey").asText(), run.get("id").asInt()));
+        return idKeyMap;
+    }
+
+    /**
+     * add xray test execution to test plan
+     *
+     * @param exeKey  execution key
+     * @param planKey test plan key
+     * @return result
+     */
+    public JsonNode addTestExecutionToPlan(String exeKey, String planKey) {
+        String path = XRAY_PATH + "testplan/" + planKey + "/testexecution";
+        ObjectMapper objectMapper = new ObjectMapper();
+        ArrayNode keyList = objectMapper.createArrayNode();
+        ObjectNode payload = objectMapper.createObjectNode();
+        keyList.add(exeKey);
+        payload.set("add", keyList);
+        return getResponseNode(getRestDriver().post(path, payload.toString()),
+                "Fail on add execution to Plans with path: " + path);
     }
 
     /**
@@ -301,54 +211,39 @@ public class JiraRestClient {
      *
      * @param testKeys test case key
      * @param planKey  test plan key
+     * @return result
      */
-    public void removeTestsFromPlan(List<String> testKeys, String planKey) throws RestException, IOException, URISyntaxException {
-        String path = "rest/raven/1.0/api/testplan/" + planKey + "/test";
-        JSONObject payload = new JSONObject();
-        JSONArray keyList = new JSONArray();
-        keyList.addAll(testKeys);
-        payload.element("remove", keyList);
-        executePost(path, payload);
+    public JsonNode removeTestsFromPlan(List<String> testKeys, String planKey) {
+        String path = XRAY_PATH + "testplan/" + planKey + "/test";
+        ObjectMapper objectMapper = new ObjectMapper();
+        ArrayNode keyList = objectMapper.createArrayNode();
+        ObjectNode payload = objectMapper.createObjectNode();
+        testKeys.forEach(keyList::add);
+        payload.set("remove", keyList);
+        return getResponseNode(getRestDriver().post(path, payload.toString()),
+                "Fail on delete tests from Plans with path: " + path);
     }
 
     /**
      * add issue as link to another issue
      *
-     * @param source  source issue
-     * @param targets target issue
+     * @param source  source issue key
+     * @param targets target issue keys
      */
-    public void addIssueLink(String source, List<String> targets) throws RestException, IOException, URISyntaxException {
-        String path = "rest/api/2/issueLink";
+    public void addIssueLink(String source, List<String> targets) {
+        String path = GENERAL_PATH + "issueLink";
+        ObjectMapper objectMapper = new ObjectMapper();
         for (String target : targets) {
-            JSONObject type = new JSONObject().element("name", "Tests");
-            JSONObject outwardIssue = new JSONObject().element("key", target);
-            JSONObject inwardIssue = new JSONObject().element("key", source);
-            JSONObject comment = new JSONObject().element("body", "Link xray test to story");
-            JSONObject payload = new JSONObject().element("type", type)
-                    .element("inwardIssue", inwardIssue)
-                    .element("outwardIssue", outwardIssue)
-                    .element("comment", comment);
-            executePost(path, payload);
-        }
-    }
-
-    /**
-     * add xray test exection to test plan
-     *
-     * @param exeKey   execution key
-     * @param planKeys test plan key
-     * @throws RestException      rest exception
-     * @throws IOException        io exception
-     * @throws URISyntaxException uri exception
-     */
-    public void addTestExecutionToPlan(String exeKey, List<String> planKeys) throws RestException, IOException, URISyntaxException {
-        for (String planKey : planKeys) {
-            String path = "rest/raven/1.0/api/testplan/" + planKey + "/testexecution";
-            JSONArray keyList = new JSONArray();
-            JSONObject payload = new JSONObject();
-            keyList.add(exeKey);
-            payload.element("add", keyList);
-            executePost(path, payload);
+            ObjectNode type = objectMapper.createObjectNode().put("name", "Tests");
+            ObjectNode outwardIssue = objectMapper.createObjectNode().put("key", target);
+            ObjectNode inwardIssue = objectMapper.createObjectNode().put("key", source);
+            ObjectNode comment = objectMapper.createObjectNode().put("body", "Link xray test to story");
+            ObjectNode payload = objectMapper.createObjectNode()
+                    .<ObjectNode>set("type", type)
+                    .<ObjectNode>set("inwardIssue", inwardIssue)
+                    .<ObjectNode>set("outwardIssue", outwardIssue)
+                    .set("comment", comment);
+            getRestDriver().post(path, payload.toString());
         }
     }
 
@@ -356,266 +251,158 @@ public class JiraRestClient {
      * add xray test cases to execution
      *
      * @param testKeys key of test cases
-     * @param key      test execution key
-     * @throws RestException      rest exception
-     * @throws IOException        io exception
-     * @throws URISyntaxException uri exception
+     * @param execKey  test execution key
+     * @return result
      */
-    public void addTestsToExecution(List<String> testKeys, String key) throws RestException, IOException, URISyntaxException {
-        String path = "rest/raven/1.0/api/testexec/" + key + "/test";
-        JSONObject payload = new JSONObject();
-        JSONArray keyList = new JSONArray();
-        keyList.addAll(testKeys);
-        payload.element("add", keyList);
-        executePost(path, payload);
-    }
-
-    public void removeTestsFromExecution(List<String> testKeys, String key) throws RestException, IOException, URISyntaxException {
-        String path = "rest/raven/1.0/api/testexec/" + key + "/test";
-        JSONObject payload = new JSONObject();
-        JSONArray keyList = new JSONArray();
-        keyList.addAll(testKeys);
-        payload.element("remove", keyList);
-        executePost(path, payload);
+    public JsonNode addTestsToExecution(List<String> testKeys, String execKey) {
+        String path = XRAY_PATH + "testexec/" + execKey + "/test";
+        ObjectMapper objectMapper = new ObjectMapper();
+        ArrayNode keyList = objectMapper.createArrayNode();
+        ObjectNode payload = objectMapper.createObjectNode();
+        testKeys.forEach(keyList::add);
+        payload.set("add", keyList);
+        return getResponseNode(getRestDriver().post(path, payload.toString()),
+                "Fail on add tests to test execution with path: " + path);
     }
 
     /**
-     * find xray test coverages
+     * remove xray test cases from execution
      *
-     * @param projectKey project key
-     * @param name       issue name
-     * @return list of issue keys
-     * @throws JiraException jira exception
+     * @param testKeys key of test cases
+     * @param key      test execution key
+     * @return result
      */
-    public List<String> findTestCoverages(String projectKey, String name) throws JiraException {
-        List<String> coverages = new LinkedList<>();
-        String defaultPattern = "^(Test )(.*)$";
-        String multiCoverage = "\\[((" + projectKey + "-\\d+)|,)+\\]";
-        Pattern pattern = Pattern.compile(multiCoverage);
-        Matcher ma = pattern.matcher(name);
-        if (ma.find()) {
-            String multiKeys = ma.group();
-            Pattern keyPattern = Pattern.compile("(" + projectKey + "-\\d+)");
-            Matcher keys = keyPattern.matcher(multiKeys);
-            while (keys.find()) {
-                String key = keys.group();
-                coverages.add(key);
-            }
-        } else {
-            pattern = Pattern.compile(defaultPattern);
-            ma = pattern.matcher(name);
-            if (ma.find()) {
-                String storyName = ma.group(1);
-                Issue.SearchResult sr = jira.searchIssues("project=" + projectKey + "AND summary~'" + storyName + "'");
-                for (Issue iss : sr.issues) {
-                    if (iss.getSummary().equalsIgnoreCase(storyName)) {
-                        coverages.add(iss.getKey());
-                    }
-                }
-            }
-        }
-        return coverages;
+    public JsonNode removeTestsFromExecution(List<String> testKeys, String key) {
+        String path = XRAY_PATH + "testexec/" + key + "/test";
+        ObjectMapper objectMapper = new ObjectMapper();
+        ArrayNode keyList = objectMapper.createArrayNode();
+        ObjectNode payload = objectMapper.createObjectNode();
+        testKeys.forEach(keyList::add);
+        payload.set("remove", keyList);
+        return getResponseNode(getRestDriver().post(path, payload.toString()),
+                "Fail on add tests to test execution with path: " + path);
     }
 
     /**
      * set status of run result to run
      *
-     * @param exeKey test execution key
-     * @param status results map: (test case key : console output)
+     * @param jiraExecConfig       test run config
+     * @param testCaseIdAndResults results map: (test case key : result)
      */
-    public void setStatusToRun(String exeKey, Map<String, String> status) throws JiraException, IOException, RestException {
-        Issue execution = jira.getIssue(exeKey);
-        //get run list of test execution that contains the instances of test cases
-        JSONArray runList = (JSONArray) execution.getField(jiraConfig.getJSONObject("customFields").getJSONObject("execution").getString("tests"));
-        for (Object obj : runList) {
-            JSONObject instance = (JSONObject) obj;
-            //b:test case key
-            if (status.containsKey(instance.get("b"))) {
-                //get result of the instance via tcKey
-                String report = status.get(instance.get("b"));
-                //get runId of the instance of test case
-                String runId = instance.get("c").toString();
-                //fetch result of run instance to: PASS, TO DO, FAIL, ABORTED
-                String runStatus = fetchRunStatus(report);
-                //build uri to get and update status
-                String path = "rest/raven/1.0/api/testrun/" + runId + "/status?status=" + runStatus;
-                URI uri = URI.create(jiraConfig.getString("host") + path);
-                jira.getRestClient().put(uri, null);
-                //upload console output as run evidence
-                addRunEvidence(runId, report);
-            }
+    public void updateRunStatusInExecution(JSONRunnerConfig jiraExecConfig, Map<String, TestRunResult> testCaseIdAndResults) {
+        String exeKey = jiraExecConfig.getTestExecutionId();
+        if (exeKey.isEmpty()) {//create one execution for test runs
+            JsonNode issue = createTestExecution(jiraExecConfig.getProjectKey(),
+                    jiraExecConfig.getRunName() + " - " + DateTimeUtils.getFormattedLocalTimestamp(),
+                    "Automated Test Execution with Apollon Framework " + DateTimeUtils.getFormattedLocalTimestamp());
+            exeKey = issue.get("key").asText();
+            addTestsToExecution(new ArrayList<>(testCaseIdAndResults.keySet()), exeKey);
         }
-
-    }
-
-    /**
-     * upload evidence to run in test execution
-     *
-     * @param runId         run id of the evidence
-     * @param consoleOutput messages
-     * @throws IOException   io exception
-     * @throws RestException rest exception
-     */
-    public void addRunEvidence(String runId, String consoleOutput) throws IOException, RestException {
-        String path = "rest/raven/1.0/api/testrun/" + runId + "/attachment";
-        JSONObject payload = new JSONObject();
-        payload.element("data", Base64.getEncoder().encodeToString(consoleOutput.getBytes()))
-                .element("filename", TimeUtils.getFormattedLocalTimestamp().concat(".testRunReport.txt"))
-                .element("contentType", "text/plain");
-        URI uri = URI.create(jiraConfig.get("host") + path);
-        jira.getRestClient().post(uri, payload);
-    }
-
-    /**
-     * attach object to issue natively
-     *
-     * @param key  issue key
-     * @param file attachment file
-     */
-    public void addAttachment(String key, File file) throws JiraException {
-        Issue issue = jira.getIssue(key);
-        issue.addAttachment(file);
-    }
-
-    public String get(String uri) throws URISyntaxException, IOException, RestException {
-        return jira.getRestClient().get(uri).toString();
-    }
-
-
-    /**
-     * build BasicCredentials for jira client
-     *
-     * @return BasicCredentials
-     */
-    private BasicCredentials buildCreds() {
-        String user = jiraConfig.getString("user");
-        if (user == null) {
-            user = PropertyResolver.getSystemUser();
-        }
-        String pass = jiraConfig.getString("password");
-        if (pass == null) {
-            pass = PropertyResolver.getPasswordFromProperty();
-        } else {
-            pass = new String(Base64.getDecoder().decode(pass));
-        }
-        return new BasicCredentials(user, pass);
-    }
-
-    /**
-     * pre-load stories into map with given project name and sprint
-     *
-     * @param projects project name
-     * @param sprint   sprint name
-     */
-    private void loadStoriesOfSprint(String projects, String sprint) throws JiraException {
-        String[] pkey = projects.split(":");
-        for (String key : pkey) {
-            String jql = "project='" + key + "' AND type=Story AND sprint='" + sprint + "'";
-            List<Issue> sr = jira.searchIssues(jql, MAX).issues;
-            sr.forEach(issue -> jiraIssueOfSprint.put(issue.getKey(), issue));
-        }
-
-    }
-
-    /**
-     * pre-load stories into map with given project name and sprint
-     *
-     * @param projects project name
-     */
-    private void loadStoriesOfProjects(String projects) throws JiraException {
-        String[] pkey = projects.split(":");
-        for (String key : pkey) {
-            List<Issue> sr = jira.searchIssues("project=" + key + " AND type in (Story, Epic)", MAX).issues;
-            sr.forEach(issue -> {
-                jiraIssueNameIndex.put(issue.getSummary(), issue);
-                jiraIssueKeyIndex.put(issue.getKey(), issue);
+        //get runs in execution
+        JsonNode runs = getTestRunsInExecution(exeKey);
+        if (runs.isArray()) {
+            runs.forEach(run -> {
+                String testKey = run.get("testKey").asText();
+                if (testCaseIdAndResults.containsKey(testKey)) {
+                    updateRunStatus(run, testCaseIdAndResults.get(testKey));
+                }
             });
         }
     }
 
-
-    /**
-     * fetch status of run result in json
-     *
-     * @param consoleOutput message
-     * @return status
-     */
-    private String fetchRunStatus(String consoleOutput) {
-        String status = "PASS";
-        List<String> fails = asList("AssertionError", "(FAILED)", "(NOT PERFORMED)", "(PENDING)");
-        for (String statement : fails) {
-            if (consoleOutput.contains(statement)) {
-                status = "FAIL";
-                break;
-            }
-        }
-        return status;
-    }
-
-    /**
-     * get field "aggregatedTimeSpent" from issue
-     *
-     * @param issue issue
-     * @return time spent
-     */
-    private long getAggregatedTimeSpent(Issue issue) {
-        String value = issue.getField("aggregatetimespent").toString();
-        if (value == null || value.equalsIgnoreCase("null")) {
-            return 0L;
+    public void updateRunStatus(JsonNode run, TestRunResult testRunResult) {
+        List<File> dataFiles = testRunResult.getAttachments();
+        dataFiles.add(new File(testRunResult.getLogFilePath()));
+        if (run != null) {
+            updateRunStatus(run.get("id").asText(), testRunResult.getDescription(),
+                    dataFiles,
+                    testRunResult.getStatus().intValue());
         } else {
-            return Long.parseLong(value);
+            throw new ApollonBaseException(ApollonErrorKeys.TEST_RUN_OR_TEST_RUN_RESULT_IS_NULL);
         }
     }
 
+    public JsonNode updateRunStatus(String runId, String description, List<File> dataFiles, int statusIndex) {
+        String path = XRAY_PATH + "testrun/" + runId;
+        ObjectMapper objectMapper = new ObjectMapper();
+        ArrayNode evidence = objectMapper.createArrayNode();
+        dataFiles.forEach(file ->
+                evidence.add(objectMapper.createObjectNode()
+                        .put("filename", file.getName())
+                        .put("contentType", "plain/text")
+                        .put("data", FileOperation.encodeFileToBase64(file))));
+        JsonNode evidences = objectMapper.createObjectNode().set("add", evidence);
+        ObjectNode payload = objectMapper.createObjectNode()
+                .put("status", JiraRunStatus.getText(statusIndex))
+                .put("comment", description)
+                .set("evidences", evidences);
+        return getResponseNode(getRestDriver().put(path, payload.toString()), "Fail with update status to run: " + runId);
+    }
+
     /**
-     * build Xray Test Object. Note that, the customerfield can be changed
+     * build Xray Test Object. Note that, the customer fields can be changed
      *
      * @param projectKey  project key
      * @param summary     summary
      * @param description description of test
-     * @param definition  definition of test
      * @param plans       plan key
      * @return JSONObject as payload
      */
-    private JSONObject buildXrayTest(String projectKey, String summary, String description, String definition, List<String> plans) {
-        JSONObject project = new JSONObject().element("key", projectKey);
-        JSONObject issuetype = new JSONObject().element("name", "Xray Test");
-        JSONObject testType = new JSONObject().element("name", "Cucumber");
-        JSONObject assignee = new JSONObject().element("name", jiraConfig.getString("user"));
-        JSONArray planList = new JSONArray();
-        planList.addAll(plans);
-        JSONObject fieldConfig = jiraConfig.getJSONObject("customFields").getJSONObject("test");
-        JSONObject fields = new JSONObject().element("project", project)
-                .element("summary", summary)
-                .element("assignee", assignee)
-                .element("description", description)
-                .element("issuetype", issuetype)
-                .element(fieldConfig.getString("testType"), testType)
-                .element(fieldConfig.getString("testPlans"), planList);
-        JSONObject self = new JSONObject().element("fields", fields);
-        return self;
+    private JsonNode buildXrayTest(String projectKey, String summary, String description, List<String> plans, List<String> testStepNames) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode project = objectMapper.createObjectNode().put("key", projectKey);
+        ObjectNode issueType = objectMapper.createObjectNode().put("name", "Test").put("id", "10400");
+        ObjectNode testType = objectMapper.createObjectNode().put("value", "Manual").put("id", "10200");
+        ArrayNode planList = objectMapper.createArrayNode();
+        plans.forEach(planList::add);
+        ArrayNode steps = objectMapper.createArrayNode();
+        for (int i = 0; i < testStepNames.size(); i++) {
+            ObjectNode step = objectMapper.createObjectNode().put("index", i + 1)
+                    .set("fields", objectMapper.createObjectNode().put("Action", testStepNames.get(i)));
+            steps.add(step);
+        }
+        JsonNode jiraConfig = JSONContainerFactory.getConfig(PropertyResolver.getJiraConfigFile());
+        JsonNode customFields = jiraConfig.get("customFields").get("test");
+        ObjectNode fields = objectMapper.createObjectNode()
+                .put("summary", summary)
+                .put("description", description)
+                .<ObjectNode>set("project", project)
+                .<ObjectNode>set("issuetype", issueType)
+                .<ObjectNode>set(customFields.get("testType").asText(), testType)
+                .<ObjectNode>set(customFields.get("testSteps").asText(), steps)
+                .set(customFields.get("testPlans").asText(), planList);
+        if (!user.isEmpty()) {
+            ObjectNode assignee = objectMapper.createObjectNode().put("name", user);
+            fields.set("assignee", assignee);
+        }
+        return objectMapper.createObjectNode().<ObjectNode>set("fields", fields);
     }
 
+
     /**
-     * build Issue with given properties
+     * build Issue with given properties. like:
+     * <a href="https://developer.atlassian.com/server/jira/platform/jira-rest-api-examples/#creating-an-issue-using-a-project-key-and-field-names">Jira REST API examples</a>
      *
      * @param projectKey  project key
      * @param summary     summary
      * @param description description of issue
      * @param issieType   issue type
-     * @return JSONObject as payload
+     * @return JsonNode as payload
      */
-    private JSONObject buildIssue(String projectKey, String summary, String description, String issieType) {
-        JSONObject project = new JSONObject().element("key", projectKey);
-        JSONObject issuetype = new JSONObject().element("name", issieType);
-        JSONObject assignee = new JSONObject().element("name", jiraConfig.getString("user"));
-        JSONObject fields = new JSONObject().element("project", project)
-                .element("summary", summary)
-                .element("assignee", assignee)
-                .element("description", description)
-                .element("issuetype", issuetype);
-        JSONObject self = new JSONObject().element("fields", fields);
-        return self;
+    private JsonNode buildIssue(String projectKey, String summary, String description, String issieType) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode project = objectMapper.createObjectNode().put("key", projectKey);
+        ObjectNode issueType = objectMapper.createObjectNode().put("name", issieType);
+        ObjectNode fields = objectMapper.createObjectNode()
+                .put("summary", summary)
+                .put("description", description)
+                .<ObjectNode>set("project", project)
+                .set("issuetype", issueType);
+        if (!user.isEmpty()) {
+            ObjectNode assignee = objectMapper.createObjectNode().put("name", user);
+            fields.set("assignee", assignee);
+        }
+        return objectMapper.createObjectNode().<ObjectNode>set("fields", fields);
     }
 
 }

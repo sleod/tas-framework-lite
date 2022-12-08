@@ -1,45 +1,32 @@
 package ch.qa.testautomation.framework.core.json.container;
 
+import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.core.component.TestRunResult;
 import ch.qa.testautomation.framework.core.json.customDeserializer.CustomAttachmentListDeserializer;
-import ch.qa.testautomation.framework.core.json.customDeserializer.CustomResultLabelDserializer;
+import ch.qa.testautomation.framework.core.json.customDeserializer.CustomResultLabelDeserializer;
+import ch.qa.testautomation.framework.core.json.customDeserializer.CustomResultLinkDeserializer;
 import ch.qa.testautomation.framework.core.json.customDeserializer.CustomStepResultListDeserializer;
-import ch.qa.testautomation.framework.core.json.customDeserializer.CustomStringListDeserializer;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import java.io.File;
 import java.util.*;
 
-public class JSONTestResult {
-    @JsonProperty
+public class JSONTestResult extends JSONContainer {
     private String name;
-    @JsonProperty
     private String fullName;
-    @JsonProperty
     private String description;
-    @JsonProperty
     private String status;
-    @JsonProperty
     private String uuid;
-    @JsonProperty
     private long start;
-    @JsonProperty
     private long stop;
-    @JsonProperty
     private String stage;
-    @JsonProperty
     private String historyId;
-    @JsonProperty
     private List<JSONResultLabel> labels = new LinkedList<>();
-    @JsonProperty
     private List<JSONStepResult> steps = new LinkedList<>();
-    @JsonProperty
-    private List<String> links = new LinkedList<>();
-    @JsonProperty
+    private List<JSONResultLink> links = new LinkedList<>();
     private Map<String, Object> statusDetails = new LinkedHashMap<>();
-    @JsonProperty
     private List<JSONAttachment> attachments = new LinkedList<>();
 
     public JSONTestResult(String name, String fullName, String description, String status, long start, long stop, String stage, String historyId) {
@@ -144,7 +131,7 @@ public class JSONTestResult {
         this.stage = stage;
     }
 
-    @JsonDeserialize(using = CustomResultLabelDserializer.class)
+    @JsonDeserialize(using = CustomResultLabelDeserializer.class)
     public void setLabels(List<JSONResultLabel> labels) {
         this.labels = labels;
     }
@@ -166,17 +153,21 @@ public class JSONTestResult {
         return steps;
     }
 
+    public List<JSONResultLabel> getLabels() {
+        return labels;
+    }
+
     @JsonDeserialize(using = CustomStepResultListDeserializer.class)
     public void setSteps(List<JSONStepResult> steps) {
         this.steps = steps;
     }
 
-    public List<String> getLinks() {
+    public List<JSONResultLink> getLinks() {
         return links;
     }
 
-    @JsonDeserialize(using = CustomStringListDeserializer.class)
-    public void setLinks(List<String> links) {
+    @JsonDeserialize(using = CustomResultLinkDeserializer.class)
+    public void setLinks(List<JSONResultLink> links) {
         this.links = links;
     }
 
@@ -198,8 +189,10 @@ public class JSONTestResult {
         this.attachments = attachments;
     }
 
-    public void addAttachment(String name, String type, String source) {
-        attachments.add(new JSONAttachment(name, type, source));
+    public void addAttachment(File file) {
+        if (file.exists() && file.isFile()) {
+            attachments.add(new JSONAttachment(file.getName(), FileOperation.getMediaTypeOfFile(file.getName()), file.getAbsolutePath()));
+        }
     }
 
     public void addStep(JSONStepResult stepResult) {
@@ -216,5 +209,21 @@ public class JSONTestResult {
             }
         }
         return suite;
+    }
+
+    public void addLink(String testCaseId, String url) {
+        if (Objects.isNull(links)) {
+            links = new LinkedList<>();
+        }
+        links.add(new JSONResultLink(testCaseId, "issue", url));
+    }
+
+    public void addLink(String testCaseId, Map<String, String> tfsConfig) {
+        if (Objects.isNull(links)) {
+            links = new LinkedList<>();
+        }
+        String url = tfsConfig.get("host") + "/" + tfsConfig.get("organization") + "/"
+                + tfsConfig.get("collection") + "/" + tfsConfig.get("project") + "/_workitems/edit/" + testCaseId;
+        links.add(new JSONResultLink(testCaseId, "tms", url));
     }
 }

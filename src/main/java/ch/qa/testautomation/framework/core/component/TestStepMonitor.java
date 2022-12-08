@@ -1,175 +1,116 @@
 package ch.qa.testautomation.framework.core.component;
 
+import ch.qa.testautomation.framework.common.enumerations.TestStatus;
 import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
-import org.junit.runner.Description;
-import org.junit.runner.Result;
-import org.junit.runner.notification.Failure;
-import org.junit.runner.notification.RunNotifier;
+import org.junit.jupiter.api.Assertions;
+import org.opentest4j.TestAbortedException;
 
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.log;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
 
 /**
  * TestStep Monitor for each testcase
  */
 public class TestStepMonitor {
+    private static final Map<String, String> currentISOBundleIds = new HashMap<>(); //ios only, must
+    private static final Map<String, String> currentAppPackages = new HashMap<>(); //android only, must
+    private static final Map<String, String> currentAppActivities = new HashMap<>(); //android only, must
+    private static final Map<String, TestCaseObject> currentTests = new HashMap<>();
+    private static final Map<String, TestCaseStep> currentSteps = new HashMap<>();
+    private static final Map<String, Boolean> isStopMap = new HashMap<>();
 
-    private final Description rootDescription; //test suites
-    private final int totalTestCases;
-    private int testCounter = 0;
-    private final RunNotifier notifier;
-    private final HashMap<String, Description> currentTestCases = new HashMap<>(PropertyResolver.getExecutionThreads());
-    private final HashMap<String, Description> lastSteps = new HashMap<>(PropertyResolver.getExecutionThreads());
-    private final Map<String, Description> allDescriptions;
-    private final HashMap<String, Boolean> skip = new HashMap<>(PropertyResolver.getExecutionThreads());
-
-    /**
-     * construct test step monitor with junit notifier and description
-     *
-     * @param notifier        junit notifier
-     * @param rootDescription root description
-     * @param totalTestCases  number of test cases
-     */
-    public TestStepMonitor(RunNotifier notifier, Description rootDescription, int totalTestCases, Map<String, Description> allDescriptions) {
-        this.notifier = notifier;
-        this.totalTestCases = totalTestCases;
-        this.rootDescription = rootDescription;
-        this.allDescriptions = allDescriptions;
+    public static boolean isStop() {
+        return isStopMap.get(Thread.currentThread().getName());
     }
 
-    public Description getLastStep() {
-        return lastSteps.get(getTid());
+    public static void setIsStop(boolean isStop) {
+        isStopMap.put(Thread.currentThread().getName(), isStop);
     }
 
-    public Description getCurrentTestCase() {
-        return currentTestCases.get(getTid());
+    public static void setCurrentStep(TestCaseStep currentStep) {
+        currentSteps.put(Thread.currentThread().getName(), currentStep);
     }
 
-    /**
-     * prepare test steps for the junit runner before test start
-     *
-     * @param testName test name
-     */
-    public synchronized void beforeTest(String testName) {
-        if (testCounter == 0) {
-            notifier.fireTestRunStarted(rootDescription);
+    public static void setCurrentTest(TestCaseObject currentTest) {
+        afterAllSteps();
+        currentTests.put(Thread.currentThread().getName(), currentTest);
+        beforeAllSteps();
+    }
+
+    public static TestCaseStep getCurrentStep() {
+        return currentSteps.get(Thread.currentThread().getName());
+    }
+
+    public static TestCaseObject getCurrentTest() {
+        return currentTests.get(Thread.currentThread().getName());
+    }
+
+    public static String getCurrentTestStepName() {
+        return getCurrentStep().getName();
+    }
+
+    public static String getCurrentTestCaseName() {
+        return getCurrentTest().getName();
+    }
+
+    public static String getCurrentAppPackage() {
+        return currentAppPackages.get(Thread.currentThread().getName());
+    }
+
+    public static String getCurrentAppActivity() {
+        return currentAppActivities.get(Thread.currentThread().getName());
+    }
+
+    public static void setCurrentAppPackage(String currentAppPackage) {
+        currentAppPackages.put(Thread.currentThread().getName(), currentAppPackage);
+    }
+
+    public static void setCurrentAppActivity(String currentAppActivity) {
+        currentAppActivities.put(Thread.currentThread().getName(), currentAppActivity);
+    }
+
+    public static String getCurrentISOBundleId() {
+        return currentISOBundleIds.get(Thread.currentThread().getName());
+    }
+
+    public static void setCurrentISOBundleId(String currentISOBundleId) {
+        currentISOBundleIds.put(Thread.currentThread().getName(), currentISOBundleId);
+    }
+
+    public static void beforeAllSteps() {
+        if (getCurrentTest() != null) {
+            trace("Finish Pre-Process of Test Case: " + getCurrentTest().getName());
+            getCurrentTest().beforeTest();
+            setIsStop(false);
         }
-        currentTestCases.put(getTid(), allDescriptions.get(testName));
-        skip.put(getTid(), false);
     }
 
-    /**
-     * do something after test execution
-     */
-    public synchronized void afterTest() {
-        testCounter++;
-        if (testCounter == totalTestCases) {
-            notifier.fireTestRunFinished(new Result());
-        }
-    }
-
-    /**
-     * do something before step
-     *
-     * @param step       step name
-     * @param stepResult step result
-     */
-    public synchronized void beforeStep(String step, TestStepResult stepResult) {
-        SystemLogger.setCurrTestStepResult(Thread.currentThread().getName(), stepResult);
-        if (!skip.get(getTid())) {
-            notifier.fireTestStarted(allDescriptions.get(step));
-        }
-        SystemLogger.logStepInfo(getTid(), "Step Start: " + step);
-    }
-
-    /**
-     * fail the test step
-     *
-     * @param step name of step
-     * @param ex   exception
-     */
-    public synchronized void failed(String step, Throwable ex, boolean stop) {
-        SystemLogger.logStepInfo(getTid(), "Step failed: " + step);
-        SystemLogger.logStepInfo(getTid(), "Reason: " + ex.getMessage());
-        Description currentStep = allDescriptions.get(step);
-        notifier.fireTestFailure(new Failure(currentStep, ex));
-        notifier.fireTestFinished(currentStep);
-        lastSteps.put(getTid(), currentStep);
-        skip.put(getTid(), stop);
-    }
-
-    /**
-     * break the test step because of known issue
-     *
-     * @param step name of step
-     * @param ex   exception
-     */
-    public synchronized void broken(String step, Throwable ex) {
-        SystemLogger.log("WARN", "Step Broken: {} (cause: {})", step, ex.getMessage());
-        SystemLogger.logStepInfo(getTid(), "Step broken: " + step);
-        SystemLogger.logStepInfo(getTid(), "Reason: " + ex.getMessage());
-        Description currentStep = allDescriptions.get(step);
-        notifier.fireTestFailure(new Failure(currentStep, ex));
-        notifier.fireTestFinished(currentStep);
-        lastSteps.put(getTid(), currentStep);
-        skip.put(getTid(), false);
-    }
-
-
-    /**
-     * succeed test step
-     *
-     * @param step name of step
-     */
-    public synchronized void succeed(String step) {
-        Description currentStep = allDescriptions.get(step);
-        SystemLogger.logStepInfo(getTid(), "Step Successful: " + step);
-        notifier.fireTestFinished(currentStep);
-        lastSteps.put(getTid(), currentStep);
-        skip.put(getTid(), false);
-    }
-
-    public synchronized void ignorable(String step) {
-        Description currentStep = allDescriptions.get(step);
-        SystemLogger.logStepInfo(getTid(), "Step Ignored: " + step);
-        notifier.fireTestIgnored(currentStep);
-        lastSteps.put(getTid(), currentStep);
-        skip.put(getTid(), true);
-    }
-
-    /**
-     * build step into with simple pattern
-     *
-     * @param method method to be invoked
-     * @param args   arguments
-     */
-    @SuppressWarnings("unchecked")
-    public synchronized void stepInfo(Method method, Object... args) {
-        String comment = "Invoke Method: " + method.getName();
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(comment);
-        Class<?>[] types = method.getParameterTypes();
-        if (types.length > 0) {
-            stringBuilder.append(" With Parameter: ");
-            if (args.length == 1 && (args[0] instanceof Map)) {
-                ((Map) args[0]).forEach((key, value) -> stringBuilder.append("\n").append(key).append(" -> ").append(value));
-            } else {
-                for (Object arg : args) {
-                    stringBuilder.append(" | ").append(arg);
-                }
-                stringBuilder.append(" |");
+    public static void afterAllSteps() {
+        if (getCurrentTest() != null) {
+            trace("Finish Post-Process of Test Case: " + getCurrentTest().getName());
+            try {
+                getCurrentTest().afterTest();
+            } catch (Throwable ex) {
+                SystemLogger.warn("Post Process of Test Case can not be executed!\n" + ex.getMessage());
             }
-        } else {
-            stringBuilder.append(" Without Parameter.");
         }
-        SystemLogger.logStepInfo(getTid(), stringBuilder.toString());
     }
 
-    private String getTid() {
-        return Thread.currentThread().getName();
+    public static void processResult(TestStepResult testStepResult) {
+        if (testStepResult.getStatus().equals(TestStatus.FAIL)) {
+            //prepare retry
+            if (PropertyResolver.isRetryEnabled()) {
+                TestRunManager.storeRetryStep(getCurrentTest().getFilePath(), getCurrentTest().getName(), getCurrentStep().getOrderNumber());
+                TestRunManager.storeSessions();
+            }
+            //fail the step for report
+            Assertions.fail("Test Failed", testStepResult.getTestFailure().getException());
+        } else if (testStepResult.getStatus().equals(TestStatus.SKIPPED)) {
+            throw new TestAbortedException("Test Step Aborted because of Stop on Error.");
+        }
     }
+
 }

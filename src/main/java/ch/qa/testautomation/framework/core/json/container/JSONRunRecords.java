@@ -1,17 +1,13 @@
 package ch.qa.testautomation.framework.core.json.container;
 
 import ch.qa.testautomation.framework.core.json.customDeserializer.CustomResultSetListDesrializer;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.List;
 
-public class JSONRunRecords {
-    @JsonProperty
+public class JSONRunRecords extends JSONContainer {
     private int keep;
-    @JsonProperty
     private int runs;
-    @JsonProperty
     private List<JSONResultSet> resultSets;
 
     public JSONRunRecords(int keep, int runs, List<JSONResultSet> resultSets) {

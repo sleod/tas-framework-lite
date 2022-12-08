@@ -1,12 +1,15 @@
 package ch.qa.testautomation.framework.common.enumerations;
 
+import ch.qa.testautomation.framework.exception.ApollonBaseException;
+import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
+
 /**
  * image format general, for screenshot is PNG recommended
  */
 public enum ImageFormat {
     JPEG("jpg"), PNG("PNG");
 
-    private String format;
+    private final String format;
 
     ImageFormat(String format) {
         this.format = format;
@@ -19,7 +22,7 @@ public enum ImageFormat {
             case "PNG":
                 return PNG;
         }
-        throw new RuntimeException("\""+format+"\" is not supported! Defined are (jpg and PNG).");
+        throw new ApollonBaseException(ApollonErrorKeys.FORMAT_NOT_SUPPORTED);
     }
 
     public String value() {

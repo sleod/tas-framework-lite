@@ -1,7 +1,7 @@
 package ch.qa.testautomation.framework.common.logging;
 
+import ch.qa.testautomation.framework.common.utils.DateTimeUtils;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
-import ch.qa.testautomation.framework.common.utils.TimeUtils;
 import ch.qa.testautomation.framework.core.component.TestStepResult;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -18,8 +18,6 @@ import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import java.io.Writer;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Logger class of System using log4j2
@@ -27,19 +25,19 @@ import java.util.Map;
 public class SystemLogger {
 
     //name for default system logger. Main key for operating appender and loggers.
-    private static final String LOGGER_NAME = PropertyResolver.getDefaultLoggerName();
+    private static final String LOGGER_NAME = PropertyResolver.getLoggerName();
     private static final Logger LOGGER = LogManager.getLogger(LOGGER_NAME);
     private static final String DEFAULT_PATTERN = "%d{ISO8601} [%t] %-5level: %msg%n%throwable";
-    private static final Map<String, TestStepResult> stepResults = new LinkedHashMap<>();
+    private static TestStepResult stepResult;
 
-    public static void setCurrTestStepResult(String key, TestStepResult stepResult) {
-        stepResults.put(key, stepResult);
+    public static void setCurrTestStepResult(TestStepResult stepResult) {
+        SystemLogger.stepResult = stepResult;
     }
 
-    public static void logStepInfo(String key, String text) {
+    public static void logStepInfo(String text) {
         String info = getSimpleCustomInfo("INFO", "Step Info: " + text);
         info(text);
-        stepResults.get(key).logInfo(info);
+        stepResult.logInfo(info);
     }
 
     /**
@@ -53,12 +51,14 @@ public class SystemLogger {
     }
 
     /**
-     * log throwable
+     * log throwable with fatal error that need to terminate system immediately
      *
      * @param ex throwable
      */
     public static void error(Throwable ex) {
         LOGGER.error(ex.getMessage(), ex);
+        //exit system with exception in init phase
+        System.exit(1);
     }
 
     /**
@@ -110,7 +110,7 @@ public class SystemLogger {
         final Appender appender = WriterAppender.createAppender(layout, null, writer, appenderRef, false, true);
         appender.start();
         config.addAppender(appender);
-        updateAllLoggers(appender, config, appenderLevel);
+        updateLoggers(appender, config, appenderLevel);
         context.updateLoggers(config);
         return appender;
     }
@@ -138,7 +138,7 @@ public class SystemLogger {
      * @param fileName    rolling file name
      * @param filePattern file pattern for rolling
      */
-    public static void addRollingFileAppender(String logPattern, String fileName, String filePattern, String appenderRef, String appenderLevel) {
+    public static void addRollingFileAppender(String logPattern, String fileName, String filePattern, String appanderRef, String appenderLevel) {
         final LoggerContext context = (LoggerContext) LogManager.getContext(false);
         final Configuration config = context.getConfiguration();
 
@@ -149,7 +149,7 @@ public class SystemLogger {
 
         RollingFileAppender appender = RollingFileAppender.newBuilder()
                 .setConfiguration(config)
-                .setName(appenderRef)
+                .setName(appanderRef)
                 .setLayout(layout)
                 .withFileName(fileName)
                 .withFilePattern(filePattern)
@@ -177,7 +177,7 @@ public class SystemLogger {
         AppenderRef[] refs = new AppenderRef[]{ref};
         PatternLayout layout = buildLayout(config, checkPattern(pattern));
         Appender appender = buildFileAppender(config, layout, fileName, appenderRef);
-        LoggerConfig loggerConfig = LoggerConfig.createLogger(false, level, "SystemLogger", "true", refs, null, config, null);
+        LoggerConfig loggerConfig = new LoggerConfig("SystemLogger", level, true);
         loggerConfig.addAppender(appender, level, null);
         config.addLogger(LOGGER_NAME, loggerConfig);
         context.updateLoggers(config);
@@ -235,7 +235,7 @@ public class SystemLogger {
      * @return formatted string
      */
     public static synchronized String getSimpleCustomInfo(String type, String info) {
-        return TimeUtils.getISOTimestamp() + ": [" + Thread.currentThread().getName() + "] [" + type + "]: " + info;
+        return DateTimeUtils.getISOTimestamp() + ": [" + Thread.currentThread().getName() + "] [" + type + "]: " + info;
     }
 
     private static String checkPattern(String pattern) {
@@ -252,7 +252,7 @@ public class SystemLogger {
      * @param appender new appender to add
      * @param config   current config
      */
-    private static void updateAllLoggers(final Appender appender, final Configuration config, String lv) {
+    private static void updateLoggers(final Appender appender, final Configuration config, String lv) {
         final Level level = Level.getLevel(lv);
         for (final LoggerConfig loggerConfig : config.getLoggers().values()) {
             loggerConfig.addAppender(appender, level, null);
@@ -262,8 +262,9 @@ public class SystemLogger {
 
     /**
      * update to named LOGGER
-     *  @param appender   new appender to add
-     * @param config     current config
+     *
+     * @param appender new appender to add
+     * @param config   current config
      */
     private static void updateLogger(final Appender appender, final Configuration config, String lv) {
         final Level level = Level.getLevel(lv);

@@ -1,9 +1,0 @@
-{
-  "realDeviceUuid": "d887abde-3141-3674-a7c1-3d616c473e4e",
-  "hubURL": "http://192.168.206.22/selenium/wd/hub",
-  "platformName": "ANDROID",
-  "platformVersion": "9.0.0",
-  "noReset": "true",
-  "browserName": "Chrome",
-  "chromeDriverExecutable": "/opt/chromedriver/chromedriver_85"
-}

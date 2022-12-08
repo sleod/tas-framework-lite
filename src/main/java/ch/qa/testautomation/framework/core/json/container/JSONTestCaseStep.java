@@ -1,23 +1,15 @@
 package ch.qa.testautomation.framework.core.json.container;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * Object Container Class of JSON Test Case
  */
 public class JSONTestCaseStep extends JSONContainer {
 
-    @JsonProperty
     private String name;
-    @JsonProperty
     private String testObject;
-    @JsonProperty
     private String using;
-    @JsonProperty
     private String takeScreenshot;
-    @JsonProperty
     private String stopOnError;
-    @JsonProperty
     private String comment;
 
     public String getTestObject() {
@@ -59,6 +51,7 @@ public class JSONTestCaseStep extends JSONContainer {
     public void setStopOnError(String stopOnError) {
         this.stopOnError = stopOnError;
     }
+
     public String getComment() {
         return comment;
     }

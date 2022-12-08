@@ -58,14 +58,13 @@ public class QCEntityNode {
 
 	@Override
 	public String toString() {
-		String name = entity.getFieldValue("name");
-//        if (name == null) {
+		//        if (name == null) {
 //            String type = entity.getEntityType();
 //            String typename = QCConstants.getEntityName(Integer.parseInt(type));
 //            if (typename.equals(QCConstants.ENTITY_INSTANCE)) {
 //                name = "Instance of Test with ID: " + entity.getFieldValue("test-id");
 //            }
 //        }
-		return name;
+		return entity.getFieldValue("name");
 	}
 }

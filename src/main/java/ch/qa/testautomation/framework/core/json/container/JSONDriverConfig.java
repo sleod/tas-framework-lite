@@ -1,79 +1,99 @@
 package ch.qa.testautomation.framework.core.json.container;
 
+import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class JSONDriverConfig {
-    @JsonProperty
+public class JSONDriverConfig extends JSONContainer{
     private String platformName;
-    @JsonProperty
     private String platformVersion;
-    @JsonProperty
-    private String platform;
-    @JsonProperty
+    private String browserVersion;
     private String deviceName;
-    @JsonProperty
     private String app;
-    @JsonProperty
-    private String appName;
-    @JsonProperty
-    private String appPackage;
-    @JsonProperty
-    private String appActivity;
-    @JsonProperty
-    private String grdn_uuid;
-    @JsonProperty
+    private String appName;//iOS
+    private String appPackage;//android
+    private String appActivity;//android
+    private String grdn_uuid;//android
     private String realDeviceUuid;
-    @JsonProperty
-    private String udid;
-    @JsonProperty
+    private String udid;//iOS
     private String automationName;
-    @JsonProperty
     private String browser;
-    @JsonProperty
     private String browserName;
-    @JsonProperty
     private String hubURL;
-    @JsonProperty
     private String chromeDriverExecutable;
-    @JsonProperty
     private String ieDriverBinFile;
-    @JsonProperty
-    private String bundleId;
-    @JsonProperty
+    private String bundleId;//iOS
     private String webDriverVersion;
-    @JsonProperty
     private String noReset;
-
+    private String autoAcceptAlerts;
+    private String wdaLocalPort; // iOS
+    private String systemPort; //android
+    private String configType;
     @JsonIgnore
-    private LinkedHashMap<String, Object> capabilities = new LinkedHashMap<>();
+    private final LinkedHashMap<String, Object> capabilities = new LinkedHashMap<>();
+    @JsonIgnore
+    private boolean isIdle = true;
 
-    public String getIsNoReset() {
-        if (noReset == null) {
-            noReset = "";
+    public String getConfigType() {
+        return configType;
+    }
+
+    public void setConfigType(String configType) {
+        this.configType = configType;
+        capabilities.put("configType", configType);
+    }
+
+    public boolean isIdle() {
+        return isIdle;
+    }
+
+    public void setIdle(boolean idle) {
+        isIdle = idle;
+        if (idle) {
+            SystemLogger.trace("Set Config " + getDeviceName() + " Idle.");
+        } else {
+            SystemLogger.trace("Set Config " + getDeviceName() + " busy.");
         }
+    }
+
+    public String getWdaLocalPort() {
+        return wdaLocalPort;
+    }
+
+    public void setWdaLocalPort(String wdaLocalPort) {
+        this.wdaLocalPort = wdaLocalPort;
+        capabilities.put("wdaLocalPort", wdaLocalPort);
+    }
+
+    public String getSystemPort() {
+        return systemPort;
+    }
+
+    public void setSystemPort(String systemPort) {
+        this.systemPort = systemPort;
+        capabilities.put("systemPort", systemPort);
+    }
+
+    public String getAutoAcceptAlerts() {
+        return autoAcceptAlerts;
+    }
+
+    public void setAutoAcceptAlerts(String autoAcceptAlerts) {
+        this.autoAcceptAlerts = autoAcceptAlerts;
+        capabilities.put("autoAcceptAlerts", autoAcceptAlerts);
+    }
+
+    public String getNoReset() {
         return noReset;
     }
 
     public void setNoReset(String noReset) {
         this.noReset = noReset;
         capabilities.put("noReset", noReset);
-
     }
-
-    public String getPlatform() {
-        return platform;
-    }
-
-    public void setPlatform(String platform) {
-        this.platform = platform;
-        capabilities.put("platform", platform);
-    }
-
 
     public String getWebDriverVersion() {
         return webDriverVersion;
@@ -235,7 +255,17 @@ public class JSONDriverConfig {
         capabilities.put("browserName", browserName);
     }
 
+    public String getBrowserVersion() {
+        return browserVersion;
+    }
+
+    public void setBrowserVersion(String browserVersion) {
+        this.browserVersion = browserVersion;
+        capabilities.put("browserVersion", browserVersion);
+    }
+
     public Map<String, Object> getCapabilities() {
         return capabilities;
     }
+
 }

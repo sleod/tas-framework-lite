@@ -2,68 +2,57 @@ package ch.qa.testautomation.framework.core.json.container;
 
 import ch.qa.testautomation.framework.core.json.customDeserializer.CustomStepListDeserializer;
 import ch.qa.testautomation.framework.core.json.customDeserializer.CustomStringListDeserializer;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Object Container Class of JSON Test Case
  */
 public class JSONTestCase extends JSONContainer {
-    @JsonProperty
+
     private String name;
-    @JsonProperty
     private List<String> meta;
-    @JsonProperty
     private String description;
-    @JsonProperty
     private String source;
-    @JsonProperty
     private String testCaseId;
-    @JsonProperty
+    private Map<String, String> testCaseIdMap;
     private String requirement;
-    @JsonProperty
     private String reference;
-    @JsonProperty
     private String screenshotLevel;
-    @JsonProperty
     private String testDataRef;
-    @JsonProperty
     private String type;
-    @JsonProperty
     private String startURL;
-    @JsonProperty
-    private String appName;
-    @JsonProperty
+    private String appName;//only for app installation with file
     private String activity;
-    @JsonProperty
+    private String appPackage;
+    private String bundleId;
     private String seriesNumber;
-    @JsonProperty
     private List<JSONTestCaseStep> steps;
-    @JsonProperty
     private String additionalTestDataFile;
-    @JsonProperty
     private String story;
-    @JsonProperty
     private String epic;
-    @JsonProperty
     private String feature;
-
-    @JsonIgnore
-    private String parentFolderName;
-
-    @JsonIgnore
-    private String fileName;
-
-    @JsonIgnore
-    private List<String> coverage = Collections.emptyList();
 
     public String getAdditionalTestDataFile() {
         return additionalTestDataFile;
+    }
+
+    public String getAppPackage() {
+        return appPackage;
+    }
+
+    public void setAppPackage(String appPackage) {
+        this.appPackage = appPackage;
+    }
+
+    public String getBundleId() {
+        return bundleId;
+    }
+
+    public void setBundleId(String bundleId) {
+        this.bundleId = bundleId;
     }
 
     public void setAdditionalTestDataFile(String additionalTestDataFile) {
@@ -95,11 +84,23 @@ public class JSONTestCase extends JSONContainer {
     }
 
     public String getTestCaseId() {
-        return testCaseId;
+        return Objects.isNull(testCaseId) ? "" : testCaseId;
     }
 
     public void setTestCaseId(String testCaseId) {
         this.testCaseId = testCaseId;
+    }
+
+    public Map<String, String> getTestCaseIdMap() {
+        return Objects.isNull(testCaseIdMap) ? Collections.emptyMap() : testCaseIdMap;
+    }
+
+    @JsonAnySetter
+    public void setTestCaseIdMap(String key, String value) {
+        if (Objects.isNull(testCaseIdMap)) {
+            testCaseIdMap = new LinkedHashMap<>();
+        }
+        testCaseIdMap.put(key, value);
     }
 
     public String getRequirement() {
@@ -131,7 +132,7 @@ public class JSONTestCase extends JSONContainer {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = name.trim();
     }
 
     public List<String> getMeta() {
@@ -193,30 +194,6 @@ public class JSONTestCase extends JSONContainer {
         this.startURL = startURL;
     }
 
-    public String getPackage() {
-        return parentFolderName;
-    }
-
-    public void setPackage(String parentFolderName) {
-        this.parentFolderName = parentFolderName;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public List<String> getCoverage() {
-        return coverage;
-    }
-
-    public void setCoverage(List<String> coverage) {
-        this.coverage = coverage;
-    }
-
     public String getSeriesNumber() {
         return seriesNumber;
     }
@@ -249,12 +226,4 @@ public class JSONTestCase extends JSONContainer {
         this.feature = feature;
     }
 
-    public void addCoverage(String testCaseId) {
-        if (coverage.isEmpty()) {
-            coverage = new LinkedList<>();
-        }
-        if (!coverage.contains(testCaseId)) {
-            coverage.add(testCaseId);
-        }
-    }
 }

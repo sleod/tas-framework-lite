@@ -2,13 +2,11 @@ package ch.qa.testautomation.framework.rest.hpqc.connection;
 
 import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.logging.Screenshot;
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.core.component.TestRunResult;
+import jakarta.ws.rs.core.Response;
 
 import javax.swing.tree.DefaultMutableTreeNode;
-import jakarta.ws.rs.core.Response;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.*;
@@ -762,24 +760,19 @@ public class QCRestClient {
     private Response appendAttachment(int entityType, String entityId, String fileName, byte[] content) {
         if (content != null) {
             Response resp = qcConnector.appendAttachmentsToQCEntity(domain, project, entityId, entityType, fileName, content);
-            SystemLogger.log("INFO", "Attachment appened: " + resp.getStatusInfo().getReasonPhrase());
+            log("INFO", "Attachment appened: " + resp.getStatusInfo().getReasonPhrase());
             return resp;
         } else {
-            SystemLogger.log("INFO", "File Content is null, no Attachment appended.");
+            log("INFO", "File Content is null, no Attachment appended.");
             return null;
         }
     }
 
     private Response appendAttachment(int entityType, String id, File file) {
-        byte[] content = null;
         if (file.exists()) {
-            try {
-                SystemLogger.log("INFO", "Try to read File for Attachment: " + file.getAbsolutePath());
-                content = FileOperation.readFileToByteArray(file);
-            } catch (IOException ex) {
-                SystemLogger.error(ex);
-            }
-            SystemLogger.log("INFO", "Try to Upload Attachment: " + file.getName());
+            log("INFO", "Try to read File for Attachment: " + file.getAbsolutePath());
+            byte[] content = FileOperation.readFileToByteArray(file);
+            log("INFO", "Try to Upload Attachment: " + file.getName());
             return appendAttachment(entityType, id, file.getName(), content);
         } else {
             return null;
@@ -798,9 +791,8 @@ public class QCRestClient {
         String statusInfo = QCConstants.getReturnStatus(resp.getStatus());
         String entry = resp.readEntity(String.class);
         String message = MessageFormat.format(messagePattern, statusInfo);
-        SystemLogger.log("DEBUG", message + entry);
-        QCResponseMessage qcrm = new QCResponseMessage(getFirstEntityInResponse(entry), message, entry);
-        return qcrm;
+        log("DEBUG", message + entry);
+        return new QCResponseMessage(getFirstEntityInResponse(entry), message, entry);
     }
 
     private String spaceResolver(String nameForQuery) {
@@ -832,10 +824,10 @@ public class QCRestClient {
         steps.stream()
                 .map((entry) -> QCEntityBuilder.buildDesignStep(entry[0], entry[1], testcaseId, stepOrder++))
                 .map(this::createEntityIntoQC).forEachOrdered((resp) -> {
-            String pattern = "Create Step: " + stepOrder + " -> {0}\n";
-            String resText = buildResultReport(resp, pattern).getMessage();
-            results.add(resText);
-        });
+                    String pattern = "Create Step: " + stepOrder + " -> {0}\n";
+                    String resText = buildResultReport(resp, pattern).getMessage();
+                    results.add(resText);
+                });
         stepOrder = 0;
         if (results.isEmpty()) {
             results.add("no new Steps created.");

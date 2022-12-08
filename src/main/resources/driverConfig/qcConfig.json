@@ -1,7 +1,7 @@
 {
-  "host": "https://ad.ch:8080/qcbin",
+  "host": "",
   "domain": "DEFAULT",
-  "project": "TEST_Automation_S2_2018",
+  "project": "",
   "testplan.rootfolder": "Subject/Trash",
   "testlab.rootfolder": "Root/Automation Framework TEST",
   "user": "",

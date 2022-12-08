@@ -2,14 +2,16 @@ package ch.qa.testautomation.framework.core.component;
 
 import ch.qa.testautomation.framework.common.enumerations.TestStatus;
 import ch.qa.testautomation.framework.common.logging.Screenshot;
-import ch.qa.testautomation.framework.common.utils.TimeUtils;
+import ch.qa.testautomation.framework.common.utils.DateTimeUtils;
+import ch.qa.testautomation.framework.exception.ApollonBaseException;
+import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
 
 import java.util.LinkedList;
 import java.util.List;
 
 public class TestStepResult {
 
-    private TestStatus testStatus;
+    private TestStatus testStatus = TestStatus.NO_RUN;
     private TestFailure testFailure;
     private long startTime;
     private long stopTime;
@@ -19,12 +21,10 @@ public class TestStepResult {
     private final int stepOrder;
     private String testMethod;
     private final StringBuilder logs = new StringBuilder();
-    private final String testCaseObjectId;
 
-    public TestStepResult(String name, int stepOrder, String testCaseObjectId) {
+    public TestStepResult(String name, int stepOrder) {
         this.name = name;
         this.stepOrder = stepOrder;
-        this.testCaseObjectId = testCaseObjectId;
     }
 
     public StringBuilder getLogs() {
@@ -54,7 +54,9 @@ public class TestStepResult {
     public TestFailure getTestFailure() {
         if (testFailure != null) {
             return testFailure;
-        } else return new TestFailure(new RuntimeException("Test Failure unknown!"));
+        } else {
+            return new TestFailure(new ApollonBaseException(ApollonErrorKeys.TEST_FAILURE_UNKNOWN));
+        }
     }
 
     public void setTestFailure(TestFailure testFailure) {
@@ -70,11 +72,11 @@ public class TestStepResult {
     }
 
     public void startNow() {
-        startTime = TimeUtils.getNowMilli();
+        startTime = DateTimeUtils.getNowMilli();
     }
 
     public void stopNow() {
-        stopTime = TimeUtils.getNowMilli();
+        stopTime = DateTimeUtils.getNowMilli();
     }
 
     public String getActual() {
@@ -97,10 +99,6 @@ public class TestStepResult {
         this.name = name;
     }
 
-    public String getStepId() {
-        return testCaseObjectId + name;
-    }
-
     public int getStepOrder() {
         return stepOrder;
     }
@@ -111,5 +109,9 @@ public class TestStepResult {
 
     public synchronized void logInfo(String line) {
         logs.append(line).append("\n");
+    }
+
+    public String getStepId() {
+        return getStepOrder() + getName();
     }
 }

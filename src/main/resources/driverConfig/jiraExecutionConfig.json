@@ -1,11 +1,11 @@
 {
   "runName": "Automated Test Run with ...",
   "testPlanId": "",
-  "testExecutionId": "",
-  "fullRun": true,
+  "testExecutionId": "TEST-95",
+  "projectKey": "BANKING",
+  "fullRun": false,
   "failureRetest": false,
   "selectedTestCaseIds": [
-    "TEST-xxx",
-    "TEST-yyy"
+    "TEST-30"
   ]
 }

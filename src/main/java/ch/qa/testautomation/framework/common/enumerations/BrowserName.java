@@ -4,7 +4,7 @@ package ch.qa.testautomation.framework.common.enumerations;
  * browser name for remote driver capability
  */
 public enum BrowserName {
-    FIREFOX("firefox"), CHROME("chrome"), IE("internetExplorer"), ANDROID("android"), EDGE("edge"), IPAD("ipad"), IPHONE("iphone"), SAFARI("safari");
+    CHROME("chrome"), EDGE("edge");
 
     private final String browserName;
 
@@ -12,7 +12,8 @@ public enum BrowserName {
         this.browserName = browserName;
     }
 
-    public String value() {
+    public String getName() {
         return browserName;
     }
+
 }

@@ -1,21 +1,16 @@
 package ch.qa.testautomation.framework.core.component;
 
 
+import org.junit.jupiter.api.DynamicContainer;
+
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Stream;
 
-public class SequenceCaseRunner implements Runnable {
+public class SequenceCaseRunner {
 
     private final List<TestCaseObject> testCaseObjects;
-
-    public SequenceCaseRunner(List<TestCaseObject> testCaseObjects) {
-        if (testCaseObjects != null && !testCaseObjects.isEmpty()) {
-            this.testCaseObjects = testCaseObjects;
-        } else {
-            this.testCaseObjects = new LinkedList<>();
-        }
-    }
 
     public SequenceCaseRunner() {
         this.testCaseObjects = new LinkedList<>();
@@ -31,14 +26,11 @@ public class SequenceCaseRunner implements Runnable {
         return testCaseObjects.size();
     }
 
-    @Override
-    public void run() {
-        testCaseObjects.forEach(TestCaseObject::run);
-    }
-
-
-    public List<TestCaseObject> getAllCases() {
+    public Stream<DynamicContainer> getAllCases() {
         Collections.sort(testCaseObjects);
-        return testCaseObjects;
+        return testCaseObjects.stream().map(testCaseObject -> {
+            testCaseObject.setName(testCaseObject.getName() + " - with Order - " + testCaseObject.getSeriesNumber());
+            return DynamicContainer.dynamicContainer(testCaseObject.prepareAndGetDisplayName(), testCaseObject.getTestSteps());
+        });
     }
 }

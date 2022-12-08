@@ -1,9 +1,10 @@
 package ch.qa.testautomation.framework.common.utils;
 
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
+import ch.qa.testautomation.framework.exception.ApollonBaseException;
+import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.MultiFormatReader;
-import com.google.zxing.Result;
+import com.google.zxing.NotFoundException;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 
@@ -15,41 +16,36 @@ import java.util.Base64;
 
 /**
  * @author UEX13996
- *
+ * <p>
  * Utils for manipulating and reading of generated QR codes.
- *
  */
 
 public class QrCodeUtils {
 
     /**
-     * @param filePath
+     * @param filePath filepath
      * @return String QR code
      * Read QR Code from image like .jpg, png... and return it as string
      */
-    public static String readQrCodeFromImage(String filePath){
-        Result qrCodeResult = null;
+    public static String readQrCodeFromImage(String filePath) {
         try {
             BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(new BufferedImageLuminanceSource
                     (ImageIO.read(new FileInputStream(filePath)))));
-             qrCodeResult = new MultiFormatReader().decode(binaryBitmap);
-
-        }catch (Exception e){
-           SystemLogger.error(e);
+            return new MultiFormatReader().decode(binaryBitmap).getText();
+        } catch (NotFoundException | IOException ex) {
+            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_GENERAL, ex, "reading QR Code with image " + filePath);
         }
-        return qrCodeResult.getText();    }
+    }
 
-    /**S
-     * @param fileOutputPath
-     * @param base64EncodedPicture
+    /**
+     * S
      *
-     * Create an qr code image from base64 encoded picture String. Example: MQ MEssages that contains the picture in jpg format
-     *
+     * @param fileOutputPath       output path
+     * @param base64EncodedPicture Create a qr code image from base64 encoded picture String. Example: MQ MEssages that contains the picture in jpg format
      */
-    public static void createQrCodeImageFromEncodedString(String fileOutputPath , String base64EncodedPicture ){
+    public static void createQrCodeImageFromEncodedString(String fileOutputPath, String base64EncodedPicture) {
         byte[] imageByteArray = Base64.getDecoder().decode(base64EncodedPicture);
         FileOutputStream imageOutFile = null;
-
         try {
             imageOutFile = new FileOutputStream(fileOutputPath);
             imageOutFile.write(imageByteArray);
@@ -57,12 +53,11 @@ public class QrCodeUtils {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        if (imageOutFile != null){
+        if (imageOutFile != null) {
             try {
                 imageOutFile.close();
-            } catch (IOException e) {
-                SystemLogger.error(e);
+            } catch (IOException ex) {
+                throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_GENERAL, ex, "writing file: " + fileOutputPath);
             }
         }
     }

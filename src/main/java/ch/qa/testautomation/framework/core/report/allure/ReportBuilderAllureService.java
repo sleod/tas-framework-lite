@@ -3,18 +3,19 @@ package ch.qa.testautomation.framework.core.report.allure;
 import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
+import ch.qa.testautomation.framework.exception.ApollonBaseException;
 import ch.qa.testautomation.framework.rest.allure.connection.AllureRestClient;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Builder um Resultate dem Allure Web Service zu senden
@@ -22,33 +23,8 @@ import java.util.UUID;
 public class ReportBuilderAllureService {
 
     public static final String ALLURE_SERVICE_CONFIG = "allureServiceConfig";
-    public static final String CONTENT_BASE_64_NODE = "content_base64";
-    public static final String FILE_NAME_NODE = "file_name";
-    public static final String RESULTS_NODE = "results";
-    public static final String resultsDir = PropertyResolver.getAllureResultsDir() + "upload/";
+    public static final String resultsDir = PropertyResolver.getAllureResultsDir() + "upload_" + Thread.currentThread().getName() + "/";
     private AllureRestClient restClient;
-
-    /**
-     * Erzeugt den Report auf dem Allure Webservice
-     */
-    public void generateAllureReportOnService() {
-
-        try {
-            new File(resultsDir).mkdirs();
-
-            modifyResultFiles();
-
-            restClient = initAllureRestClient();
-
-            restClient.uploadAllureResultFiles();
-
-            restClient.generateReportOnService();
-
-        } finally {
-            FileOperation.deleteFolder(resultsDir);
-            closeClient();
-        }
-    }
 
     public void uploadAllureResults() {
         try {
@@ -84,9 +60,12 @@ public class ReportBuilderAllureService {
     }
 
     protected AllureRestClient initAllureRestClient() {
-
-        JSONObject config = JSONContainerFactory.getConfig(PropertyResolver.getReportServiceRunnerConfigFile());
-        return new AllureRestClient((JSONObject) config.get(ALLURE_SERVICE_CONFIG));
+        if (Objects.isNull(restClient)) {
+            JsonNode config = JSONContainerFactory.getConfig(PropertyResolver.getReportServiceRunnerConfigFile());
+            Map<String, String> result = new ObjectMapper().convertValue(config.get(ALLURE_SERVICE_CONFIG), new TypeReference<>() {
+            });
+            return new AllureRestClient(result);
+        } else return restClient;
     }
 
     /**
@@ -94,30 +73,23 @@ public class ReportBuilderAllureService {
      * dann die dazugehoerigen Attachments Files
      */
     protected void modifyResultFiles() {
-
         Map<String, String> changedAttachmentSourcePath;
-
-        try {
-            //List<String> resultFilesPaths = JSONContainerFactory.getAllureResults();
-            //change: list only result files of current run
-            List<Path> resultFilesPaths = JSONContainerFactory.listCurrentAllureResults();
-            for (Path resultFilePath : resultFilesPaths) {
-                JSONObject allureResultObject = JSONContainerFactory.getAllureResultObject(resultFilePath);
-                changedAttachmentSourcePath = changeAttachmentsPathInResultFile(allureResultObject);
-                //Geänderte Result File mit neuen Pfaden im Ordner allure-result ueberschreiben
-                String newFilePath = resultsDir + resultFilePath.getFileName();
-                FileOperation.writeBytesToFile(allureResultObject.toString().getBytes(), new File(newFilePath));
-                collectAttachmentsFiles(changedAttachmentSourcePath);
-                changedAttachmentSourcePath.clear();
-            }
-
-        } catch (IOException e) {
-            throw new RuntimeException(e.getMessage());
+        //change: list only result files of current run
+        List<Path> resultFilesPaths = JSONContainerFactory.listCurrentAllureResults();
+        for (Path resultFilePath : resultFilesPaths) {
+            JsonNode allureResultObject = JSONContainerFactory.getAllureResultObject(resultFilePath);
+            changedAttachmentSourcePath = changeAttachmentsPathInResultFile(allureResultObject);
+            //Geänderte Result File mit neuen Pfaden im Ordner allure-result überschreiben
+            String newFilePath = resultsDir + resultFilePath.getFileName();
+            FileOperation.writeStringToFile(allureResultObject.toString(), newFilePath);
+            collectAttachmentsFiles(changedAttachmentSourcePath);
+            changedAttachmentSourcePath.clear();
         }
+
     }
 
     /**
-     * Kopiert die benoetigten Attachments Files und benennt sie um
+     * Kopiert die benötigten Attachments Files und benennt sie um
      *
      * @param changedSourcePath changed source path
      */
@@ -127,7 +99,7 @@ public class ReportBuilderAllureService {
             try {
                 FileUtils.copyFile(FileUtils.getFile(sourcePath), FileUtils.getFile(resultsDir + targetPath));
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new ApollonBaseException(e);
             }
         });
     }
@@ -138,44 +110,43 @@ public class ReportBuilderAllureService {
      *
      * @param allureResultObject allure result object
      */
-    protected Map<String, String> changeAttachmentsPathInResultFile(JSONObject allureResultObject) {
+    protected Map<String, String> changeAttachmentsPathInResultFile(JsonNode allureResultObject) {
 
         Map<String, String> changedSourcePathList = new HashMap<>();
 
-        //Ueber den Inhalt der aeusseren attachments iterieren
+        //über den Inhalt der äusseren attachments iterieren
         replaceSourcePathWithUUID(changedSourcePathList, allureResultObject);
 
-        //Ueber den Inhalt in den Steps iterieren
-        JSONArray steps = (JSONArray) allureResultObject.get("steps");
-        for (Object stepObject : steps) {
+        //über den Inhalt in den Steps iterieren
+        ArrayNode steps = (ArrayNode) allureResultObject.get("steps");
+        for (JsonNode stepObject : steps) {
 
-            JSONObject step = (JSONObject) stepObject;
+            ObjectNode step = (ObjectNode) stepObject;
             replaceSourcePathWithUUID(changedSourcePathList, step);
         }
         return changedSourcePathList;
     }
 
     /**
-     * Such im JSON Object nach attachments Nodes und aendert deren
+     * Such im JSON Object nach attachments Nodes und ändert deren
      * source path durch eine UUID
      *
-     * @param changedSourcePath List welche Pfade geaendert wurden
-     * @param jsonObject        Inhalt des -result.json
+     * @param changedSourcePath List welche Pfade geändert wurden
+     * @param jsonObject        Inhalt des -result.json welche verändert wird
      */
-    protected void replaceSourcePathWithUUID(Map<String, String> changedSourcePath, JSONObject jsonObject) {
+    public void replaceSourcePathWithUUID(Map<String, String> changedSourcePath, JsonNode jsonObject) {
 
-        String attachmentNode = "attachments";
         String sourceNode = "source";
 
-        JSONArray attachments = (JSONArray) jsonObject.get(attachmentNode);
+        ArrayNode attachments = (ArrayNode) jsonObject.get("attachments");
 
-        for (Object attachmentObject : attachments) {
+        for (JsonNode attachmentObject : attachments) {
 
-            JSONObject attachment = (JSONObject) attachmentObject;
-            String sourceValue = (String) attachment.get(sourceNode);
+            ObjectNode attachment = (ObjectNode) attachmentObject;
+            String sourceValue = attachment.get(sourceNode).asText();
 
-            if (!sourceValue.isEmpty() && !FileOperation.isUUID(sourceValue.substring(0, sourceValue.lastIndexOf("-")))) {
-
+            //Prüfen, ob bereits eine UUID-attachment. existiert
+            if (!sourceValue.isEmpty() && !FileOperation.startWithUUID(sourceValue)) {
                 String extension = FileOperation.getFileNameExtension(sourceValue);
                 String uuidFilePath = UUID.randomUUID() + "-attachment." + extension;
                 attachment.put(sourceNode, uuidFilePath);

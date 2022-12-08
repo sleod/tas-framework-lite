@@ -1,221 +1,139 @@
 package ch.qa.testautomation.framework.core.component;
 
+import ch.qa.testautomation.framework.common.logging.SystemLogger;
+import ch.qa.testautomation.framework.configuration.ApollonConfiguration;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.framework.core.report.ReportBuilder;
-import ch.qa.testautomation.framework.core.runner.JUnitReportingRunner;
 import com.codeborne.selenide.Configuration;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.*;
 
 import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static ch.qa.testautomation.framework.common.logging.SystemLogger.*;
-import static ch.qa.testautomation.framework.core.report.ReportBuilder.generateAllureHTMLReport;
-import static ch.qa.testautomation.framework.core.report.ReportBuilder.generateMavenTestXMLReport;
+import static ch.qa.testautomation.framework.configuration.PropertyResolver.*;
+import static ch.qa.testautomation.framework.core.component.TestRunManager.*;
+import static java.util.Arrays.asList;
 
-@RunWith(JUnitReportingRunner.class)
 public abstract class PerformableTestCases {
 
-    private static List<TestCaseObject> testCaseObjects;
-    private static Map<String, SequenceCaseRunner> sequenceCaseRunners;
+    private List<TestCaseObject> testCaseObjects = Collections.emptyList();
+    private Map<String, SequenceCaseRunner> sequenceCaseRunners = Collections.emptyMap();
+
+    private final ApollonConfiguration configuration = new ApollonConfiguration();
 
     public PerformableTestCases() {
         try {
-            TestRunManager.retrieveResources(getTestRunPropertiesPath());
-            TestRunManager.setPerformer(this);
-            TestRunManager.cleanResultsByPresent();
-            TestRunManager.initTestCases(TestRunManager.filePaths(getFileBaseDir(), includeFilePatterns(), excludeFilePatterns()), getMetaFilters());
-            sortSequenceTestCases();
-            TestRunManager.loadGlobalTestData();
+            loadTestRunProperties(getTestRunPropertiesPath());
+            setUpFramework();
+            retrieveResources();
+            healthCheck();//health check
+            setPerformer(this);
+            cleanResultsByPresentOnServer();
+            testCaseObjects = initTestCases(findAllFilePathOfTestCaseFile(includeFilePatterns(), excludeFilePatterns()), getMetaFilters());
+            loadGlobalTestData();
             setUpSelenide();
+            trace("Test Run contains Test Cases: " + testCaseObjects.size());
         } catch (Throwable throwable) {
             error(throwable);
-            info("Test Case Initialization failed. Exit.. Please check the base dir of files and package of implementation of Test Object.");
         }
     }
 
-    protected void sortSequenceTestCases() {
-        if (sequenceCaseRunners != null && !sequenceCaseRunners.isEmpty()) {
-            int seqNumber = 0;
-            for (Map.Entry<String, SequenceCaseRunner> entry : sequenceCaseRunners.entrySet()) {
-                SequenceCaseRunner value = entry.getValue();
-                List<TestCaseObject> valueList = value.getAllCases();
-                seqNumber++;
-                for (int i = 0; i < valueList.size(); i++) {
-                    TestCaseObject testCaseObject = valueList.get(i);
-                    testCaseObject.setName(testCaseObject.getTestCase().getName() + " - Sequence " + seqNumber + " variante " + (i + 1));
-                }
-            }
-        }
+    public List<TestCaseObject> getTestCaseObjects() {
+        return testCaseObjects;
     }
 
     /**
      * standard BeforeClass that will be used by jUnit framework
      */
-    @BeforeClass
+    @BeforeAll
     public static void beforeTests() {
         info("Starting Test Run...");
-        //environment.properties file
-        ReportBuilder.generateEnvironmentProperties();
-        //executor.json file
+        //executor.json file for report and start count run number
         JSONContainerFactory.generateExecutorJSON();
     }
 
     /**
      * the main entrance of test run which using junit @Test annotation
      */
-    @Test
-    public void run() {
-        if (!PropertyResolver.isMultiThreadingEnabled()) {
-            //first served: single cases
-            testCaseObjects.stream().filter(testCaseObject -> testCaseObject.getSeriesNumber() == null
-                    || testCaseObject.getSeriesNumber().isEmpty()).forEach(TestCaseObject::run);
-            //sequenced cases
-            if (!getSequenceCaseRunners().isEmpty()) {
-                getSequenceCaseRunners().values().forEach(SequenceCaseRunner::run);
-            }
-        } else {
-            ExecutorService executor = Executors.newFixedThreadPool(PropertyResolver.getExecutionThreads());
-            try {
-                //first served: single cases
-                testCaseObjects.stream().filter(testCaseObject -> testCaseObject.getSeriesNumber() == null
-                        || testCaseObject.getSeriesNumber().isEmpty()).forEach(executor::submit);
-                //sequenced cases
-                if (!getSequenceCaseRunners().isEmpty()) {
-                    getSequenceCaseRunners().values().forEach(executor::submit);
-                }
-                executor.awaitTermination(10, TimeUnit.SECONDS);
-                executor.shutdown();
-                while (!executor.isTerminated()) {
-                    executor.awaitTermination(5, TimeUnit.SECONDS);
-                }
-            } catch (InterruptedException ex) {
-                error(ex);
-                warn("Execution of tasks interrupted!");
-            } finally {
-                if (!executor.isTerminated()) {
-                    warn("Non-finished tasks will be cancelled!");
-                }
-                executor.shutdownNow();
-                trace("Execution service shutdown finished");
-            }
-        }
+    @TestFactory
+    @DisplayName("Execute Single Test Cases...")
+    public Stream<DynamicContainer> runTCs2() {
+        //single test cases
+        return testCaseObjects.stream()
+                .filter(testCaseObject -> testCaseObject.getSeriesNumber() == null || testCaseObject.getSeriesNumber().isEmpty())
+                .map(testCaseObject -> DynamicContainer.dynamicContainer(testCaseObject.prepareAndGetDisplayName(), testCaseObject.getTestSteps()));
     }
 
     /**
-     * count test cases
-     *
-     * @return number of test cases
+     * the main entrance of test run which using junit @Test annotation
      */
-    public int countTestCases() {
-        return getTestCases().size();
-    }
-
-    //getter
-    public List<TestCaseObject> getTestCases() {
-        if (testCaseObjects == null) {
-            return Collections.emptyList();
+    @TestFactory
+    @DisplayName("Execute Test Cases with Serie Number...")
+    public Stream<DynamicContainer> runTCs1() {
+        //sequenced test cases
+        if (!sequenceCaseRunners.isEmpty()) {
+            Stream<DynamicContainer> seqTestCases = Stream.<DynamicContainer>builder().build();
+            for (SequenceCaseRunner sequenceCaseRunner : sequenceCaseRunners.values()) {
+                seqTestCases = Stream.concat(seqTestCases, sequenceCaseRunner.getAllCases());
+            }
+            return seqTestCases;
+        } else {
+            SystemLogger.info("No Test Cases with Serie Number to run.");
+            return Stream.empty();
         }
-        return testCaseObjects;
-    }
 
-    public void setTestCaseObjects(List<TestCaseObject> testCaseObjects) {
-        PerformableTestCases.testCaseObjects = testCaseObjects;
-    }
-
-    public Map<String, SequenceCaseRunner> getSequenceCaseRunners() {
-        if (sequenceCaseRunners == null) {
-            sequenceCaseRunners = new LinkedHashMap<>();
-        }
-        return sequenceCaseRunners;
     }
 
     public void addSequenceCaseRunner(String key, TestCaseObject testCaseObject) {
         trace("Add sequenced test case with key: " + key);
-        getSequenceCaseRunners().putIfAbsent(key, new SequenceCaseRunner());
-        getSequenceCaseRunners().get(key).addTestCase(testCaseObject);
-    }
-
-    /**
-     * method for inject test step monitor
-     *
-     * @param testStepMonitor test step monitor
-     * @return this object
-     */
-    public PerformableTestCases useTestStepMonitor(TestStepMonitor testStepMonitor) {
-        testCaseObjects.forEach(testCaseObject -> testCaseObject.useTestStepMonitor(testStepMonitor));
-        return this;
-    }
-
-    /**
-     * closing test run, close drivers and generate reports
-     */
-    @AfterClass
-    public static void afterTests() {
-        endingTests();
-    }
-
-    /**
-     * closing test run, close drivers and generate reports
-     */
-
-    protected static void endingTests() {
-        DriverManager.closeDriver();
-        if (!testCaseObjects.isEmpty() && !testCaseObjects.get(0).getTestRunResult().getStepResults().isEmpty()) {
-            TestRunManager.generateReportOnService();
-            generateAllureHTMLReport();
-            generateMavenTestXMLReport(testCaseObjects);
-            if (PropertyResolver.isStoreResultsToDBEnabled()) {
-                trace("Storage Result into DB...");
-                TestRunManager.storeResultsToDB(testCaseObjects);
-            }
-        } else {
-            throw new RuntimeException("No test case found with meta filter or not selected!");
+        if (sequenceCaseRunners.isEmpty()) {
+            sequenceCaseRunners = new HashMap<>();
         }
+        sequenceCaseRunners.putIfAbsent(key, new SequenceCaseRunner());
+        sequenceCaseRunners.get(key).addTestCase(testCaseObject);
+    }
+
+    /**
+     * closing test run, close drivers and generate reports
+     */
+    @AfterAll
+    public static void afterTests() {
         info("Ending Test Run...");
+        //finish afterTest for last test case
+        TestStepMonitor.afterAllSteps();
+        //generate allure html report on server
+        //HTML Report generation by remote parallel exec. must be handled after all threads done
+        ReportBuilder reportBuilder = new ReportBuilder();
+        if (PropertyResolver.isAllureReportServiceEnabled()) {
+            TestRunManager.generateReportOnService();
+        }
+        //generate allure html report locally
+        reportBuilder.generateAllureHTMLReport();
+        DriverManager.cleanUp();
+        reportBuilder.generateMavenTestXMLReport();
+        info("Test Run is finished.");
     }
 
-    /**
-     * Define the test case file format
-     * Can be overridden by subclasses
-     *
-     * @return file format suffix
-     */
-    protected String getTestCaseFileFormat() {
-        return ".json";
-    }
-
-    /**
-     * Define the relative path from project's resources root directory to the directory where the test case files should be searched for inside.
-     * Can be overridden by subclasses to use different base directory.
-     * <p>
-     *
-     * @return the relative base path, is not allowed to startNow with "/" and not to end with "/".
-     */
-    protected String getFileBaseDir() {
-        return "testCases";
+    public ApollonConfiguration getApollonConfiguration() {
+        return configuration;
     }
 
     /**
      * Override to define which patterns of test cases to run.
      * Can be overridden by subclasses to specify test case file names
      * <p>
-     * Default includes all test case files in base dir and all sub directories.
+     * Default includes all test case files in base dir and all subdirectories.
      *
      * @return the patterns of test case files to include
      */
     protected List<String> includeFilePatterns() {
-        return Collections.emptyList();
+        return asList("*" + getTestCaseFileExtension(), "**/*" + getTestCaseFileExtension());
     }
 
     /**
@@ -239,7 +157,7 @@ public abstract class PerformableTestCases {
      * @return the patterns of test case files to exclude
      */
     protected List<String> getMetaFilters() {
-        return Collections.emptyList();
+        return getMetaFilter();
     }
 
     /**
@@ -248,16 +166,16 @@ public abstract class PerformableTestCases {
      * @return path of property file
      */
     protected String getTestRunPropertiesPath() {
-        return "properties/DefaultTestRunProperties.properties";
+        return "";
     }
 
     /**
      * override to set up selenide
      */
     protected void setUpSelenide() {
-        Configuration.reportsFolder = StringUtils.chop(PropertyResolver.getDefaultTestCaseReportLocation());
+        Configuration.reportsFolder = StringUtils.chop(PropertyResolver.getTestCaseReportLocation());
         Configuration.screenshots = false;
-        Configuration.timeout = PropertyResolver.getSelenideTimeout();
+        Configuration.timeout = PropertyResolver.getDriverWaitTimeout();
         Configuration.savePageSource = false;
     }
 
@@ -277,5 +195,18 @@ public abstract class PerformableTestCases {
      */
     protected Map<String, String> getCSVTestDataExclusionFilter() {
         return Collections.emptyMap();
+    }
+
+    /**
+     * Set up Framework using FrameworkConfiguration
+     */
+    protected void setUpFramework() {
+        getApollonConfiguration().setTestcaseFileExtension(".tas");
+    }
+
+    private void cleanResultsByPresentOnServer() {
+        if (PropertyResolver.isCleanUpResults() && PropertyResolver.isAllureReportServiceEnabled()) {
+            cleanResultsByPresent();
+        }
     }
 }
