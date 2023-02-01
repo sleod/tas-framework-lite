@@ -88,7 +88,6 @@ public class ApollonConfiguration {
 
     /**
      * set external driver resource location, where driver can be downloaded
-     * default set to git from TFS: "Git - RCH Framework Solution Items/Java/DriverVersions/"
      * together with resource project: "ap.testtools"
      * <p>
      * Variant: can be set like: "\\\\shareFolder\\projectXXX\\..." for network share folder

@@ -348,7 +348,7 @@ public class PropertyResolver {
     }
 
     public static String getDriverResourceLocation() {
-        return getProperty(RESOURCE_DRIVER_LOCATION.key(), "Git - RCH Framework Solution Items/Java/DriverVersions/");
+        return getProperty(RESOURCE_DRIVER_LOCATION.key(), "");
     }
 
     public static String getResourceTFSProject() {
