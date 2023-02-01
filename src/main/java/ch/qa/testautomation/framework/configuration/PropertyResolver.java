@@ -52,7 +52,7 @@ public class PropertyResolver {
             byte[] context = Base64.getDecoder().decode(encoded);
             return new String(context);
         } else {
-            warn("Given String is null or not suitable for base64 decode! Original String will be used! -> " + encoded);
+            debug("Given String is null or not suitable for base64 decode! Original String will be used!");
             return encoded;
         }
     }
@@ -230,7 +230,7 @@ public class PropertyResolver {
         return getProperty(RUN_STOP_ON_ERROR.key(), "true").equalsIgnoreCase("true");
     }
 
-    public static boolean isPrintTrace() {
+    public static boolean isPrintDebugTrace() {
         return getProperty(DEBUG_TRACE_OUTPUT.key(), "false").equalsIgnoreCase("true");
     }
 
@@ -456,6 +456,9 @@ public class PropertyResolver {
         return getProperty(OPEN_PDF_IN_SYSTEM_READER.key(), "false").equalsIgnoreCase("true");
     }
 
+    public static boolean isSimpleStringParameterAllowed() {
+        return getProperty(SIMPLE_STRING_PARAMETER_ALLOWED.key(), "false").equalsIgnoreCase("true");
+    }
 
     public static void healthCheck() {
         info("Check setting conflict ... ");
@@ -498,4 +501,5 @@ public class PropertyResolver {
             throw new ApollonBaseException(ApollonErrorKeys.PROPERTIES_HAS_CONFLICT);
         }
     }
+
 }

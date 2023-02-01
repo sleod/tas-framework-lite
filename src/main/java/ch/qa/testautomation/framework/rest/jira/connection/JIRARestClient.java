@@ -8,7 +8,7 @@ import ch.qa.testautomation.framework.core.json.container.JSONRunnerConfig;
 import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.framework.exception.ApollonBaseException;
 import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
-import ch.qa.testautomation.framework.rest.TFS.connection.QUERY_OPTION;
+import ch.qa.testautomation.framework.rest.base.QUERY_OPTION;
 import ch.qa.testautomation.framework.rest.base.RestClientBase;
 import ch.qa.testautomation.framework.rest.base.RestDriverBase;
 import com.fasterxml.jackson.databind.JsonNode;

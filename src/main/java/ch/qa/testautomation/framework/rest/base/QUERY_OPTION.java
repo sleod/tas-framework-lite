@@ -1,4 +1,4 @@
-package ch.qa.testautomation.framework.rest.TFS.connection;
+package ch.qa.testautomation.framework.rest.base;
 
 public enum QUERY_OPTION {
     FAILED_ONLY("failed_only"), SUCCESS_ONLY("success_only"), EXCEPT_SUCCESS("except_success"), ALL("all");

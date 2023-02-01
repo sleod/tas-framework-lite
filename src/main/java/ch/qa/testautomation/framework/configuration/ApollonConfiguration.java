@@ -228,7 +228,7 @@ public class ApollonConfiguration {
      *
      * @param value boolean, default false
      */
-    public ApollonConfiguration setIsTraceOutput(boolean value) {
+    public ApollonConfiguration setIsPrintDebugOutput(boolean value) {
         PropertyResolver.setProperty(DEBUG_TRACE_OUTPUT.key(), String.valueOf(value));
         return this;
     }
@@ -526,6 +526,16 @@ public class ApollonConfiguration {
      */
     public ApollonConfiguration setIsOpenPDFInSystemReader(boolean value) {
         PropertyResolver.setProperty(OPEN_PDF_IN_SYSTEM_READER.key(), String.valueOf(value));
+        return this;
+    }
+
+    /**
+     * toggle if open pdf file in system reader after download
+     *
+     * @param value boolean, default false
+     */
+    public ApollonConfiguration setIsSimpleStringParameterAllowed(boolean value) {
+        PropertyResolver.setProperty(SIMPLE_STRING_PARAMETER_ALLOWED.key(), String.valueOf(value));
         return this;
     }
 }

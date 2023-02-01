@@ -6,6 +6,7 @@
   "properties": {
     "meta": {
       "type": "array",
+      "description": "Meta Filter for Test Case Selection",
       "items": {
         "uniqueItems": true,
         "type": "string"
@@ -13,7 +14,8 @@
     },
     "name": {
       "type": "string",
-      "description": "Test Case Name"
+      "description": "Test Case Name. Validated with folder name pattern.",
+      "pattern": "^[^\\s^\\x00-\\x1f\\\\?*:\"\";<>|\\/.][^\\x00-\\x1f\\\\?*:\"\";<>|\\/]*[^\\s^\\x00-\\x1f\\\\?*:\"\";<>|\\/.]+$"
     },
     "type": {
       "type": "string",
@@ -35,7 +37,12 @@
     },
     "source": {
       "type": "string",
-      "description": "optional: where the test case originally stored."
+      "description": "where the test case originally stored.",
+      "enum": [
+        "TFS",
+        "AzureDevOps",
+        "JIRA"
+      ]
     },
     "testCaseId": {
       "type": "string",
@@ -92,7 +99,7 @@
     },
     "appPackage": {
       "type": "string",
-      "description": "Start point of Android app for mobile testing.",
+      "description": "(Android only) Start point of Android app for mobile testing.",
       "examples": [
         "xxx.xxxx.google..."
       ]
@@ -106,7 +113,7 @@
     },
     "activity": {
       "type": "string",
-      "description": "Start point of android app for mobile testing.",
+      "description": "(Android only) Start point of android app for mobile testing.",
       "examples": [
         "xxx.xxx.xxx.xxx.twint..."
       ]
@@ -191,20 +198,15 @@
           "testObject"
         ]
       }
-    },
-    "required": [
-      "meta",
-      "name",
-      "type",
-      "description",
-      "source",
-      "testCaseId",
-      "requirement",
-      "reference",
-      "screenshotLevel",
-      "testDataRef",
-      "startURL",
-      "steps"
-    ]
-  }
+    }
+  },
+  "required": [
+    "meta",
+    "name",
+    "type",
+    "description",
+    "screenshotLevel",
+    "testDataRef",
+    "steps"
+  ]
 }

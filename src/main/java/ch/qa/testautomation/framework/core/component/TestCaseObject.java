@@ -264,9 +264,6 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
         if (getTestCaseId().isEmpty() && !getTestCaseIdMap().isEmpty() && !DriverManager.getCurrentPlatform().isEmpty()) {
             setTestCaseId(getTestCaseIdMap().get(DriverManager.getCurrentPlatform()));
         }
-        if (PropertyResolver.isTFSSyncEnabled()) {
-            TestRunManager.tfsFeedback(Collections.singletonList(this));
-        }
         if (PropertyResolver.isJIRASyncEnabled()) {
             TestRunManager.jiraFeedback(Collections.singletonList(this));
         }
@@ -298,7 +295,7 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
             DriverManager.setCurrentPlatform("");
             TestRunManager.loadDriver(getTestCase(), getName());
         } catch (Throwable throwable) {
-            SystemLogger.error(throwable);
+            SystemLogger.errorAndStop(throwable);
         }
         if (shouldRestoreSession) {
             TestRunManager.restoreSessions();

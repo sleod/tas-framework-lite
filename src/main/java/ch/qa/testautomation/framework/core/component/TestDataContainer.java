@@ -163,26 +163,32 @@ public class TestDataContainer {
     }
 
     private Object getTestDataInJSON(String key, JsonNode storage) {
-        if (key.contains(".")) {
-            String[] layers = key.split("\\.");
-            JsonNode current = storage.get(layers[0]);
-            for (int index = 1; index < layers.length - 1; index++) {
+        if (storage.has(key)) {
+            return storage.get(key);
+        }else if(key.startsWith("'") && key.endsWith("'")){
+            return key.replace("'", "");
+        }
+        else {
+            if (key.contains(".")) {
+                String[] layers = key.split("\\.");
+                JsonNode current = storage.get(layers[0]);
+                for (int index = 1; index < layers.length - 1; index++) {
+                    if (current instanceof ObjectNode) {
+                        current = current.get(layers[index]);
+                    } else {
+                        throw new ApollonBaseException(ApollonErrorKeys.TEST_DATA_PARAMETER_NOT_FOUND, key);
+                    }
+                }
                 if (current instanceof ObjectNode) {
-                    current = current.get(layers[index]);
+                    return current.get(layers[layers.length - 1]);
+                } else if (current instanceof ArrayNode && key.endsWith(".values")) {
+                    return current;
                 } else {
                     throw new ApollonBaseException(ApollonErrorKeys.TEST_DATA_PARAMETER_NOT_FOUND, key);
                 }
             }
-            if (current instanceof ObjectNode) {
-                return current.get(layers[layers.length - 1]);
-            } else if (current instanceof ArrayNode && key.endsWith(".values")) {
-                return current;
-            } else {
-                throw new ApollonBaseException(ApollonErrorKeys.TEST_DATA_PARAMETER_NOT_FOUND, key);
-            }
-        } else {
-            if (storage.has(key)) {
-                return storage.get(key);
+            if (PropertyResolver.isSimpleStringParameterAllowed()) {
+                return key;
             } else {
                 throw new ApollonBaseException(ApollonErrorKeys.KEY_NOT_FOUND_IN_TEST_DATA_SOURCE, key);
             }

@@ -444,6 +444,9 @@ public class FileOperation {
      */
     public static void copyFileTo(Path srcFile, Path tarFile) {
         try {
+            if (!tarFile.toFile().getParentFile().exists()) {
+                tarFile.toFile().mkdirs();
+            }
             Files.copy(srcFile, tarFile, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {
             throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_GENERAL, ex, "moving file: " + srcFile + " to file: " + tarFile, ex);

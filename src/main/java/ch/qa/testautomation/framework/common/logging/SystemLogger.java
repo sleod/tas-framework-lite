@@ -57,6 +57,10 @@ public class SystemLogger {
      */
     public static void error(Throwable ex) {
         LOGGER.error(ex.getMessage(), ex);
+    }
+
+    public static void errorAndStop(Throwable ex) {
+        LOGGER.error(ex.getMessage(), ex);
         //exit system with exception in init phase
         System.exit(1);
     }
@@ -86,7 +90,9 @@ public class SystemLogger {
     }
 
     public static void debug(String info) {
-        LOGGER.debug(info);
+        if(PropertyResolver.isPrintDebugTrace()){
+            LOGGER.debug(info);
+        }
     }
 
     public static void trace(String info) {

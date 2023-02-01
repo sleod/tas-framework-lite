@@ -4,10 +4,7 @@ import ch.qa.testautomation.framework.common.IOUtils.FileLocator;
 import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.utils.ZipUtils;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
-import ch.qa.testautomation.framework.core.json.container.JSONRunnerConfig;
-import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.framework.exception.ApollonBaseException;
-import ch.qa.testautomation.framework.rest.TFS.connection.TFSRestClient;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -17,7 +14,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -356,8 +352,6 @@ public class ExternAppController {
         if (downloadFolder.startsWith("http")) {
             //todo: download from server
             throw new ApollonBaseException(DOWNLOAD_WEB_DRIVER_NOT_DEVELOPED_YET);
-        } else if (downloadFolder.toLowerCase().startsWith("git")) {
-            return downloadFromTFS(downloadFolder, driverFileName, browserVersion);
         } else if (downloadFolder.startsWith("\\\\")) {
             File driverFile = new File(downloadFolder + "\\drivers.zip");
             String filePath = FileLocator.getProjectBaseDir() + "/src/main/resources/" + PropertyResolver.getWebDriverBinLocation() + "/drivers.zip";
@@ -366,39 +360,6 @@ public class ExternAppController {
             FileOperation.copyFileTo(driverFile.toPath(), target.toPath());
             unzipAndDelete(target);
             return true;
-        }
-        return false;
-    }
-
-    /**
-     * download driver from tfs: tfvc items
-     *
-     * @param folder target folder
-     * @return folder of downloaded local file
-     */
-    private static boolean downloadFromTFS(String folder, String fileName, String browserVersion) {
-        if (!PropertyResolver.isTFSConnectEnabled()) {
-            warn("Failed on download Driver on TFS Server: Connection disabled! Please set to enabled if necessary!");
-        } else {
-            JSONRunnerConfig runnerConfig = JSONContainerFactory.getRunnerConfig(PropertyResolver.getTFSRunnerConfigFile());
-            Map<String, String> config = runnerConfig.getTfsConfig();
-            TFSRestClient tfsRestClient = new TFSRestClient(config);
-            String parentFolder = FileLocator.getProjectBaseDir() + "/src/main/resources/"
-                    + PropertyResolver.getWebDriverBinLocation();
-            //try to look up the driver and download it
-            Map<Integer, String> items = tfsRestClient.getItemsMap(folder, fileName, true);
-            for (Map.Entry<Integer, String> entry : items.entrySet()) {
-                String value = entry.getValue();
-                File driverFile = new File(parentFolder + FileOperation.getFileName(value));
-                tfsRestClient.downloadFile(value, driverFile);
-                Path filePath = checkVersion(driverFile.toPath(), browserVersion);
-                if (filePath != null) {
-                    return true;
-                } else {
-                    trace("Driver removed...");
-                    driverFile.deleteOnExit();
-                }
-            }
         }
         return false;
     }

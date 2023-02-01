@@ -1,14 +1,16 @@
 package ch.qa.testautomation.framework.core.component;
 
 import ch.qa.testautomation.framework.common.enumerations.TestStatus;
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
+import ch.qa.testautomation.framework.exception.ApollonBaseException;
+import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
 import org.junit.jupiter.api.Assertions;
 import org.opentest4j.TestAbortedException;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.error;
 import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
 
 /**
@@ -94,7 +96,7 @@ public class TestStepMonitor {
             try {
                 getCurrentTest().afterTest();
             } catch (Throwable ex) {
-                SystemLogger.warn("Post Process of Test Case can not be executed!\n" + ex.getMessage());
+                error(new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, ex, "Post Process of Test Case can not be executed!"));
             }
         }
     }

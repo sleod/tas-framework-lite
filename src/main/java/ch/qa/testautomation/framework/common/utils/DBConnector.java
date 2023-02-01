@@ -141,7 +141,6 @@ public class DBConnector {
      */
     public static List<Map<String, Object>> connectAndExecute(String dbType, String host, String user, String port,
                                                               String dbName, String password, String sql) {
-        boolean traceInfo = PropertyResolver.isPrintTrace();
         Connection connect = null;
         List<Map<String, Object>> results;
         String url = "";
@@ -171,7 +170,7 @@ public class DBConnector {
                 }
             }
             if (!url.isEmpty()) {
-                SystemLogger.trace("Try to connect to DB: " + url);
+                SystemLogger.debug("Try to connect to DB: " + url);
                 // Set up the connection with the DB
                 connect = DriverManager.getConnection(url, user, PropertyResolver.decodeBase64(password));
             } else {
@@ -180,17 +179,16 @@ public class DBConnector {
             // Statements allow to issue SQL queries to the database
             Statement statement = Objects.requireNonNull(connect).createStatement();
             // Result set get the result of the SQL query
-            ResultSet resultSet = statement.executeQuery(sql);
-            SystemLogger.trace("Execute SQL: " + sql);
-            results = writeResultSet(resultSet, traceInfo);
+            SystemLogger.debug("Execute SQL: " + sql);
+            results = writeResultSet(statement.executeQuery(sql));
         } catch (ClassNotFoundException | SQLException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Exception while connect to DB and execute SQL!", ex);
+            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Exception while connect to DB and execute SQL! " + ex.getMessage());
         } finally {
             if (connect != null) {
                 try {
                     connect.close();
                 } catch (SQLException ex) {
-                    throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Exception by trying to close connection!", ex);
+                    SystemLogger.warn("Exception by trying to close connection! " + ex.getMessage());
                 }
             }
         }
@@ -204,13 +202,11 @@ public class DBConnector {
      * @return list of rows in map
      * @throws SQLException sql exception
      */
-    private static List<Map<String, Object>> writeResultSet(ResultSet resultSet, boolean traceInfo) throws SQLException {
+    private static List<Map<String, Object>> writeResultSet(ResultSet resultSet) throws SQLException {
         List<Map<String, Object>> results = new ArrayList<>(resultSet.getRow());
         // ResultSet is initially before the first data set
         while (resultSet.next()) {
-            if (traceInfo) {
-                SystemLogger.trace("Table Line: ----------------------------------------");
-            }
+            SystemLogger.debug("Table Line: ----------------------------------------");
             // It is possible to get the columns via name
             // also possible to get the columns via the column number
             // which starts at 1
@@ -221,9 +217,7 @@ public class DBConnector {
             for (int i = 1; i <= columns; i++) {
                 String colName = rsmd.getColumnName(i);
                 row.put(colName, resultSet.getString(colName));
-                if (traceInfo) {
-                    SystemLogger.trace("Column: " + colName + ": " + row.get(colName));
-                }
+                SystemLogger.debug("Column: " + colName + ": " + row.get(colName));
             }
             results.add(row);
         }

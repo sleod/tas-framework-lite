@@ -58,6 +58,7 @@ public enum PropertyKey {
     DEBUG_KEEP_BROWSER("debug.keep.browser"),
     METHOD_NONHEADLESS_EXISTS("method.nonheadless.exists"),
     OPEN_PDF_IN_SYSTEM_READER("open.pdf.in.system.reader"),
+    SIMPLE_STRING_PARAMETER_ALLOWED("simple.string.parameter.allowed"),
     DOWNLOAD_LOCATION("download.location"),
     EXECUTION_REMOOTE_PARALLEL("execution.remote.parallel"),
     EXECUTION_REMOTE_THREAD_MAX("execution.remote.thread.max"),

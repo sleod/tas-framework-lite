@@ -3,18 +3,16 @@ package ch.qa.testautomation.framework.core.report.allure;
 import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
-import ch.qa.testautomation.framework.exception.ApollonBaseException;
 import ch.qa.testautomation.framework.rest.allure.connection.AllureRestClient;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.io.FileUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -95,13 +93,7 @@ public class ReportBuilderAllureService {
      */
     protected void collectAttachmentsFiles(Map<String, String> changedSourcePath) {
         changedSourcePath.put(PropertyResolver.getAllureResultsDir() + "environment.properties", resultsDir + "environment.properties");
-        changedSourcePath.forEach((sourcePath, targetPath) -> {
-            try {
-                FileUtils.copyFile(FileUtils.getFile(sourcePath), FileUtils.getFile(resultsDir + targetPath));
-            } catch (IOException e) {
-                throw new ApollonBaseException(e);
-            }
-        });
+        changedSourcePath.forEach((sourcePath, targetPath) -> FileOperation.moveFileTo(Paths.get(sourcePath), Paths.get(resultsDir + targetPath)));
     }
 
     /**

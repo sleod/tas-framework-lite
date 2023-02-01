@@ -1,30 +1,29 @@
 package ch.qa.testautomation.framework.exception;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 
 public class
 ApollonBaseException extends RuntimeException {
 
-    private ApollonErrorKeys messageKeyEnum;
-    private Object[] parameter = null;
-
-    public ApollonBaseException(Throwable e) {
-        super(e);
-    }
-
-    public ApollonBaseException(ApollonErrorKeys messageKey, Throwable e) {
-        super(e);
-        this.messageKeyEnum = messageKey;
-    }
+    private final ApollonErrorKeys messageKeyEnum;
+    private final List<Object> parameter = new LinkedList<>();
 
     public ApollonBaseException(ApollonErrorKeys messageKey, Object... params) {
+        super("");
         this.messageKeyEnum = messageKey;
-        this.parameter = params;
+        if (Objects.nonNull(params)) {
+            parameter.addAll(List.of(params));
+        }
     }
 
     public ApollonBaseException(ApollonErrorKeys messageKey, Throwable throwable, Object... params) {
         super(throwable);
         this.messageKeyEnum = messageKey;
-        this.parameter = params;
+        if (Objects.nonNull(params)) {
+            parameter.addAll(List.of(params));
+        }
     }
 
     public ApollonBaseException(ApollonErrorKeys messageKey) {
@@ -33,10 +32,7 @@ ApollonBaseException extends RuntimeException {
 
     @Override
     public String getMessage() {
-        String message = super.getMessage();
-            if (messageKeyEnum != null) {
-                message = MessageResolver.getMessage(messageKeyEnum.getErrorKey(), parameter);
-            }
-        return message;
+        parameter.add(super.getMessage());
+        return MessageResolver.getMessage(messageKeyEnum.getErrorKey(), parameter.toArray());
     }
 }

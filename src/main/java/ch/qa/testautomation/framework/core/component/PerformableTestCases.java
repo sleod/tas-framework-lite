@@ -1,6 +1,5 @@
 package ch.qa.testautomation.framework.core.component;
 
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.configuration.ApollonConfiguration;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
@@ -9,13 +8,11 @@ import com.codeborne.selenide.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.*;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static ch.qa.testautomation.framework.common.logging.SystemLogger.*;
+import static ch.qa.testautomation.framework.common.utils.StringTextUtils.isValid;
 import static ch.qa.testautomation.framework.configuration.PropertyResolver.*;
 import static ch.qa.testautomation.framework.core.component.TestRunManager.*;
 import static java.util.Arrays.asList;
@@ -23,13 +20,10 @@ import static java.util.Arrays.asList;
 public abstract class PerformableTestCases {
 
     private List<TestCaseObject> testCaseObjects = Collections.emptyList();
-    private Map<String, SequenceCaseRunner> sequenceCaseRunners = Collections.emptyMap();
-
     private final ApollonConfiguration configuration = new ApollonConfiguration();
 
     public PerformableTestCases() {
         try {
-            loadTestRunProperties(getTestRunPropertiesPath());
             setUpFramework();
             retrieveResources();
             healthCheck();//health check
@@ -40,7 +34,7 @@ public abstract class PerformableTestCases {
             setUpSelenide();
             trace("Test Run contains Test Cases: " + testCaseObjects.size());
         } catch (Throwable throwable) {
-            error(throwable);
+            errorAndStop(throwable);
         }
     }
 
@@ -58,45 +52,38 @@ public abstract class PerformableTestCases {
         JSONContainerFactory.generateExecutorJSON();
     }
 
+    @TestFactory
+    @DisplayName("Execute Test Cases ...")
+    public Stream<DynamicContainer> runTCs() {
+        return Stream.concat(getSeriesTestCases(), getSingleTestCases());
+    }
+
     /**
      * the main entrance of test run which using junit @Test annotation
      */
-    @TestFactory
-    @DisplayName("Execute Single Test Cases...")
-    public Stream<DynamicContainer> runTCs2() {
+    public Stream<DynamicContainer> getSingleTestCases() {
         //single test cases
         return testCaseObjects.stream()
-                .filter(testCaseObject -> testCaseObject.getSeriesNumber() == null || testCaseObject.getSeriesNumber().isEmpty())
-                .map(testCaseObject -> DynamicContainer.dynamicContainer(testCaseObject.prepareAndGetDisplayName(), testCaseObject.getTestSteps()));
+                .filter(testCaseObject -> !isValid(testCaseObject.getSeriesNumber()))
+                .map(this::getTestCaseReady);
     }
 
     /**
      * the main entrance of test run which using junit @Test annotation
      */
-    @TestFactory
-    @DisplayName("Execute Test Cases with Serie Number...")
-    public Stream<DynamicContainer> runTCs1() {
+    public Stream<DynamicContainer> getSeriesTestCases() {
         //sequenced test cases
-        if (!sequenceCaseRunners.isEmpty()) {
-            Stream<DynamicContainer> seqTestCases = Stream.<DynamicContainer>builder().build();
-            for (SequenceCaseRunner sequenceCaseRunner : sequenceCaseRunners.values()) {
-                seqTestCases = Stream.concat(seqTestCases, sequenceCaseRunner.getAllCases());
-            }
-            return seqTestCases;
-        } else {
-            SystemLogger.info("No Test Cases with Serie Number to run.");
-            return Stream.empty();
-        }
-
+        Map<String, TestCaseObject> serienTestCases = new TreeMap<>();
+        testCaseObjects.stream().filter(testCaseObject -> isValid(testCaseObject.getSeriesNumber()))
+                .forEach(testCaseObject -> serienTestCases.put(testCaseObject.getSeriesNumber(), testCaseObject));
+        return serienTestCases.values().stream().map(this::getTestCaseReady);
     }
 
-    public void addSequenceCaseRunner(String key, TestCaseObject testCaseObject) {
-        trace("Add sequenced test case with key: " + key);
-        if (sequenceCaseRunners.isEmpty()) {
-            sequenceCaseRunners = new HashMap<>();
+    public DynamicContainer getTestCaseReady(TestCaseObject testCaseObject) {
+        if (isValid(testCaseObject.getSeriesNumber())) {
+            testCaseObject.setName(testCaseObject.getName() + " -SN - " + testCaseObject.getSeriesNumber());
         }
-        sequenceCaseRunners.putIfAbsent(key, new SequenceCaseRunner());
-        sequenceCaseRunners.get(key).addTestCase(testCaseObject);
+        return DynamicContainer.dynamicContainer(testCaseObject.prepareAndGetDisplayName(), testCaseObject.getTestSteps());
     }
 
     /**
@@ -158,15 +145,6 @@ public abstract class PerformableTestCases {
      */
     protected List<String> getMetaFilters() {
         return getMetaFilter();
-    }
-
-    /**
-     * override to relocate the property file
-     *
-     * @return path of property file
-     */
-    protected String getTestRunPropertiesPath() {
-        return "";
     }
 
     /**

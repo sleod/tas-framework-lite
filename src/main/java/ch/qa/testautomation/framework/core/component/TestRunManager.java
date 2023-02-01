@@ -3,10 +3,8 @@ package ch.qa.testautomation.framework.core.component;
 import ch.qa.testautomation.framework.common.IOUtils.FileLocator;
 import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.enumerations.PropertyKey;
-import ch.qa.testautomation.framework.common.enumerations.TestStatus;
 import ch.qa.testautomation.framework.common.enumerations.TestType;
 import ch.qa.testautomation.framework.common.logging.ScreenCapture;
-import ch.qa.testautomation.framework.common.utils.DateTimeUtils;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.json.container.JSONRunnerConfig;
 import ch.qa.testautomation.framework.core.json.container.JSONTestCase;
@@ -15,15 +13,12 @@ import ch.qa.testautomation.framework.core.report.ReportBuilder;
 import ch.qa.testautomation.framework.core.report.allure.ReportBuilderAllureService;
 import ch.qa.testautomation.framework.exception.ApollonBaseException;
 import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
-import ch.qa.testautomation.framework.rest.TFS.connection.QUERY_OPTION;
-import ch.qa.testautomation.framework.rest.TFS.connection.TFSRestClient;
+import ch.qa.testautomation.framework.rest.base.QUERY_OPTION;
 import ch.qa.testautomation.framework.rest.jira.connection.JIRARestClient;
 import com.beust.jcommander.Strings;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.openqa.selenium.Cookie;
 import org.openqa.selenium.WebDriver;
 
@@ -128,19 +123,7 @@ public class TestRunManager {
      */
     public static List<TestCaseObject> initTestCases(List<String> filePaths, List<String> metaFilters) {
         List<String> selectedIds = Collections.emptyList();
-        if (PropertyResolver.isTFSSyncEnabled()) {//check for feedback to tfs
-            if (tfsRunnerConfig.isFullRun()) {//check run config for full run
-                selectedIds = getTestCaseIdsInTFSSuite(tfsRunnerConfig, QUERY_OPTION.ALL);
-            } else if (tfsRunnerConfig.isFailureRetest()) {//check run config for retest run
-                selectedIds = getTestCaseIdsInTFSSuite(tfsRunnerConfig, QUERY_OPTION.EXCEPT_SUCCESS);
-                trace("Test case id for failed only test run: " + Arrays.toString(selectedIds.toArray()));
-            } else {//check run config for selected ids to run
-                selectedIds = asList(tfsRunnerConfig.getSelectedTestCaseIds());
-            }
-            if (selectedIds.isEmpty()) {
-                throw new ApollonBaseException(ApollonErrorKeys.FAIL_ON_GET_TESTCASE_ID_FROM_TFS);
-            }
-        } else if (PropertyResolver.isJIRASyncEnabled()) {
+        if (PropertyResolver.isJIRASyncEnabled()) {
             if (jiraExecutionConfig.isFullRun()) {//check run config for full run
                 selectedIds = getJiraTestCaseIdsInExecution(jiraExecutionConfig, QUERY_OPTION.ALL);
             } else if (jiraExecutionConfig.isFailureRetest()) {//check run config for retest run
@@ -174,7 +157,6 @@ public class TestRunManager {
                 for (TestCaseObject n_testCaseObject : normalizedTestCases) {
                     if (isSelected(n_testCaseObject, selectedIds)) {
                         testCaseObjects.add(n_testCaseObject);
-                        addSequencedCase(n_testCaseObject);
                     }
                 }
             }
@@ -226,20 +208,6 @@ public class TestRunManager {
         }
     }
 
-    /**
-     * Get failed test cases in last run with plan id and suite id in config
-     * **** CHANGE: all test cases except success cases will be added to run (24.04.2020)
-     *
-     * @param runnerConfig run config
-     * @param query_option query_option
-     * @return list of test case ids
-     */
-    private static List<String> getTestCaseIdsInTFSSuite(JSONRunnerConfig runnerConfig, QUERY_OPTION query_option) {
-        String suiteId = runnerConfig.getSuiteId();
-        String planId = runnerConfig.getPlanId();
-        TFSRestClient restClient = new TFSRestClient(runnerConfig.getTfsConfig());
-        return restClient.getTestCaseIdsInPlan(planId, suiteId, query_option);
-    }
 
     /**
      * Get all test cases in last run with Jira execution id in config
@@ -395,67 +363,6 @@ public class TestRunManager {
         return false;
     }
 
-    /**
-     * Add sequenced test case into sequenced case runner in case series number exists
-     *
-     * @param tco test case object
-     */
-    private static void addSequencedCase(TestCaseObject tco) {
-        if (tco.getSeriesNumber() != null && !tco.getSeriesNumber().isEmpty()) {
-            String seriesNumber = tco.getSeriesNumber();
-            int index = seriesNumber.lastIndexOf(".");
-            if (index > 0) {
-                getPerformer().addSequenceCaseRunner(seriesNumber.substring(0, index), tco);
-            } else {
-                throw new ApollonBaseException(ApollonErrorKeys.SERIES_NUMBER_FORMAT_WRONG, seriesNumber);
-            }
-        }
-    }
-
-    /**
-     * Feed test results back to TFS after run
-     *
-     * @param testCaseObjects test case objects after test run
-     */
-    public synchronized static void tfsFeedback(List<TestCaseObject> testCaseObjects) {
-        trace("Feedback Test Result back to TFS...");
-        //get data from test case object
-        Map<String, TestRunResult> testRunResultMap = new HashMap<>(testCaseObjects.size());
-        for (TestCaseObject testCaseObject : testCaseObjects) {
-            String testCaseId = testCaseObject.getTestCaseId();
-            if (testCaseId == null) {
-                throw new ApollonBaseException(ApollonErrorKeys.TEST_CASE_ID_IS_REQUIRED, testCaseObject.getName());
-            }
-            testRunResultMap.put(testCaseId, testCaseObject.getTestRunResult());
-        }
-        //create test run with plan id, suite id and test points via test case id, if not done
-        TFSRestClient restClient = new TFSRestClient(tfsRunnerConfig.getTfsConfig());
-        String suiteId = tfsRunnerConfig.getSuiteId();
-        String planId = tfsRunnerConfig.getPlanId();
-        String runName = tfsRunnerConfig.getRunName();
-        JsonNode testRun = restClient.createTestRun(runName, planId, suiteId, new ArrayList<>(testRunResultMap.keySet()));
-        String tfsRunId = testRun.get("id").asText();
-        //update test run with test run result
-        JsonNode results = restClient.updateTestRunResults(tfsRunId, testRunResultMap);
-        ArrayNode values = (ArrayNode) results.get("value");
-        //upload log file and screenshots as attachments
-        for (int i = 0; i < testCaseObjects.size(); i++) {
-            TestCaseObject testCaseObject = testCaseObjects.get(i);
-            String stream = FileOperation.encodeFileToBase64(new File(testCaseObject.getTestRunResult().getLogFilePath()));
-            ObjectNode singleResult = (ObjectNode) values.get(i);
-            restClient.attachmentToTestResult(tfsRunId, singleResult.get("id").asText(), "Report.log", "Default Report", stream);
-            if (testCaseObject.getTestRunResult().getStatus().equals(TestStatus.FAIL)) {
-                //upload screenshot
-                testCaseObject.getTestRunResult().getAttachments().forEach(attachmentFile -> {
-                    String fileStream = FileOperation.encodeFileToBase64(attachmentFile);
-                    restClient.attachmentToTestResult(tfsRunId, singleResult.get("id").asText(), attachmentFile.getName(), "Screenshots", fileStream);
-                });
-            }
-        }
-        //create a tfs test run with test points
-        restClient.setTestRunState(tfsRunId, "completed", DateTimeUtils.getISOTimestamp());
-    }
-
     public synchronized static void jiraFeedback(List<TestCaseObject> testCaseObjects) {
         trace("Feedback Test Result back to JIRA...");
         //get data from test case object
@@ -477,7 +384,6 @@ public class TestRunManager {
         retrieveDBConfig();
         retrieveRestConfig();
         retrieveJiraConfig();
-        retrieveTFSConfig();
     }
 
     private static void retrieveDBConfig() {
@@ -544,30 +450,6 @@ public class TestRunManager {
         }
     }
 
-    private static void retrieveTFSConfig() {
-        if (PropertyResolver.isTFSConnectEnabled()) {
-            String configName = PropertyResolver.getTFSRunnerConfigFile();
-            tfsRunnerConfig = JSONContainerFactory.getRunnerConfig(configName);
-            //init test plan configuration with given id
-            String configId = "";
-            if (PropertyResolver.getTFSConfigurationID() != null && !PropertyResolver.getTFSConfigurationID().isEmpty()) {
-                configId = PropertyResolver.getTFSConfigurationID();
-            } else if (tfsRunnerConfig.getConfigurationId() != null && !tfsRunnerConfig.getConfigurationId().isEmpty()) {
-                configId = tfsRunnerConfig.getConfigurationId();
-            }
-            if (!configId.isEmpty()) {
-                TFSRestClient restClient = new TFSRestClient(tfsRunnerConfig.getTfsConfig());
-                if (!PropertyResolver.getTFSRunnerConfigFile().equals(configName)) {
-                    tfsRunnerConfig = JSONContainerFactory.getRunnerConfig(PropertyResolver.getTFSRunnerConfigFile());
-                }
-                //set test plan configuration to system property if exists
-                tfsRunnerConfig.setTestPlanConfig(restClient.getTestPlanConfiguration(configId));
-                PropertyResolver.setProperties(tfsRunnerConfig.getTestPlanConfig());
-            } else {
-                warn("TFS Configuration ID is Empty! Please set the id in properties or tfs runner config if necessary.");
-            }
-        }
-    }
 
     /**
      * Restore Cookies and URL of Web Driver
