@@ -12,7 +12,6 @@ public abstract class SingleTestObject {
         SystemLogger.logStepInfo(text);
     }
 
-
     public static boolean compareAndLog(Object expected, Object actual, String message) {
         boolean isOK = String.valueOf(expected).trim().equalsIgnoreCase(String.valueOf(actual).trim());
         logStepInfo(message + " " + isSuccess(isOK) + " " + expected + " <|> " + actual);
@@ -36,5 +35,9 @@ public abstract class SingleTestObject {
 
     public static boolean nonNull(Object obj) {
         return Objects.nonNull(obj);
+    }
+
+    public static boolean isValid(Object value) {
+        return nonNull(value) && !value.toString().isEmpty();
     }
 }
