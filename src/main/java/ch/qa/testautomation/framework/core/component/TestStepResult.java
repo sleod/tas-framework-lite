@@ -108,7 +108,7 @@ public class TestStepResult {
     }
 
     public synchronized void logInfo(String line) {
-        logs.append(line).append("\n");
+        logs.append(line).append(System.lineSeparator());
     }
 
     public String getStepId() {

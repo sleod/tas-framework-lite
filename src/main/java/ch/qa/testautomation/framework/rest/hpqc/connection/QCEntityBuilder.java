@@ -1,6 +1,7 @@
 package ch.qa.testautomation.framework.rest.hpqc.connection;
 
 import ch.qa.testautomation.framework.common.utils.DateTimeUtils;
+import ch.qa.testautomation.framework.common.utils.StringTextUtils;
 import ch.qa.testautomation.framework.common.utils.XMLUtils;
 import ch.qa.testautomation.framework.exception.ApollonBaseException;
 import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
@@ -32,21 +33,21 @@ public class QCEntityBuilder {
      * build test case entity with
      *
      * @param tcName         test case name
-     * @param owner          test case owner
      * @param description    description
      * @param parentId       parent id
      * @param requiredFields required fields
      * @return qc entity
      */
-    public static QCEntity buildNewTestCaseEntity(String tcName, String owner, String description, String parentId, String application, String requiredFields) {
+    public static QCEntity buildNewTestCaseEntity(String owner, String tcName, String description, String parentId,
+                                                  String requiredFields, Map<String, String> testCaseRequiredFields) {
         Map<String, String> attributes = new LinkedHashMap<>();
         attributes.put("owner", owner);
         attributes.put("subtype-id", "MANUAL");
         attributes.put("parent-id", parentId);
         attributes.put("name", tcName);
         attributes.put("description", description);
-        attributes.put("user-01", application);
-        attributes.put("user-02", "2-in Bearbeitung");
+        attributes.put("status", "Ready");
+        testCaseRequiredFields.forEach(attributes::putIfAbsent);
         int entityType = QCConstants.ENTITY_TYPE_TEST_CASE;
         return buildEntityWithAttributes(attributes, entityType, requiredFields);
     }
@@ -59,7 +60,7 @@ public class QCEntityBuilder {
      * @param owner          run owner
      * @return QC Entity of Run
      */
-    public static QCEntity buildNewRunEntity(QCEntity qcInsEntity, String requiredFields, String owner) {
+    public static QCEntity buildNewRunEntity(QCEntity qcInsEntity, String requiredFields, String owner, String name) {
         //prepair new Run
         int entityType = QCConstants.ENTITY_TYPE_RUN;
         String testId = qcInsEntity.getFieldValue("test-id");
@@ -67,7 +68,7 @@ public class QCEntityBuilder {
         LinkedHashMap<String, String> runAttris = new LinkedHashMap<>();
         String dateTime = DateTimeUtils.getFormattedDateTimeNow("MM-dd_HH-mm");
         String dateNow = DateTimeUtils.getFormattedDateNow("yyyy-MM-dd");
-        runAttris.put("name", "Run_" + dateTime);
+        runAttris.put("name", "Run_" + dateTime + name);
         runAttris.put("test-id", testId);
         runAttris.put("testcycl-id", instanceId);
         runAttris.put("cycle-id", qcInsEntity.getFieldValue("cycle-id"));
@@ -85,9 +86,9 @@ public class QCEntityBuilder {
      * @param requiredFields required fields
      * @return qc entity
      */
-    public static QCEntity buildNewTestFolderEntity(String dirName, String parentId, String requiredFields) {
+    public static QCEntity buildNewTestPlanFolderEntity(String dirName, String parentId, String requiredFields) {
         //Folder Entity
-        int entityType = QCConstants.ENTITY_TYPE_TEST_FOLDER;
+        int entityType = QCConstants.ENTITY_TYPE_TESTPLAN_FOLDER;
         LinkedHashMap<String, String> attributes = new LinkedHashMap<>();
         attributes.put("parent-id", parentId);
         attributes.put("name", dirName);
@@ -109,16 +110,16 @@ public class QCEntityBuilder {
     /**
      * build new design step entity
      *
-     * @param action    action
-     * @param expected  expected
-     * @param parentId  test case id of step
-     * @param stepOrder order of the step
+     * @param description description
+     * @param expected    expected
+     * @param parentId    test case id of step
+     * @param stepOrder   order of the step
      * @return qc entity
      */
-    public static QCEntity buildDesignStep(String action, String expected, String parentId, int stepOrder) {
+    public static QCEntity buildDesignStep(String description, String expected, String parentId, int stepOrder) {
         LinkedHashMap<String, String> fields = new LinkedHashMap<>();
         int entityType = QCConstants.ENTITY_TYPE_DESIGN_STEP;
-        fields.put("description", action);
+        fields.put("description", description);
         fields.put("expected", expected);
         fields.put("parent-id", parentId);
         fields.put("step-order", String.valueOf(stepOrder));
@@ -151,8 +152,8 @@ public class QCEntityBuilder {
      * @param requiredFields required fields
      * @return qc entity
      */
-    public static QCEntity buildNewTestSetFolderEntity(String tsfName, String pid, String requiredFields) {
-        int entityType = QCConstants.ENTITY_TYPE_TESTSETS_FOLDER;
+    public static QCEntity buildNewTestLabFolderEntity(String tsfName, String pid, String requiredFields) {
+        int entityType = QCConstants.ENTITY_TYPE_TESTLAB_FOLDER;
         LinkedHashMap<String, String> fields = new LinkedHashMap<>();
         fields.put("parent-id", pid);
         fields.put("name", tsfName);
@@ -198,30 +199,6 @@ public class QCEntityBuilder {
     }
 
     /**
-     * build simple xml content to update run step
-     *
-     * @param stepStatus status of step
-     * @param actual     actual content
-     * @return xml content in string
-     */
-    public static String buildUpdateContentOfRunStep(String stepStatus, String actual) {
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><Entity Type=\"run-step\">"
-                + "<Fields><Field Name=\"status\"><Value>" + stepStatus + "</Value></Field>"
-                + "<Field Name=\"actual\"><Value>" + xmlEscape(actual) + "</Value></Field></Fields></Entity>";
-    }
-
-    /**
-     * build simple xml content of status update for test instance
-     *
-     * @param status run status
-     * @return xml content
-     */
-    public static String buildUpdateContentForTestInstanceStatus(String status) {
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><Entity Type=\"run\">"
-                + "<Fields><Field Name=\"status\"><Value>" + status + "</Value></Field></Fields></Entity>";
-    }
-
-    /**
      * build run step entity of instance in lab
      *
      * @param runId        instance id
@@ -242,8 +219,16 @@ public class QCEntityBuilder {
         return buildEntityWithAttributes(stepAttris, entityType, required);
     }
 
-    private static String xmlEscape(String actual) {
-        return actual.replace("<", "'").replace(">", "'");
+    /**
+     * build simple xml content of status update for test instance
+     *
+     * @param fieldName field Name
+     * @param value     value
+     * @return xml content
+     */
+    public static String buildSingleFieldPayload(String fieldName, String value) {
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><Entity Type=\"run\">"
+                + "<Fields><Field Name=\"" + fieldName + "\"><Value>" + StringTextUtils.escapeHTML(value) + "</Value></Field></Fields></Entity>";
     }
 
     /**
@@ -257,11 +242,11 @@ public class QCEntityBuilder {
         return XMLUtils.fetchFieldsAndValues(docElement, "Field", "Name", "Value");
     }
 
-    private static String buildContext(Document docu, QCEntity qce) {
-        Element root = docu.getRootElement();
+    private static String buildContext(Document document, QCEntity qce) {
+        Element root = document.getRootElement();
         String value = QCConstants.getEntityName(qce.getEntityType());
         root.setAttribute("Type", value);
-        Document doc = buildEntityContent(docu, qce);
+        Document doc = buildEntityContent(document, qce);
         return XMLUtils.convertDocumentToString(doc);
     }
 

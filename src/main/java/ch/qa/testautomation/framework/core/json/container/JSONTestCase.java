@@ -4,6 +4,7 @@ import ch.qa.testautomation.framework.core.json.customDeserializer.CustomStepLis
 import ch.qa.testautomation.framework.core.json.customDeserializer.CustomStringListDeserializer;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.*;
 
@@ -226,4 +227,31 @@ public class JSONTestCase extends JSONContainer {
         this.feature = feature;
     }
 
+
+    @Override
+    public boolean equals(Object target) {
+        // self check
+        if (this == target) return true;
+        // null check
+        if (Objects.isNull(target)) return false;
+        // type check and cast
+        if (getClass() != target.getClass()) return false;
+        JSONTestCase other = (JSONTestCase) target;
+        // field comparison
+        return Objects.equals(name, other.name)
+                && Objects.equals(description, other.description)
+                && Objects.equals(testDataRef, other.testDataRef)
+                && CollectionUtils.isEqualCollection(steps, other.steps)
+                && Objects.equals(additionalTestDataFile, other.additionalTestDataFile);
+    }
+
+    // https://mkyong.com/java/java-how-to-overrides-equals-and-hashcode/
+    @Override
+    public int hashCode() {
+        return Objects.hash(name,
+                description,
+                testDataRef,
+                steps,
+                additionalTestDataFile);
+    }
 }

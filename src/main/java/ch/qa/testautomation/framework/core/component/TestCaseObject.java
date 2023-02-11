@@ -41,6 +41,7 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
     private String seriesNumber;
     private final String description;
     private String name;
+    private final String originalName;
     private String filePath;
     private final TestType type;
     private String suiteName;
@@ -53,6 +54,7 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
      */
     public TestCaseObject(JSONTestCase jsonTestCase) {
         this.name = (jsonTestCase.getName());
+        this.originalName = jsonTestCase.getName();
         testCase = jsonTestCase;
         this.type = TestType.valueOf(jsonTestCase.getType().toUpperCase());
         this.description = testCase.getDescription();
@@ -77,6 +79,7 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
      */
     public TestCaseObject(JSONTestCase jsonTestCase, List<Map<String, Object>> testDataContent, String optionalNameSuffix) {
         this.name = (jsonTestCase.getName() + optionalNameSuffix);
+        this.originalName = jsonTestCase.getName();
         testCase = jsonTestCase;
         this.type = TestType.valueOf(jsonTestCase.getType().toUpperCase());
         this.description = testCase.getDescription();
@@ -108,8 +111,7 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
         for (Class<?> clazz : annotateClazz) {
             TestObject annotation = clazz.getAnnotation(TestObject.class);
             if (annotation.name().isEmpty()) {//to avoid class inherit with annotation but not specified in own class
-                throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE,
-                        clazz + " has inherited Annotation but not specified with own name. And this class will not be initialized!!");
+                throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, clazz + " has inherited Annotation but not specified with own name. And this class will not be initialized!!");
             }
             String pageObjectName = annotation.name();
             if (pageObjectNames.contains(pageObjectName)) {
@@ -139,8 +141,7 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
             if (pageObjects.get(jStep.getTestObject()) == null) {
                 throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, jStep.getTestObject() + "was not found!");
             }
-            TestCaseStep testCaseStep = new TestCaseStep(i + 1, testCase.getScreenshotLevel(),
-                    jStep, pageObjects.get(jStep.getTestObject()), testDataContainer);
+            TestCaseStep testCaseStep = new TestCaseStep(i + 1, testCase.getScreenshotLevel(), jStep, pageObjects.get(jStep.getTestObject()), testDataContainer);
             steps.add(testCaseStep);
         }
     }
@@ -266,6 +267,9 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
         }
         if (PropertyResolver.isJIRASyncEnabled()) {
             TestRunManager.jiraFeedback(Collections.singletonList(this));
+        }
+        if (PropertyResolver.isQCSyncEnabled()) {
+            TestRunManager.qcFeedback(Collections.singletonList(this));
         }
 
         SystemLogger.trace("Generate Allure Result: " + getName());
@@ -410,4 +414,9 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
     public void setFilePath(String filePath) {
         this.filePath = filePath;
     }
+
+    public String getOriginalName() {
+        return originalName;
+    }
+
 }

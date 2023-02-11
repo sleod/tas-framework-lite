@@ -88,6 +88,7 @@ public class ApollonConfiguration {
 
     /**
      * set external driver resource location, where driver can be downloaded
+     * default set to git from TFS: "Git - RCH Framework Solution Items/Java/DriverVersions/"
      * together with resource project: "ap.testtools"
      * <p>
      * Variant: can be set like: "\\\\shareFolder\\projectXXX\\..." for network share folder
@@ -273,6 +274,17 @@ public class ApollonConfiguration {
      */
     public ApollonConfiguration setIsSyncToJIRA(boolean value) {
         PropertyResolver.setProperty(RUN_JIRA_SYNC.key(), String.valueOf(value));
+        return this;
+    }
+
+    /**
+     * toggle if synchronize test result back to QC,
+     * if true, QC configs will be required
+     *
+     * @param value boolean, default false
+     */
+    public ApollonConfiguration setIsSyncToQC(boolean value) {
+        PropertyResolver.setProperty(RUN_QC_SYNC.key(), String.valueOf(value));
         return this;
     }
 
@@ -505,6 +517,16 @@ public class ApollonConfiguration {
      */
     public ApollonConfiguration setJiraExecutionConfig(String value) {
         PropertyResolver.setProperty(JIRA_EXEC_CONFIG.key(), value);
+        return this;
+    }
+
+    /**
+     * set config file for QC connection
+     *
+     * @param value like default: "qcConfig.json"
+     */
+    public ApollonConfiguration setQCConfig(String value) {
+        PropertyResolver.setProperty(QC_CONFIG.key(), value);
         return this;
     }
 

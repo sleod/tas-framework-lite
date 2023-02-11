@@ -165,10 +165,9 @@ public class TestDataContainer {
     private Object getTestDataInJSON(String key, JsonNode storage) {
         if (storage.has(key)) {
             return storage.get(key);
-        }else if(key.startsWith("'") && key.endsWith("'")){
+        } else if (key.startsWith("'") && key.endsWith("'")) {
             return key.replace("'", "");
-        }
-        else {
+        } else {
             if (key.contains(".")) {
                 String[] layers = key.split("\\.");
                 JsonNode current = storage.get(layers[0]);

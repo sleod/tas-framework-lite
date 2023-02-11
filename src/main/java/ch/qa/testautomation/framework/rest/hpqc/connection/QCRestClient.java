@@ -2,68 +2,82 @@ package ch.qa.testautomation.framework.rest.hpqc.connection;
 
 import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.logging.Screenshot;
+import ch.qa.testautomation.framework.common.logging.SystemLogger;
+import ch.qa.testautomation.framework.core.component.TestCaseObject;
+import ch.qa.testautomation.framework.core.component.TestCaseStep;
 import ch.qa.testautomation.framework.core.component.TestRunResult;
+import ch.qa.testautomation.framework.core.component.TestStepResult;
+import ch.qa.testautomation.framework.core.json.container.JSONTestCase;
+import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
+import ch.qa.testautomation.framework.exception.ApollonBaseException;
+import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import jakarta.ws.rs.core.Response;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.File;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.log;
+import static ch.qa.testautomation.framework.common.utils.StringTextUtils.isValid;
 
 public class QCRestClient {
 
     private final QCConnector qcConnector;
     private final String domain;
     private final String project;
-    private final String tcRootFolder; // need full path, like root/project/test
-    private final String tlRootFolder; // need full path, like root/project/test
-    private final String vcEnabled;
+    private final String testPlanRootFolder;
+    private final String testLabRootFolder;
+    private final String testPlanFolderPath;
+    private final String testLabFolderPath;
+    private final String testSetName;
+    private final boolean vcEnabled;
     private final String user;
-    private int stepOrder = 0;
+    private String testPlanFolderID = "";
+    private String testLabFolderID = "";
+    private String testPlanRootFolderID = "";
+    private String testLabRootFolderID = "";
+    private final Map<String, String> testCaseRequiredFields;
 
     /**
-     * init QC Rest Client with input of qc settings of project
+     * QC Rest Client with qcConfig.json
      *
-     * @param qcConnector  is QC Connector provider which generate Rest Driver
-     * @param qcDomain     is QC domain
-     * @param qcProject    is QC project name
-     * @param tcRootFolder is Start Folder of the project in test plan
-     * @param tlRootFolder is Start Folder of the project in lab
-     * @param vcEnabled    version control flag
+     * @param configFilePath file path of qcConfig.json
      */
-    public QCRestClient(QCConnector qcConnector, String qcDomain, String qcProject, String tcRootFolder, String tlRootFolder, String vcEnabled) {
-        this.qcConnector = qcConnector;
-        user = qcConnector.getUser();
-        domain = qcDomain;
-        project = qcProject;
-        this.tcRootFolder = tcRootFolder;
-        this.tlRootFolder = tlRootFolder;
-        this.vcEnabled = vcEnabled;
+    public QCRestClient(String configFilePath) {
+        JsonNode config = JSONContainerFactory.getConfig(configFilePath);
+        this.user = config.get("user").asText();
+        this.qcConnector = new QCConnector(config.get("host").asText(), user, config.get("password").asText());
+        this.project = config.get("project").asText();
+        this.domain = config.get("domain").asText();
+        this.testPlanRootFolder = config.get("testPlanRootFolder").asText();
+        this.testLabRootFolder = config.get("testLabRootFolder").asText();
+        this.testPlanFolderPath = config.get("testPlanFolderPath").asText();
+        this.testLabFolderPath = config.get("testLabFolderPath").asText();
+        this.vcEnabled = config.get("versionControlEnabled").asBoolean();
+        this.testSetName = config.get("testSetName").asText();
+        testCaseRequiredFields = new ObjectMapper().convertValue(config.get("testCaseRequiredFields"), new TypeReference<>() {
+        });
     }
 
     /**
      * get entity id by its name
      *
-     * @param folderName like "project 234", should be global unique
+     * @param name       entity name like "project 234", should be global unique
      * @param entityType entity type
      * @return folder id
      */
-    public String getEntityIDByName(int entityType, String folderName) {
-        String query = buildQuery("name", folderName);
-        String searchResult = getEntity(entityType, query);
+    public String getEntityIDByName(int entityType, String name) {
+        String query = buildQuery(QCConstants.PARAM_NAME, name);
+        String searchResult = findEntity(entityType, query);
         return getIdInResponse(searchResult);
-    }
-
-    /**
-     * get current response entry
-     *
-     * @return string of response entry
-     */
-    public String getCurrntResponseEntry() {
-        return qcConnector.getResponse().readEntity(String.class);
     }
 
     /**
@@ -73,7 +87,7 @@ public class QCRestClient {
      * @return id in string
      */
     public String getIdInResponse(String entry) {
-        return getFirstEntityInResponse(entry).getQcEntityID();
+        return getFirstEntityInResponse(entry).getEntityID();
     }
 
     /**
@@ -83,153 +97,192 @@ public class QCRestClient {
      * @return qc entity
      */
     public QCEntity getFirstEntityInResponse(String entry) {
-        return QCEntities.getQCEntitiesFromXMLString(entry).get(0);
-    }
-
-    /**
-     * get type of entity in xml content
-     *
-     * @param entry xml content
-     * @return entity type in int
-     */
-    public int getTypeInResponse(String entry) {
-        return getFirstEntityInResponse(entry).getEntityType();
-    }
-
-
-    /**
-     * create new folder in test plan.
-     *
-     * @param dirName  "some folder"
-     * @param parentId "12345"
-     * @return response message
-     */
-    public QCResponseMessage addNewTestPlanFolder(String dirName, String parentId) {
-        //ensure existence
-        String query = "{" + buildQueryPart("name", dirName) + ";" + buildQueryPart("parent-id", parentId) + "}";
-        int entityType = QCConstants.ENTITY_TYPE_TEST_FOLDER;
-        QCEntityExistance entityExistence = getEntityExistence(entityType, query);
-        if (!entityExistence.isExist()) {
-            String required = getRequiredFields(entityType);
-            QCEntity qcTCFolder = QCEntityBuilder.buildNewTestFolderEntity(dirName, parentId, required);
-            //createEntityIntoQC
-            Response resp = createEntityIntoQC(qcTCFolder);
-            String pattern = "Create new Test Plan Folder: " + dirName + " -> {0}\n";
-            return buildResultReport(resp, pattern);
+        List<QCEntity> entities = QCEntities.getQCEntitiesFromXMLString(entry);
+        if (!entities.isEmpty()) {
+            return entities.get(0);
         } else {
-            String msg = "Test Plan Folder is already created, no Action!";
-            return new QCResponseMessage(msg, entityExistence.getResponseEntry(), String.valueOf(entityExistence.getEntityId()));
+            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Entity in Response can not be found! ->" + entry);
         }
     }
 
     /**
-     * Synchronize QC Test Case into Test Plan
-     * <p>Case existed: update/override content into QC<p/>
-     * <p>Case new: create new test case into plan folder</p>
+     * Create QC Test Case into Test Plan
      *
-     * @param tcName      test case name
-     * @param folderId    parent folder id
+     * @param name        test case name
+     * @param parentId    parent folder id
      * @param description description of test case
      * @return QC Rest Response with comment
      */
-    public QCResponseMessage syncTestCase(String tcName, String description, String folderId, String application) {
-        //gathering attributes
-        int entityType = QCConstants.ENTITY_TYPE_TEST_CASE;
-        //existence testcase
-        String query = buildQuery("name", tcName);
-        QCEntityExistance entityExistence = getEntityExistence(entityType, query);
-        String requiredFields = getRequiredFields(entityType);
-        Response response;
-        if (!entityExistence.isExist()) {
-            //new qc entity of test case
-            QCEntity qce = QCEntityBuilder.buildNewTestCaseEntity(tcName, user, description, folderId, application, requiredFields);
-            response = createEntityIntoQC(qce);
-        } else {
-            //get existing entity of test case by id
-            QCEntity qce = getEntityByID(entityType, entityExistence.getEntityId());
-            qce.setAttribute("description", description);
-            qce.setAttribute("user-01", application);
-            response = updateEntityInQC(qce);
-        }
-        return buildResultReport(response, "Create/Update Test Case: " + tcName + " -> {0}\n");
+    public QCResponseMessage createTestCase(String name, String description, String parentId) {
+        QCEntity qce = QCEntityBuilder.buildNewTestCaseEntity(user, name, description, parentId, getRequiredFields(QCConstants.ENTITY_TYPE_TEST_CASE), testCaseRequiredFields);
+        return new QCResponseMessage(createEntityIntoQC(qce), "Create Test Case: " + name);
     }
 
     /**
-     * synchronize design step to test case
+     * Update QC Test Case Content
      *
-     * @param steps      list of steps
+     * @param testCaseId  test-id
+     * @param description description of test case
+     * @return QC Rest Response with comment
+     */
+    public QCResponseMessage updateTestCase(String testCaseId, String description) {
+        //get existing entity of test case by id
+        QCEntity qce = getEntityByID(QCConstants.ENTITY_TYPE_TEST_CASE, testCaseId);
+        qce.setAttribute(QCConstants.PARAM_DESCRIPTION, description);
+        return new QCResponseMessage(updateEntityInQC(qce), "Update Test Case: " + qce.getEntityName());
+    }
+
+    /**
+     * update design step to test case
+     *
+     * @param steps      list of all steps
      * @param testcaseId test case id
      * @return list of result of sync each step
      */
-    public List<String> syncDesignStepsToTestCase(LinkedList<String[]> steps, String testcaseId) {
-        //get all existing steps
+    public List<QCResponseMessage> updateDesignStepsToTestCase(List<String[]> steps, String testcaseId) {
+        //get all existing steps and update
         int entityType = QCConstants.ENTITY_TYPE_DESIGN_STEP;
-        List<QCEntity> desSteps = searchQCEntity(entityType, buildQuery("parent-id", testcaseId));
-        //       if (deleteAllDesignSteps(desSteps)) {//create steps
-        //           return createNewDesignStepsToTC(steps, testcaseId);
-//        } else {//override Steps
-        LinkedList<String> results = new LinkedList<>();
-        desSteps.stream().peek((qce) -> {
-            String[] step = new String[]{"", ""};//action, excepted
-            if (!steps.isEmpty()) {
-                step = steps.removeFirst();
+        LinkedList<String[]> newSteps = new LinkedList<>(steps);
+        List<QCEntity> designSteps = searchQCEntity(entityType, buildQuery(QCConstants.PARAM_PARENT_ID, testcaseId));
+        LinkedList<QCResponseMessage> results = new LinkedList<>();
+        designSteps.stream().peek(designStep -> {
+            if (designStep.getFieldValue(QCConstants.PARAM_PARENT_ID).equals(testcaseId)) {
+                String[] step = new String[]{"", ""};//action, excepted
+                if (!newSteps.isEmpty()) {
+                    step = newSteps.removeFirst();
+                }
+                designStep.setAttribute(QCConstants.PARAM_DESCRIPTION, step[0]);
+                designStep.setAttribute(QCConstants.PARAM_EXPECTED, step[1]);
+            } else {
+                throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Unexpected foreign Design Step to update!");
             }
-            qce.setAttribute("description", step[0]);
-            qce.setAttribute("expected", step[1]);
-        }).forEachOrdered((qce) -> {
-            String pattern = "Update Step: " + qce.getFieldValue("name") + " -> {0}\n";
-            String resText = buildResultReport(updateEntityInQC(qce), pattern).getMessage();
-            results.add(resText);
+        }).forEachOrdered((designStep) -> {
+            Response response = updateEntityInQC(designStep);
+            String pattern = "Update Step: " + designStep.getFieldValue(QCConstants.PARAM_NAME);
+            results.add(new QCResponseMessage(response, pattern));
         });
-        stepOrder += desSteps.size();
-        results.addAll(createNewDesignStepsToTC(steps, testcaseId));
+        //create new steps remained in step list
+        results.addAll(createNewDesignStepsToTC(newSteps, testcaseId, designSteps.size() + 1));
         return results;
-        //      }
+    }
+
+    public QCResponseMessage updateDesignStep(String[] step, QCEntity designStep) {
+        designStep.setAttribute(QCConstants.PARAM_DESCRIPTION, step[0]);
+        designStep.setAttribute(QCConstants.PARAM_EXPECTED, step[1]);
+        Response response = updateEntityInQC(designStep);
+        String pattern = "Update Step: " + designStep.getFieldValue(QCConstants.PARAM_NAME);
+        return new QCResponseMessage(response, pattern);
+    }
+
+    public QCResponseMessage updateDesignStep(String[] step, String stepId) {
+        return updateDesignStep(step, getEntityByID(QCConstants.ENTITY_TYPE_DESIGN_STEP, stepId));
     }
 
     /**
-     * add new test set to lab
+     * create new steps into test case
      *
-     * @param tsName test set name
-     * @param pid    parent id
-     * @return response message
+     * @param steps      steps
+     * @param testcaseId test-id
+     * @return responses
      */
-    public QCResponseMessage addNewTestSet(String tsName, String pid) {
-        int entityType = QCConstants.ENTITY_TYPE_TESTSET;
-        String query = "{" + buildQueryPart("name", tsName) + ";" + buildQueryPart("parent-id", pid) + "}";
-        QCEntityExistance entityExistence = getEntityExistence(entityType, query);
-        if (!entityExistence.isExist()) {
-            String requiredFields = getRequiredFields(entityType);
-            QCEntity qce = QCEntityBuilder.buildNewTestSetEntity(tsName, pid, requiredFields);
-            Response resp = createEntityIntoQC(qce);
-            String pattern = "Create new TestSet: " + tsName + " -> {0}\n";
-            return buildResultReport(resp, pattern);
+    public LinkedList<QCResponseMessage> createNewDesignStepsToTC(List<String[]> steps, String testcaseId) {
+        return createNewDesignStepsToTC(steps, testcaseId, 1);
+    }
+
+    /**
+     * create new steps into test case with begin order
+     *
+     * @param steps      steps
+     * @param testcaseId test-id
+     * @param orderBegin begin order, default 1
+     * @return responses
+     */
+    public LinkedList<QCResponseMessage> createNewDesignStepsToTC(List<String[]> steps, String testcaseId, int orderBegin) {
+        AtomicInteger stepOrder = new AtomicInteger(orderBegin);
+        LinkedList<QCResponseMessage> results = new LinkedList<>();
+        steps.stream().map(entry -> QCEntityBuilder.buildDesignStep(entry[0], entry[1], testcaseId, stepOrder.get()))
+                .map(this::createEntityIntoQC).forEachOrdered((resp) -> results.add(new QCResponseMessage(resp, "Create Step: " + stepOrder.getAndIncrement())));
+        return results;
+    }
+
+    /**
+     * check if entity exists
+     *
+     * @param entityType type
+     * @param name       name
+     * @param parentId   pid
+     * @return true if found
+     */
+    public boolean existsEntity(int entityType, String name, String parentId) {
+        String id = getEntityIDByName(QCConstants.getContainerName(entityType), name, parentId);
+        return !id.isEmpty();
+    }
+
+    /**
+     * get entity with name and parent id
+     *
+     * @param name name of entity
+     * @return id if only one found else not found with "" and more found with "0"
+     */
+    public String getEntityIDByName(String container, String name, String parentId) {
+        List<QCEntity> results;
+        if (isValid(parentId)) {
+            results = searchQCEntity(container, buildQuery(ImmutableMap.of(QCConstants.PARAM_NAME, name, QCConstants.PARAM_PARENT_ID, parentId)));
         } else {
-            String msg = "Test Set is alrealy created, no Action!";
-            return new QCResponseMessage(msg, entityExistence.getResponseEntry(), String.valueOf(entityExistence.getEntityId()));
+            results = searchQCEntity(container, buildQuery(QCConstants.PARAM_NAME, name));
+        }
+        if (results.isEmpty()) {
+            return "";
+        } else if (results.size() > 1) {
+            return "0";
+        } else {
+            return results.get(0).getEntityID();
         }
     }
 
     /**
-     * add new test set folder
+     * create test plan folder
      *
-     * @param tsfName test set folder name
-     * @param pid     parent id
-     * @return response message
+     * @param name     name
+     * @param parentId pdi
+     * @return response
      */
-    public QCResponseMessage addNewTestSetFolder(String tsfName, String pid) {
-        int entityType = QCConstants.ENTITY_TYPE_TESTSETS_FOLDER;
-        String query = "{" + buildQueryPart("name", tsfName) + ";" + buildQueryPart("parent-id", pid) + "}";
-        QCEntityExistance entityExistence = getEntityExistence(entityType, query);
-        if (!entityExistence.isExist()) {
-            QCEntity qce = QCEntityBuilder.buildNewTestSetFolderEntity(tsfName, pid, getRequiredFields(entityType));
-            Response resp = createEntityIntoQC(qce);
-            String pattern = "Create new TestSet Folder: " + tsfName + " -> {0}\n";
-            return buildResultReport(resp, pattern);
-        } else {
-            String msg = "Test Set Folder is alrealy created, no Action!";
-            return new QCResponseMessage(msg, entityExistence.getResponseEntry(), String.valueOf(entityExistence.getEntityId()));
-        }
+    public QCResponseMessage createTestPlanFolder(String name, String parentId) {
+        String requiredFields = getRequiredFields(QCConstants.ENTITY_TYPE_TESTPLAN_FOLDER);
+        QCEntity qcTCFolder = QCEntityBuilder.buildNewTestPlanFolderEntity(name, parentId, requiredFields);
+        Response resp = createEntityIntoQC(qcTCFolder);
+        String pattern = "Create new Test Plan Folder: " + name;
+        return new QCResponseMessage(resp, pattern);
+    }
+
+    /**
+     * create test lab folder
+     *
+     * @param name     name
+     * @param parentId pdi
+     * @return response
+     */
+    public QCResponseMessage createTestLabFolder(String name, String parentId) {
+        String requiredFields = getRequiredFields(QCConstants.ENTITY_TYPE_TESTLAB_FOLDER);
+        QCEntity qcTCFolder = QCEntityBuilder.buildNewTestLabFolderEntity(name, parentId, requiredFields);
+        Response resp = createEntityIntoQC(qcTCFolder);
+        String pattern = "Create new Test Lab Folder: " + name;
+        return new QCResponseMessage(resp, pattern);
+    }
+
+    /**
+     * create test set
+     *
+     * @param name     name
+     * @param parentId pdi
+     * @return response
+     */
+    public QCResponseMessage createTestSet(String name, String parentId) {
+        String requiredFields = getRequiredFields(QCConstants.ENTITY_TYPE_TESTSET);
+        QCEntity qce = QCEntityBuilder.buildNewTestSetEntity(name, parentId, requiredFields);
+        Response resp = createEntityIntoQC(qce);
+        String pattern = "Create new TestSet: " + name;
+        return new QCResponseMessage(resp, pattern);
     }
 
     /**
@@ -240,19 +293,11 @@ public class QCRestClient {
      * @return response message
      */
     public QCResponseMessage addNewInstanceToSet(String testCaseId, String testSetId) {
-        String query = "{" + buildQueryPart("cycle-id", testCaseId) + ";" + buildQueryPart("test-id", testSetId) + "}";
         int entityType = QCConstants.ENTITY_TYPE_INSTANCE;
-        QCEntityExistance entityExistence = getEntityExistence(entityType, query);
-        if (!entityExistence.isExist()) {
-            QCEntity qce = QCEntityBuilder.buildNewInstanceEntity(testSetId, testCaseId, user, getRequiredFields(entityType));
-            Response resp = createEntityIntoQC(qce);
-            String pattern = "Create new Instance id: " + testCaseId + " into Test Set id: "
-                    + testSetId + "Status -> {0}\n";
-            return buildResultReport(resp, pattern);
-        } else {
-            String msg = "Test Instance of this Test Case already in TestSet, no Action!";
-            return new QCResponseMessage(msg, entityExistence.getResponseEntry(), String.valueOf(entityExistence.getEntityId()));
-        }
+        QCEntity qce = QCEntityBuilder.buildNewInstanceEntity(testSetId, testCaseId, user, getRequiredFields(entityType));
+        Response resp = createEntityIntoQC(qce);
+        String pattern = "Create new Instance id: " + testCaseId + " into Test Set id: " + testSetId + "Status:";
+        return new QCResponseMessage(resp, pattern);
     }
 
     /**
@@ -260,27 +305,14 @@ public class QCRestClient {
      *
      * @param testId test case id
      * @param reqId  requirement id
-     * @return response
+     * @return QCResponseMessage
      */
-    public String coverTestCaseWithRequirement(String testId, String reqId) {
+    public QCResponseMessage coverTestCaseWithRequirement(String testId, String reqId) {
         int entityType = QCConstants.ENTITY_TYPE_COVERAGE;
         QCEntity qce = QCEntityBuilder.buildNewRequirementEntity(reqId, testId, getRequiredFields(entityType));
         Response resp = createEntityIntoQC(qce);
-        String pattern = "Create REQ Coverage to Test Case " + " -> {0}\n";
-        return buildResultReport(resp, pattern).getMessage();
-    }
-
-    /**
-     * get test case id search by name
-     *
-     * @param tcName test case name
-     * @return id in string
-     */
-    public String getTestCaseIdByName(String tcName) {
-        int entityType = QCConstants.ENTITY_TYPE_TEST_CASE;
-        String query = buildQuery("name", tcName);
-        String xml = getEntity(entityType, query);
-        return getIdInResponse(xml);
+        String pattern = "Create REQ Coverage to Test Case";
+        return new QCResponseMessage(resp, pattern);
     }
 
     /**
@@ -289,19 +321,19 @@ public class QCRestClient {
      */
     public List<QCEntity> getFolderEntityChildern(QCEntity qce) {
         List<QCEntity> childern = new ArrayList<>();
-        int tcFolder = QCConstants.ENTITY_TYPE_TEST_FOLDER;
-        int tsFolder = QCConstants.ENTITY_TYPE_TESTSETS_FOLDER;
+        int tcFolder = QCConstants.ENTITY_TYPE_TESTPLAN_FOLDER;
+        int tsFolder = QCConstants.ENTITY_TYPE_TESTLAB_FOLDER;
         int entityType = qce.getEntityType();
         if (entityType == tcFolder || entityType == tsFolder) {
             String container = QCConstants.getContainerName(entityType);
-            String pid = qce.getFieldValue("id");
-            String query = buildQuery("parent-id", pid);
-            String searchResults = getEntity(container, query);
+            String pid = qce.getEntityID();
+            String query = buildQuery(QCConstants.PARAM_PARENT_ID, pid);
+            String searchResults = findEntity(container, query);
             if (QCEntities.getTotalResults(searchResults) > 0) {
                 childern = getEntitiesFromSearchResults(searchResults);
             }
             if (entityType == tsFolder) {
-                searchResults = getEntity(QCConstants.TEST_LAB_TESTSET_CONTAINER, query);
+                searchResults = findEntity(QCConstants.TESTLAB_TESTSET_CONTAINER, query);
                 childern.addAll(getEntitiesFromSearchResults(searchResults));
             }
         }
@@ -311,23 +343,23 @@ public class QCRestClient {
     /**
      * get all test cases from folder per container type
      *
-     * @param parentFolder can be test case folder or test set
+     * @param parentFolder can be tested case folder or test set
      * @return list of test cases
      */
-    public List<QCEntity> getTeseCases(QCEntity parentFolder) {
+    public List<QCEntity> getTestCases(QCEntity parentFolder) {
         List<QCEntity> childern = new ArrayList<>();
-        int tcFolder = QCConstants.ENTITY_TYPE_TEST_FOLDER;
-        int tsFolder = QCConstants.ENTITY_TYPE_TESTSETS_FOLDER;
+        int tcFolder = QCConstants.ENTITY_TYPE_TESTPLAN_FOLDER;
+        int tsFolder = QCConstants.ENTITY_TYPE_TESTLAB_FOLDER;
         int tsSets = QCConstants.ENTITY_TYPE_TESTSET;
         int entityType = parentFolder.getEntityType();
-        String pid = parentFolder.getFieldValue("id");
+        String pid = parentFolder.getEntityID();
         if (entityType != tsFolder) {
             if (entityType == tcFolder) {
                 String container = QCConstants.TEST_CASE_CONTAINER;
-                String query = buildQuery("parent-id", pid);
+                String query = buildQuery(QCConstants.PARAM_PARENT_ID, pid);
                 childern.addAll(searchQCEntity(container, query));
             } else if (entityType == tsSets) {
-                String container = QCConstants.TEST_LAB_INSTANCE_CONTAINER;
+                String container = QCConstants.TESTLAB_INSTANCE_CONTAINER;
                 String query = buildQuery("cycle-id", pid);
                 childern.addAll(searchQCEntity(container, query));
                 getTCNameOfInstance(childern);
@@ -346,9 +378,9 @@ public class QCRestClient {
             String testid = instance.getFieldValue("test-id");
             String container = QCConstants.TEST_CASE_CONTAINER;
             String query = buildQuery("id", testid);
-            String searchResults = getEntity(container, query);
+            String searchResults = findEntity(container, query);
             if (QCEntities.getTotalResults(searchResults) > 0) {
-                String name = getEntitiesFromSearchResults(searchResults).get(0).getFieldValue("name");
+                String name = getEntitiesFromSearchResults(searchResults).get(0).getEntityName();
                 instance.setAttribute("name", name);
             }
         });
@@ -360,19 +392,18 @@ public class QCRestClient {
      * @return qc entity
      */
     public QCEntity getTCFolderRootEntity() {
-        String[] folders = tcRootFolder.split("/");
+        String[] folders = testLabRootFolder.split("/");
         QCEntity folder = null;
-        String parentid = null;
-        int entityType = QCConstants.ENTITY_TYPE_TEST_FOLDER;
+        String parentid = "";
+        int entityType = QCConstants.ENTITY_TYPE_TESTPLAN_FOLDER;
         //loop on path
-        for (String foldername : folders) {
-            if (foldername.equals("Subject")) {
-                parentid = getEntityIDByName(entityType, foldername);
+        for (String folderName : folders) {
+            if (folderName.equals("Subject")) {
+                parentid = getEntityIDByName(entityType, folderName);
             } else {
-                String query = "{" + buildQueryPart("name", foldername) + ";" + buildQueryPart("parent-id", parentid) + "}";
-                String entry = getEntity(entityType, query);
+                String entry = findEntity(entityType, buildQuery(ImmutableMap.of(QCConstants.PARAM_NAME, folderName, QCConstants.PARAM_PARENT_ID, parentid)));
                 folder = getFirstEntityInResponse(entry);
-                parentid = folder.getQcEntityID();
+                parentid = folder.getEntityID();
             }
         }
         return folder;
@@ -384,18 +415,17 @@ public class QCRestClient {
      * @return qc entity
      */
     public QCEntity getTLFolderRootEntity() {
-        String[] folders = tlRootFolder.split("/");
+        String[] folders = testLabRootFolder.split("/");
         QCEntity folder = null;
-        String parentid = null;
-        int entityType = QCConstants.ENTITY_TYPE_TESTSETS_FOLDER;
+        String parentid = "";
+        int entityType = QCConstants.ENTITY_TYPE_TESTLAB_FOLDER;
         for (String foldername : folders) {
             if (foldername.equals("Root")) {
                 parentid = getEntityIDByName(entityType, foldername);
             } else {
-                String query = "{" + buildQueryPart("name", foldername) + ";" + buildQueryPart("parent-id", parentid) + "}";
-                String entry = getEntity(entityType, query);
+                String entry = findEntity(entityType, buildQuery(ImmutableMap.of(QCConstants.PARAM_NAME, foldername, QCConstants.PARAM_PARENT_ID, parentid)));
                 folder = getFirstEntityInResponse(entry);
-                parentid = folder.getQcEntityID();
+                parentid = folder.getEntityID();
             }
         }
         return folder;
@@ -407,7 +437,7 @@ public class QCRestClient {
      * @param root root of tree
      * @param node tree node
      */
-    public void createChildern(QCEntityNode root, DefaultMutableTreeNode node) {
+    public void createChild(QCEntityNode root, DefaultMutableTreeNode node) {
         List<QCEntity> leafChildern = root.getLeafChildern();
         List<QCEntity> nodeChildern = root.getNodeChildern();
         leafChildern.forEach(qce -> node.add(new DefaultMutableTreeNode(new QCEntityNode(qce, null, null))));
@@ -415,10 +445,10 @@ public class QCRestClient {
             node.add(new DefaultMutableTreeNode("empty"));
         } else {
             nodeChildern.forEach(qce -> {
-                QCEntityNode qn = new QCEntityNode(qce, getFolderEntityChildern(qce), getTeseCases(qce));
+                QCEntityNode qn = new QCEntityNode(qce, getFolderEntityChildern(qce), getTestCases(qce));
                 DefaultMutableTreeNode child = new DefaultMutableTreeNode(qn);
                 node.add(child);
-                createChildern(qn, child);
+                createChild(qn, child);
             });
         }
     }
@@ -431,7 +461,7 @@ public class QCRestClient {
      * @return list of all found entities
      */
     public List<QCEntity> searchQCEntity(int entityType, String query) {
-        String searchResults = getEntity(entityType, query);
+        String searchResults = findEntity(entityType, query);
         return getEntitiesFromSearchResults(searchResults);
     }
 
@@ -443,7 +473,7 @@ public class QCRestClient {
      * @return list of all found entities
      */
     public List<QCEntity> searchQCEntity(String container, String query) {
-        String searchResults = getEntity(container, query);
+        String searchResults = findEntity(container, query);
         return getEntitiesFromSearchResults(searchResults);
     }
 
@@ -455,9 +485,9 @@ public class QCRestClient {
      * @param qcRootTreeNode   Node Container
      */
     public void buildQCTree(QCEntity folderRootEntity, DefaultMutableTreeNode qcRootTreeNode) {
-        QCEntityNode treeRoot = new QCEntityNode(folderRootEntity, getFolderEntityChildern(folderRootEntity), getTeseCases(folderRootEntity));
+        QCEntityNode treeRoot = new QCEntityNode(folderRootEntity, getFolderEntityChildern(folderRootEntity), getTestCases(folderRootEntity));
         qcRootTreeNode.setUserObject(treeRoot);
-        createChildern(treeRoot, qcRootTreeNode);
+        createChild(treeRoot, qcRootTreeNode);
     }
 
     /**
@@ -477,21 +507,19 @@ public class QCRestClient {
     /**
      * add new Run to Test Instance in Test Set of Test Lab
      *
-     * @param qcInsEntity qc Lab Test Instance entity
-     * @param tcResult    test case run result
+     * @param testInstanceID testInstanceID
+     * @param tcResult       test case run result
      * @return response of action
      */
-    public List<String> addNewRunToInstance(QCEntity qcInsEntity, TestRunResult tcResult) {
-        LinkedList<String> results = new LinkedList<>();
-        int entityType = QCConstants.ENTITY_TYPE_RUN;
-        String required = getRequiredFields(entityType);
-        QCEntity qcRun = QCEntityBuilder.buildNewRunEntity(qcInsEntity, required, user);
+    public List<QCResponseMessage> addNewRunToInstance(String testInstanceID, TestRunResult tcResult) {
+        LinkedList<QCResponseMessage> results = new LinkedList<>();
+        String required = getRequiredFields(QCConstants.ENTITY_TYPE_RUN);
+        QCEntity qcInsEntity = getEntityByID(QCConstants.ENTITY_TYPE_INSTANCE, testInstanceID);
         //createEntityIntoQC Run
+        QCEntity qcRun = QCEntityBuilder.buildNewRunEntity(qcInsEntity, required, user, tcResult.getName());
         Response resp = createEntityIntoQC(qcRun);
-        String testCaseName = qcInsEntity.getFieldValue("name");
-        String pattern = "Add new Run to Instance: " + testCaseName + " -> {0}\n";
-        QCResponseMessage qcrm = buildResultReport(resp, pattern);
-        results.add(qcrm.getMessage());
+        QCResponseMessage qcrm = new QCResponseMessage(resp, "Add new Run to Instance: " + qcInsEntity.getEntityName());
+        results.add(qcrm);
         //hold runId
         String runId = qcrm.getEntityId();
         //update run content, status and attachment
@@ -506,88 +534,80 @@ public class QCRestClient {
      * @param tcrResult list of step result
      * @return list of update message
      */
-    public List<String> updateRunContent(String runId, TestRunResult tcrResult) {
-        LinkedList<String> results = new LinkedList<>();
+    public List<QCResponseMessage> updateRunContent(String runId, TestRunResult tcrResult) {
+        LinkedList<QCResponseMessage> results = new LinkedList<>();
         String runStaus = tcrResult.getStatus().text();
         List<QCEntity> runSteps = getRunSteps(runId);
-        String testCaseName = tcrResult.getName();
-        //prepair and update Runsteps
-        for (QCEntity entity : runSteps) {
-            String stepOrder = entity.getFieldValue("step-order");
-            String stepId = entity.getQcEntityID();
-            int index = Integer.parseInt(stepOrder) - 1;
-            String stepStatus;
-            String actual;
-            List<Screenshot> avidence;
-            if (index < tcrResult.getStepResults().size() && index >= 0) {
-                stepStatus = tcrResult.getStepResults().get(index).getStatus().text();
-                actual = tcrResult.getStepResults().get(index).getActual();
-                avidence = tcrResult.getStepResults().get(index).getScreenshots();
-            } else {
-                stepStatus = "No Run";
-                actual = "NOT PERFORMED";
-                avidence = Collections.emptyList();
+        //prepare and update Run-steps
+        for (QCEntity runStep : runSteps) {
+            List<TestStepResult> stepResults = tcrResult.getStepResults();
+            if (stepResults.size() != runSteps.size()) {
+                throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Run Steps count are not equals step results count!");
             }
-            String name = entity.getFieldValue("name");
-            String upToDate = QCEntityBuilder.buildUpdateContentOfRunStep(stepStatus, actual);
-            Response resp = updateEntityInQC(entity, upToDate);
-            String pattern = "Add new Run-Step: " + name + " with status: " + stepStatus + " -> {0}\n";
-            for (Screenshot screenshot : avidence) {
-                appendAttachment(QCConstants.ENTITY_TYPE_RUN_STEP, stepId, screenshot.getScreenshotFile());
+            int stepOrder = Integer.parseInt(runStep.getFieldValue(QCConstants.PARAM_STEP_ORDER));
+            TestStepResult stepResult = stepResults.get(stepOrder - 1);
+            String stepId = runStep.getEntityID();
+            String stepStatus = stepResult.getStatus().text();
+            String actual = stepResult.getInfo();
+            List<Screenshot> evidence = stepResult.getScreenshots();
+            runStep.setAttribute(QCConstants.PARAM_STATUS, stepStatus);
+            runStep.setAttribute(QCConstants.PARAM_ACTUAL, convertTextToHTML(actual));
+            Response resp = updateEntityInQC(runStep);
+            String pattern = "Update Run-Step: " + runStep.getEntityName() + " with status: " + stepStatus;
+            results.add(new QCResponseMessage(resp, pattern));
+            for (Screenshot screenshot : evidence) {
+                resp = appendAttachment(QCConstants.ENTITY_TYPE_RUN_STEP, stepId, screenshot.getScreenshotFile());
+                results.add(new QCResponseMessage(resp, "Upload screenshot"));
                 if (screenshot.hasPageFile()) {
-                    appendAttachment(QCConstants.ENTITY_TYPE_RUN_STEP, stepId, screenshot.getPageFile());
+                    resp = appendAttachment(QCConstants.ENTITY_TYPE_RUN_STEP, stepId, screenshot.getPageFile());
+                    results.add(new QCResponseMessage(resp, "Upload page source"));
                 }
             }
-            String resText = buildResultReport(resp, pattern).getMessage();
-            results.add(resText);
         }
         //update Test Instance
-        int entityType = QCConstants.ENTITY_TYPE_RUN;
-        String updateMsg = updateTestInstanceStatus(entityType, runId, runStaus).getMessage();
-        //upload report
-        appendAttachment(entityType, runId, new File(tcrResult.getLogFilePath()));
-        results.add(updateMsg);
+        results.add(updateRunStatus(runId, runStaus));
+        //upload log file
+        Response resp = appendAttachment(QCConstants.ENTITY_TYPE_RUN, runId, new File(tcrResult.getLogFilePath()));
+        results.add(new QCResponseMessage(resp, "Upload log file"));
         return results;
     }
 
     /**
      * update test instance status
      *
-     * @param entityType entity type
-     * @param id         parent id
-     * @param status     status of test
+     * @param runId  run id
+     * @param status status of test
      * @return response of rest client
      */
-    public QCResponseMessage updateTestInstanceStatus(int entityType, String id, String status) {
-        String upToDate = QCEntityBuilder.buildUpdateContentForTestInstanceStatus(status);
-        Response resp = updateEntityInQC(getEntityByID(entityType, id), upToDate);
-        String pattern = "Update Run of Instance with status: " + status + " ->  {0}\n";
-        return buildResultReport(resp, pattern);
+    public QCResponseMessage updateRunStatus(String runId, String status) {
+        Response resp = updateEntityInQC(QCConstants.ENTITY_TYPE_RUN, runId, QCEntityBuilder.buildSingleFieldPayload(QCConstants.PARAM_STATUS, status));
+        String pattern = "Update Run of Instance with status: " + status;
+        return new QCResponseMessage(resp, pattern);
     }
 
     /**
      * get list of Design Steps of a test case
      *
-     * @param testid test case id
+     * @param testId test case id
      * @return list of qc entities
      */
-    public List<QCEntity> getDesignSteps(String testid) {
+    public List<QCEntity> getDesignSteps(String testId) {
         int entityType = QCConstants.ENTITY_TYPE_DESIGN_STEP;
-        String query = buildQuery("parent-id", testid);
-        String searchResults = getEntity(entityType, query);
+        String query = buildQuery(QCConstants.PARAM_PARENT_ID, testId);
+        String searchResults = findEntity(entityType, query);
         return getEntitiesFromSearchResults(searchResults);
     }
 
     /**
      * get list of run steps of a test case instance
      *
-     * @param runid test run instance id
+     * @param runId test run instance id
      * @return list of qc entities
      */
-    public List<QCEntity> getRunSteps(String runid) {
+    public List<QCEntity> getRunSteps(String runId) {
         int entityType = QCConstants.ENTITY_TYPE_RUN_STEP;
-        String query = buildQuery("parent-id", runid);
-        String searchResults = getEntity(entityType, query);
+        String query = buildQuery(QCConstants.PARAM_PARENT_ID, runId);
+        String searchResults = findEntity(entityType, query);
         return getEntitiesFromSearchResults(searchResults);
     }
 
@@ -609,7 +629,7 @@ public class QCRestClient {
     }
 
     /**
-     * get required fields of qc entity per framework.rest call
+     * get required fields of qc entity
      *
      * @param entityType entity type
      * @return xml content of fields definition
@@ -619,7 +639,7 @@ public class QCRestClient {
     }
 
     /**
-     * get qc entity by id per framework.rest call
+     * get qc entity by id
      *
      * @param entityType entity type
      * @param id         entity id in qc
@@ -632,7 +652,7 @@ public class QCRestClient {
     }
 
     /**
-     * get qc entity by id per framework.rest call
+     * get qc entity by id
      *
      * @param entityType entity type
      * @param id         entity id in qc
@@ -646,10 +666,10 @@ public class QCRestClient {
      * delete entity in qc
      *
      * @param entity qc entity to be deleted
-     * @return response of framework.rest call
+     * @return response
      */
     public Response deleteQCEntityInQC(QCEntity entity) {
-        return qcConnector.delete(domain, project, entity.getEntityType(), entity.getFieldValue("id"));
+        return qcConnector.delete(domain, project, entity.getEntityType(), entity.getEntityID());
     }
 
     /**
@@ -657,24 +677,31 @@ public class QCRestClient {
      *
      * @param storyFile file to attach
      * @param tcid      test case id
-     * @return response message of framework.rest call
+     * @return response message
      */
-    public QCResponseMessage attachFileToTestCase(File storyFile, String tcid) {
-        Response resp = appendAttachment(QCConstants.ENTITY_TYPE_TEST_CASE, tcid, storyFile);
-        String pattern = "Attach Story File:\n " + storyFile.getAbsolutePath() + "\n -> {0}\n";
-        return buildResultReport(resp, pattern);
+    public QCResponseMessage attachFileToTestCase(String storyFile, String tcid) {
+        Response resp = appendAttachment(QCConstants.ENTITY_TYPE_TEST_CASE, tcid, FileOperation.getFile(storyFile).toFile());
+        return new QCResponseMessage(resp, "Attach Story File: " + storyFile);
     }
 
     /**
      * get attachment of entity in qc
      *
      * @param entityType entity type
-     * @param id         entity id
+     * @param parentId   entity id
      * @param fileName   attach file name in qc
      * @return steam of attachment
      */
-    public InputStream getAttachment(int entityType, String id, String fileName) {
-        return qcConnector.getAttachmentsFromQCEntity(domain, project, id, entityType, fileName).readEntity(InputStream.class);
+    public InputStream getAttachmentContent(int entityType, String parentId, String fileName) {
+        return findAttachment(entityType, parentId, fileName).readEntity(InputStream.class);
+    }
+
+    public Response findAttachment(int entityType, String parentId, String fileName) {
+        return qcConnector.getAttachmentsFromQCEntity(domain, project, parentId, entityType, fileName);
+    }
+
+    public List<QCEntity> getInstancesIdByTestCaseId(String testCaseId, String testSetId) {
+        return searchQCEntity(QCConstants.ENTITY_TYPE_INSTANCE, buildQuery(ImmutableMap.of(QCConstants.PARAM_TEST_CASE_ID, testCaseId, QCConstants.PARAM_INSTANCE_ID_IN_TEST_CASE, testSetId)));
     }
 
     /**
@@ -683,17 +710,48 @@ public class QCRestClient {
      * @param results Response Entry of search result
      * @return List of Entites
      */
-    private List<QCEntity> getEntitiesFromSearchResults(String results) {
+    public List<QCEntity> getEntitiesFromSearchResults(String results) {
         return QCEntities.getQCEntitiesFromXMLString(results);
+    }
+
+    public List<QCEntity> getTestRunSteps(String runId) {
+        return searchQCEntity(QCConstants.TESTLAB_RUN_STEPS_CONTAINER, buildQuery(QCConstants.PARAM_PARENT_ID, runId));
+    }
+
+    public QCEntity getLastRunsOfTestCase(String testCaseId) {
+        List<QCEntity> runs = searchQCEntity(QCConstants.TESTLAB_RUN_CONTAINER, buildQuery(QCConstants.PARAM_TEST_CASE_ID, testCaseId)).stream().sorted().toList();
+        if (!runs.isEmpty()) {
+            return runs.get(runs.size() - 1);
+        } else {
+            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "No Runs found with Test Case ID:" + testCaseId);
+        }
+    }
+
+    public QCEntity getLastRunsOfInstance(String instanceId) {
+        List<QCEntity> runs = searchQCEntity(QCConstants.TESTLAB_RUN_CONTAINER, buildQuery(QCConstants.PARAM_INSTANCE_ID_IN_RUN, instanceId)).stream().sorted().toList();
+        if (!runs.isEmpty()) {
+            return runs.get(runs.size() - 1);
+        } else {
+            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "No Runs found with Test Case ID:" + instanceId);
+        }
+    }
+
+    public QCEntity getLastTestRunStepOfDesignStep(String designStepId) {
+        List<QCEntity> runs = searchQCEntity(QCConstants.TESTLAB_RUN_STEPS_CONTAINER, buildQuery(QCConstants.PARAM_DESIGNSTEP_ID_IN_RUNSTEP, designStepId)).stream().sorted().toList();
+        if (!runs.isEmpty()) {
+            return runs.get(runs.size() - 1);
+        } else {
+            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "No Run Step found with Design Step ID:" + designStepId);
+        }
     }
 
     /**
      * psot entity to qc
      *
      * @param qcItem qc entity
-     * @return response of framework.rest call
+     * @return response
      */
-    private Response createEntityIntoQC(QCEntity qcItem) {
+    public Response createEntityIntoQC(QCEntity qcItem) {
         return qcConnector.createQCEntity(domain, project, qcItem.getEntityType(), qcItem.getXMLContent());
     }
 
@@ -704,9 +762,9 @@ public class QCRestClient {
      * @param query      qc query token
      * @return Response Entry in String
      */
-    private String getEntity(int entityType, String query) {
+    public String findEntity(int entityType, String query) {
         String container = QCConstants.getContainerName(entityType);
-        return qcConnector.getEntityFromQCContainer(domain, project, container, query).readEntity(String.class);
+        return findEntity(container, query);
     }
 
     /**
@@ -716,7 +774,7 @@ public class QCRestClient {
      * @param query     qc query token
      * @return Response Entry in String
      */
-    private String getEntity(String container, String query) {
+    public String findEntity(String container, String query) {
         return qcConnector.getEntityFromQCContainer(domain, project, container, query).readEntity(String.class);
     }
 
@@ -724,27 +782,21 @@ public class QCRestClient {
      * updateQCEntity entity to qc
      *
      * @param entity qc entity
-     * @return response of framework.rest call
+     * @return response
      */
-    private Response updateEntityInQC(QCEntity entity) {
-        if (vcEnabled.equalsIgnoreCase("true")) {
+    public Response updateEntityInQC(QCEntity entity) {
+        if (vcEnabled) {
             return qcConnector.updateQCEntityWithVersion(domain, project, entity);
         } else {
             return qcConnector.updateQCEntity(domain, project, entity);
         }
     }
 
-    /**
-     * updateQCEntity entity to qc
-     *
-     * @param entity qc entity
-     * @return response of framework.rest call
-     */
-    private Response updateEntityInQC(QCEntity entity, String upToDate) {
-        if (vcEnabled.equalsIgnoreCase("true")) {
-            return qcConnector.updateQCEntityWithVersion(domain, project, entity.getEntityType(), entity.getQcEntityID(), upToDate);
+    public Response updateEntityInQC(int entityTyp, String entityId, String payload) {
+        if (vcEnabled) {
+            return qcConnector.updateQCEntityWithVersion(domain, project, entityTyp, entityId, payload);
         } else {
-            return qcConnector.updateQCEntity(domain, project, entity, upToDate);
+            return qcConnector.updateQCEntity(domain, project, QCConstants.getContainerName(entityTyp), entityId, payload);
         }
     }
 
@@ -753,101 +805,203 @@ public class QCRestClient {
      *
      * @param entityType entity type
      * @param entityId   entity id
-     * @param fileName   file name
-     * @param content    content of file
-     * @return response of framework.rest call
+     * @param file       file
+     * @return response
      */
-    private Response appendAttachment(int entityType, String entityId, String fileName, byte[] content) {
-        if (content != null) {
-            Response resp = qcConnector.appendAttachmentsToQCEntity(domain, project, entityId, entityType, fileName, content);
-            log("INFO", "Attachment appened: " + resp.getStatusInfo().getReasonPhrase());
-            return resp;
-        } else {
-            log("INFO", "File Content is null, no Attachment appended.");
-            return null;
-        }
+    public Response appendAttachment(int entityType, String entityId, File file) {
+        byte[] content = FileOperation.readFileToByteArray(file);
+        SystemLogger.info("Try to Upload Attachment: " + file.getName());
+        return qcConnector.appendAttachmentsToQCEntity(domain, project, entityId, entityType, file.getName(), content);
     }
 
-    private Response appendAttachment(int entityType, String id, File file) {
-        if (file.exists()) {
-            log("INFO", "Try to read File for Attachment: " + file.getAbsolutePath());
-            byte[] content = FileOperation.readFileToByteArray(file);
-            log("INFO", "Try to Upload Attachment: " + file.getName());
-            return appendAttachment(entityType, id, file.getName(), content);
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * build qc response message with returned entity after framework.rest request
-     *
-     * @param resp           framework.rest response
-     * @param messagePattern pattern of message format  expected {0} position of status info
-     *                       likely: run job - xxxx with yyyy -> {0}
-     * @return message
-     */
-    private QCResponseMessage buildResultReport(Response resp, String messagePattern) {
-        String statusInfo = QCConstants.getReturnStatus(resp.getStatus());
-        String entry = resp.readEntity(String.class);
-        String message = MessageFormat.format(messagePattern, statusInfo);
-        log("DEBUG", message + entry);
-        return new QCResponseMessage(getFirstEntityInResponse(entry), message, entry);
-    }
-
-    private String spaceResolver(String nameForQuery) {
-        return "=" + '"' + nameForQuery.replace(" ", "*") + '"';
-    }
-
-    private String buildQuery(String attribute, String value) {
+    public String buildQuery(String attribute, String value) {
         return "{" + buildQueryPart(attribute, value) + "}";
     }
 
-    private String buildQueryPart(String key, String content) {
-        if (key.contains("name")) {
-            return key + "[" + spaceResolver(content) + "]";
-        } else {
-            return key + "[" + content + "]";
-        }
-    }
-
-    private String buildQuery(Map<String, String> paramenters) {
+    public String buildQuery(Map<String, String> parameters) {
+        if (parameters.isEmpty()) return "";
         StringBuilder query = new StringBuilder();
-        paramenters.forEach((key, value) -> query.append(buildQueryPart(key, value)).append(";"));
+        parameters.forEach((key, value) -> query.append(buildQueryPart(key, value)).append(";"));
         String content = query.toString();
-        return "{" + content.substring(0, content.lastIndexOf(";")) + "}";
+        return "{" + StringUtils.chop(content) + "}";
     }
 
-
-    private LinkedList<String> createNewDesignStepsToTC(LinkedList<String[]> steps, String testcaseId) {
-        LinkedList<String> results = new LinkedList<>();
-        steps.stream()
-                .map((entry) -> QCEntityBuilder.buildDesignStep(entry[0], entry[1], testcaseId, stepOrder++))
-                .map(this::createEntityIntoQC).forEachOrdered((resp) -> {
-                    String pattern = "Create Step: " + stepOrder + " -> {0}\n";
-                    String resText = buildResultReport(resp, pattern).getMessage();
-                    results.add(resText);
-                });
-        stepOrder = 0;
-        if (results.isEmpty()) {
-            results.add("no new Steps created.");
+    private String buildQueryPart(String key, String content) {
+        if (isValid(content)) {
+            if (key.contains(QCConstants.PARAM_NAME)) {
+                return key + "[" + content.replaceAll("[^a-zA-Z0-9=_-]", "*") + "]";
+            } else {
+                return key + "[" + content + "]";
+            }
+        } else {
+            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Query Parameter can not be empty!");
         }
-        return results;
     }
 
     /**
-     * try to find entity with type via query
+     * Feedback Test Results to test case
      *
-     * @param entityType type
-     * @param query      query
-     * @return 0 if not found, else the id of entity
+     * @param testCaseObjects test case object
      */
-    private QCEntityExistance getEntityExistence(int entityType, String query) {
-        String context = getEntity(entityType, query);
-        if (QCEntities.getTotalResults(context) == 0) {
-            return new QCEntityExistance(false, -1, context);
+    public void syncTestCasesRunResults(List<TestCaseObject> testCaseObjects) {
+        testCaseObjects.forEach(testCaseObject -> {
+            String tcName = testCaseObject.getOriginalName();
+            String description = testCaseObject.getDescription();
+            String tcID;
+            List<QCResponseMessage> messages = new LinkedList<>();
+            if (!existsEntity(QCConstants.ENTITY_TYPE_TEST_CASE, tcName, getTestPlanFolderID())) {//create test case
+                tcID = createTestCase(tcName, description, getTestPlanFolderID()).getEntityId();
+                messages.addAll(createNewDesignStepsToTC(testCaseObject.getSteps().stream()
+                        .map(testCaseStep -> formatStep(testCaseStep.toDesignStep())).collect(Collectors.toList()), tcID));
+                messages.add(attachFileToTestCase(testCaseObject.getFilePath(), tcID));
+            } else {//update test case
+                tcID = getEntityIDByName(QCConstants.TEST_CASE_CONTAINER, tcName, getTestPlanFolderID());
+                String fileName = FileOperation.getFileName(testCaseObject.getFilePath());
+                String jsonString = JSONContainerFactory.getJSONFileContent(getAttachmentContent(QCConstants.ENTITY_TYPE_TEST_CASE, tcID, fileName));
+                JSONTestCase jsonTestCase = JSONContainerFactory.buildJSONObject(jsonString, JSONTestCase.class);
+                if (!testCaseObject.getTestCase().equals(jsonTestCase)) {
+                    messages.add(updateTestCase(tcID, description));
+                    messages.addAll(updateDesignStepsToTestCase(testCaseObject.getSteps().stream().map(TestCaseStep::toDesignStep).collect(Collectors.toList()), tcID));
+                    messages.add(attachFileToTestCase(testCaseObject.getFilePath(), tcID));
+                }
+            }
+            //create test set
+            String testSetID;
+            if (!existsEntity(QCConstants.ENTITY_TYPE_TESTSET, testSetName, getTestLabFolderID())) {
+                testSetID = createTestSet(testSetName, getTestLabFolderID()).getEntityId();
+            } else {
+                testSetID = getEntityIDByName(QCConstants.TESTLAB_TESTSET_CONTAINER, testSetName, getTestLabFolderID());
+            }
+            String testInstanceID;
+            //add instance to test set
+            if (getInstancesIdByTestCaseId(tcID, testSetID).isEmpty()) {
+                testInstanceID = addNewInstanceToSet(tcID, testSetID).getEntityId();
+            } else {
+                testInstanceID = getInstancesIdByTestCaseId(tcID, testSetID).get(0).getEntityID();
+            }
+            //output messages
+            messages.forEach(message -> SystemLogger.info(message.getMessage()));
+            //add new run: test variant will be added as a run to original test instance
+            addNewRunToInstance(testInstanceID, testCaseObject.getTestRunResult()).forEach(message -> SystemLogger.info(message.getMessage()));
+        });
+    }
+
+    public String makeTestPlanDirs(String folderPath) {
+        String finalFolderId;
+        String[] pathToken = folderPath.replace("\\", "/").split("/");
+        if (pathToken.length == 0) {
+            finalFolderId = makeDir(QCConstants.ENTITY_TYPE_TESTPLAN_FOLDER, folderPath, getTestPlanRootFolderID());
         } else {
-            return new QCEntityExistance(true, Integer.parseInt(getIdInResponse(context)), context);
+            int index = 0;
+            if (pathToken[0].equals(testPlanRootFolder)) {
+                index = 1;
+            }
+            String lastFolderId = getTestPlanRootFolderID();
+            for (int i = index; i < pathToken.length; i++) {
+                lastFolderId = makeDir(QCConstants.ENTITY_TYPE_TESTPLAN_FOLDER, pathToken[i], lastFolderId);
+            }
+            finalFolderId = lastFolderId;
+        }
+        return finalFolderId;
+    }
+
+    public String makeTestLabDirs(String folderPath) {
+        String finalFolderId;
+        String[] pathToken = folderPath.replace("\\", "/").split("/");
+        if (pathToken.length == 0) {
+            finalFolderId = makeDir(QCConstants.ENTITY_TYPE_TESTLAB_FOLDER, folderPath, getTestLabRootFolderID());
+        } else {
+            int index = 0;
+            if (pathToken[0].equals(testLabRootFolder)) {
+                index = 1;
+            }
+            String lastFolderId = getTestLabRootFolderID();
+            for (int i = index; i < pathToken.length; i++) {
+                lastFolderId = makeDir(QCConstants.ENTITY_TYPE_TESTLAB_FOLDER, pathToken[i], lastFolderId);
+            }
+            finalFolderId = lastFolderId;
+        }
+        return finalFolderId;
+    }
+
+    public String getTestPlanRootFolderID() {
+        if (testPlanRootFolderID.isEmpty()) {
+            testPlanRootFolderID = getEntityIDByName(QCConstants.ENTITY_TYPE_TESTPLAN_FOLDER, testPlanRootFolder);
+        }
+        SystemLogger.info("testPlanRootFolderID: " + testPlanRootFolderID);
+        return testPlanRootFolderID;
+    }
+
+    public String getTestLabRootFolderID() {
+        if (testLabRootFolder.equals("Root")) {
+            testLabRootFolderID = "0";
+        }
+        if (testLabRootFolderID.isEmpty()) {
+            testLabRootFolderID = getEntityIDByName(QCConstants.ENTITY_TYPE_TESTLAB_FOLDER, testLabRootFolder);
+        }
+        SystemLogger.info("testLabRootFolderID: " + testLabRootFolderID);
+        return testLabRootFolderID;
+    }
+
+    public String getTestPlanFolderID() {
+        if (testPlanFolderID.isEmpty() && isValidFolderPath(testPlanFolderPath, "Subject")) {
+            testPlanFolderID = makeTestPlanDirs(testPlanFolderPath);
+        }
+        return testPlanFolderID;
+    }
+
+    public String getTestLabFolderID() {
+        if (testLabFolderID.isEmpty() && isValidFolderPath(testLabFolderPath, "Root")) {
+            testLabFolderID = makeTestLabDirs(testLabFolderPath);
+        }
+        return testLabFolderID;
+    }
+
+    private boolean isValidFolderPath(String path, String keyword) {
+        if (path.startsWith(keyword)) {
+            path = path.substring(keyword.length());
+        }
+        if (path.contains(keyword)) {
+            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Test Plan Folder Path should not contain 'Subject' as sub folder!");
+        } else {
+            return true;
+        }
+    }
+
+    private String makeDir(int entityTyp, String folderName, String parentId) {
+        String folderId;
+        if (folderName.equals(testPlanRootFolder)) {
+            folderId = getTestPlanRootFolderID();
+        } else if (folderName.equals(testLabRootFolder)) {
+            folderId = getTestLabRootFolderID();
+        } else {
+            if (existsEntity(entityTyp, folderName, parentId)) {
+                folderId = getEntityIDByName(QCConstants.getContainerName(entityTyp), folderName, parentId);
+            } else {
+                if (entityTyp == QCConstants.ENTITY_TYPE_TESTPLAN_FOLDER) {
+                    folderId = createTestPlanFolder(folderName, parentId).getEntityId();
+                } else {
+                    folderId = createTestLabFolder(folderName, parentId).getEntityId();
+                }
+            }
+        }
+        return folderId;
+    }
+
+    public String[] formatStep(String[] step) {
+        return Arrays.stream(step).map(this::convertTextToHTML).toArray(String[]::new);
+    }
+
+    public String convertTextToHTML(String text) {
+        String html = "<html><body>{0}</body></html>";
+        String paragraph = "<p>{0}</p>";
+        if (!text.contains(System.lineSeparator())) {
+            return text;
+        } else {
+            String lines = Arrays.stream(text.split(System.lineSeparator()))
+                    .map(line -> MessageFormat.format(paragraph, line))
+                    .collect(Collectors.joining());
+            return MessageFormat.format(html, lines);
         }
     }
 }

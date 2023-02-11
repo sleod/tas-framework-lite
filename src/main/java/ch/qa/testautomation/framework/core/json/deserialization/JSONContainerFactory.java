@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -347,6 +348,16 @@ public class JSONContainerFactory {
         } else {
             return "";
         }
+    }
+
+    /**
+     * General method of get json file content
+     *
+     * @param inputStream inputStream
+     * @return json object of file
+     */
+    public static String getJSONFileContent(InputStream inputStream) {
+        return FileOperation.readFileToLinedString(inputStream);
     }
 
     public static <T> T buildJSONObject(String jsonString, Class<T> myClass) {

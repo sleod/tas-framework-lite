@@ -1,5 +1,6 @@
 package ch.qa.testautomation.framework.rest.hpqc.connection;
 
+import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.common.utils.StringTextUtils;
 import ch.qa.testautomation.framework.common.utils.XMLUtils;
 import ch.qa.testautomation.framework.exception.ApollonBaseException;
@@ -31,24 +32,24 @@ public class QCEntities {
             Element root = XMLUtils.getDocumentFromXML(searchResult).getRootElement();
             if (root.getName().equalsIgnoreCase("Entity")) {
                 qcEntities.add(getQCEntityFromDocElement(root));
-                return qcEntities;
-            } else
-                return fetchQCEntitiesFromDocument(root, "Entity");
+            } else {
+                return fetchQCEntitiesFromDocument(root);
+            }
         } catch (IOException | JDOMException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Exception while fetching results!", ex);
+            SystemLogger.warn("No QC Entity can be found in result!");
         }
+        return qcEntities;
     }
 
     /**
      * fetch entity from document with tag name of entity
      *
-     * @param root      root element of doc
-     * @param entityTag tag name
+     * @param root root element of doc
      * @return list of QC Entity
      */
-    private static List<QCEntity> fetchQCEntitiesFromDocument(Element root, String entityTag) {
+    private static List<QCEntity> fetchQCEntitiesFromDocument(Element root) {
         LinkedList<QCEntity> qcEntities = new LinkedList<>();
-        List<Element> elements = XMLUtils.getFilteredElements(root, entityTag);
+        List<Element> elements = XMLUtils.getFilteredElements(root, QCConstants.TAG_ENTITY);
         elements.forEach(element -> {
             QCEntity qcEntity = getQCEntityFromDocElement(element);
             //avoid subject or root folder or some special object
@@ -67,8 +68,8 @@ public class QCEntities {
      */
     public static int getTotalResults(Document document) {
         Element root = document.getRootElement();
-        if (root.getName().equalsIgnoreCase("Entities")) {
-            String count = root.getAttributeValue("TotalResults");
+        if (root.getName().equalsIgnoreCase(QCConstants.TAG_ENTITIES)) {
+            String count = root.getAttributeValue(QCConstants.TAG_TOTALRESULTS);
             return Integer.parseInt(count);
         } else {
             return 0;
@@ -95,8 +96,8 @@ public class QCEntities {
     public static Map<String, String> getRequiredFields(String xmlSchema) {
         LinkedHashMap<String, String> requiredFields = new LinkedHashMap<>();
         try {
-            List<Element> fields = XMLUtils.getFilteredElements(XMLUtils.getDocumentFromXML(xmlSchema).getRootElement(), "Field");
-            fields.forEach(field -> requiredFields.put(field.getAttributeValue("Name"), ""));
+            List<Element> fields = XMLUtils.getFilteredElements(XMLUtils.getDocumentFromXML(xmlSchema).getRootElement(), QCConstants.TAG_FIELD);
+            fields.forEach(field -> requiredFields.put(field.getAttributeValue(QCConstants.TAG_NAME), ""));
             return requiredFields;
         } catch (IOException | JDOMException ex) {
             throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Exception while getting XML Schema from QC!", ex);

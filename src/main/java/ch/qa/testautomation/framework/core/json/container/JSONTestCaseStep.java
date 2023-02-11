@@ -1,5 +1,7 @@
 package ch.qa.testautomation.framework.core.json.container;
 
+import java.util.Objects;
+
 /**
  * Object Container Class of JSON Test Case
  */
@@ -59,4 +61,27 @@ public class JSONTestCaseStep extends JSONContainer {
     public void setComment(String comment) {
         this.comment = comment;
     }
+
+    @Override
+    public boolean equals(Object target) {
+        // self check
+        if (this == target) return true;
+        // null check
+        if (Objects.isNull(target)) return false;
+        // type check and cast
+        if (getClass() != target.getClass()) return false;
+        JSONTestCaseStep other = (JSONTestCaseStep) target;
+        // field comparison
+        return Objects.equals(name, other.name)
+                && Objects.equals(testObject, other.testObject)
+                && Objects.equals(using, other.using)
+                && Objects.equals(comment, other.comment);
+    }
+
+    // https://mkyong.com/java/java-how-to-overrides-equals-and-hashcode/
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, testObject, using, comment);
+    }
+
 }

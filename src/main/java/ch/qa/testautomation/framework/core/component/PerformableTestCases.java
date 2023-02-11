@@ -8,7 +8,10 @@ import com.codeborne.selenide.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.*;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import static ch.qa.testautomation.framework.common.logging.SystemLogger.*;
@@ -81,7 +84,7 @@ public abstract class PerformableTestCases {
 
     public DynamicContainer getTestCaseReady(TestCaseObject testCaseObject) {
         if (isValid(testCaseObject.getSeriesNumber())) {
-            testCaseObject.setName(testCaseObject.getName() + " -SN - " + testCaseObject.getSeriesNumber());
+            testCaseObject.setName(testCaseObject.getName() + " - SN - " + testCaseObject.getSeriesNumber());
         }
         return DynamicContainer.dynamicContainer(testCaseObject.prepareAndGetDisplayName(), testCaseObject.getTestSteps());
     }
@@ -145,6 +148,15 @@ public abstract class PerformableTestCases {
      */
     protected List<String> getMetaFilters() {
         return getMetaFilter();
+    }
+
+    /**
+     * override to relocate the property file
+     *
+     * @return path of property file
+     */
+    protected String getTestRunPropertiesPath() {
+        return "";
     }
 
     /**

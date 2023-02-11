@@ -5,6 +5,7 @@ import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.enumerations.PropertyKey;
 import ch.qa.testautomation.framework.common.enumerations.TestType;
 import ch.qa.testautomation.framework.common.logging.ScreenCapture;
+import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.json.container.JSONRunnerConfig;
 import ch.qa.testautomation.framework.core.json.container.JSONTestCase;
@@ -14,6 +15,7 @@ import ch.qa.testautomation.framework.core.report.allure.ReportBuilderAllureServ
 import ch.qa.testautomation.framework.exception.ApollonBaseException;
 import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
 import ch.qa.testautomation.framework.rest.base.QUERY_OPTION;
+import ch.qa.testautomation.framework.rest.hpqc.connection.QCRestClient;
 import ch.qa.testautomation.framework.rest.jira.connection.JIRARestClient;
 import com.beust.jcommander.Strings;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -224,6 +226,10 @@ public class TestRunManager {
         return new JIRARestClient(PropertyResolver.getJiraHost(), PropertyResolver.getJiraPAT());
     }
 
+    private static QCRestClient getQCRestClient() {
+        return new QCRestClient(PropertyResolver.getQCConfigFile());
+    }
+
     /**
      * load driver while init test case object
      *
@@ -365,8 +371,25 @@ public class TestRunManager {
 
     public synchronized static void jiraFeedback(List<TestCaseObject> testCaseObjects) {
         trace("Feedback Test Result back to JIRA...");
-        //get data from test case object
+        try {
+            getJiraRestClient().updateRunStatusInExecution(jiraExecutionConfig, getTestRunResultMap(testCaseObjects));
+        } catch (Throwable throwable) {
+            SystemLogger.warn("JIRA Feedback failed: " + throwable.getMessage());
+        }
+    }
+
+    public synchronized static void qcFeedback(List<TestCaseObject> testCaseObjects) {
+        trace("Feedback Test Result back to QC...");
+        try {
+            getQCRestClient().syncTestCasesRunResults(testCaseObjects);
+        } catch (Throwable throwable) {
+            SystemLogger.warn("QC Feedback failed: " + throwable.getMessage());
+        }
+    }
+
+    public static Map<String, TestRunResult> getTestRunResultMap(List<TestCaseObject> testCaseObjects) {
         Map<String, TestRunResult> testRunResultMap = new HashMap<>(testCaseObjects.size());
+        //get data from test case object
         for (TestCaseObject testCaseObject : testCaseObjects) {
             String testCaseId = testCaseObject.getTestCaseId();
             if (testCaseId.isEmpty()) {
@@ -374,7 +397,7 @@ public class TestRunManager {
             }
             testRunResultMap.put(testCaseId, testCaseObject.getTestRunResult());
         }
-        getJiraRestClient().updateRunStatusInExecution(jiraExecutionConfig, testRunResultMap);
+        return testRunResultMap;
     }
 
     /**
@@ -384,6 +407,7 @@ public class TestRunManager {
         retrieveDBConfig();
         retrieveRestConfig();
         retrieveJiraConfig();
+        retrieveQCConfig();
     }
 
     private static void retrieveDBConfig() {
@@ -433,19 +457,27 @@ public class TestRunManager {
                     throw new ApollonBaseException(ApollonErrorKeys.CONFIG_ERROR, exception, "JIRA");
                 }
             } else {
-                throw new ApollonBaseException(ApollonErrorKeys.CONFIG_FILE_NOT_FOUND, "Jira Connection Config");
+                throw new ApollonBaseException(ApollonErrorKeys.CONFIG_FILE_NOT_FOUND, PropertyResolver.getJiraConfigFile());
             }
             if (PropertyResolver.isJIRASyncEnabled()) {
                 if (FileOperation.isFileExists(PropertyResolver.getJiraExecConfigFile())) {
                     jiraExecutionConfig = JSONContainerFactory.getRunnerConfig(PropertyResolver.getJiraExecConfigFile());
                 } else {
-                    throw new ApollonBaseException(ApollonErrorKeys.CONFIG_FILE_NOT_FOUND, "Jira Execution Config");
+                    throw new ApollonBaseException(ApollonErrorKeys.CONFIG_FILE_NOT_FOUND, PropertyResolver.getJiraExecConfigFile());
                 }
                 if (jiraExecutionConfig.getTestExecutionId().isEmpty()
                         && (jiraExecutionConfig.isFullRun()
                         || jiraExecutionConfig.isFailureRetest())) {
                     throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "For full run or failure retest, the execution id must be provided.");
                 }
+            }
+        }
+    }
+
+    private static void retrieveQCConfig() {
+        if (PropertyResolver.isQCSyncEnabled()) {
+            if (!FileOperation.isFileExists(PropertyResolver.getQCConfigFile())) {
+                throw new ApollonBaseException(ApollonErrorKeys.CONFIG_FILE_NOT_FOUND, PropertyResolver.getQCConfigFile());
             }
         }
     }

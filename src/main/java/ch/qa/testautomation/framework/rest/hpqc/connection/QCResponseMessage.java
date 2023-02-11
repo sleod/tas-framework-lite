@@ -1,31 +1,31 @@
 package ch.qa.testautomation.framework.rest.hpqc.connection;
 
+import jakarta.ws.rs.core.Response;
+
+import java.text.MessageFormat;
+import java.util.List;
+
 public class QCResponseMessage {
 
     private final String message;
-    private QCEntity qcEntity;
-    private final String entityId;
+    private final List<QCEntity> qcEntities;
     private final String entry;
+    private final int statusCode;
 
-    public QCResponseMessage(QCEntity qce, String message, String entry) {
-        qcEntity = qce;
-        this.message = message;
-        this.entry = entry;
-        entityId = qce.getQcEntityID();
-    }
-
-    public QCResponseMessage(String message, String entry, String entityId) {
-        this.message = message;
-        this.entry = entry;
-        this.entityId = entityId;
-        qcEntity = null;
+    public QCResponseMessage(Response response, String msg) {
+        statusCode = response.getStatus();
+        message = MessageFormat.format("{0} -> {1}", msg, QCConstants.getReturnStatus(statusCode));
+        entry = response.readEntity(String.class);
+        qcEntities = QCEntities.getQCEntitiesFromXMLString(entry);
     }
 
     public String getEntityId() {
-        if (qcEntity == null) {
-            return entityId;
+        if (qcEntities.size() > 1) {
+            return "0";
+        } else if (qcEntities.isEmpty()) {
+            return "";
         } else {
-            return qcEntity.getQcEntityID();
+            return qcEntities.get(0).getEntityID();
         }
     }
 
@@ -35,5 +35,17 @@ public class QCResponseMessage {
 
     public String getEntry() {
         return entry;
+    }
+
+    public int getStatusCode() {
+        return statusCode;
+    }
+
+    public int getEntitiesCount() {
+        return qcEntities.size();
+    }
+
+    public List<QCEntity> getQcEntities() {
+        return qcEntities;
     }
 }

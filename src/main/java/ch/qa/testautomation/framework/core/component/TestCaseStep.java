@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static ch.qa.testautomation.framework.common.logging.SystemLogger.logStepInfo;
+import static ch.qa.testautomation.framework.common.utils.StringTextUtils.isValid;
 
 public class TestCaseStep implements Executable {
     private final int orderNumber;
@@ -65,8 +66,7 @@ public class TestCaseStep implements Executable {
     }
 
     public String prepareAndGetDisplayName(boolean retry, int retryOrder) {
-        noRun = PropertyResolver.isRetryEnabled() && retry
-                && retryOrder >= 0 && retryOrder >= getOrderNumber() + PropertyResolver.getRetryOverSteps();
+        noRun = PropertyResolver.isRetryEnabled() && retry && retryOrder >= 0 && retryOrder >= getOrderNumber() + PropertyResolver.getRetryOverSteps();
         return getName();
     }
 
@@ -310,7 +310,16 @@ public class TestCaseStep implements Executable {
     }
 
     public String getComment() {
-        return jsonTestCaseStep.getComment();
+        if (isValid(jsonTestCaseStep.getComment())) {
+            return "Comment: " + jsonTestCaseStep.getComment();
+        } else return "";
+    }
+
+    public String[] toDesignStep() {
+        String desc = "Test Object: " + jsonTestCaseStep.getTestObject() + "; " + System.lineSeparator() +
+                "Action: " + jsonTestCaseStep.getName() + "; " + System.lineSeparator() + getComment();
+        String excepted = "Will be checked automatically.";
+        return new String[]{desc, excepted};
     }
 
     public void reportResultTo(TestRunResult testRunResult) {

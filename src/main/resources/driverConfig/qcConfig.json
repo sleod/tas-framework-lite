@@ -1,10 +1,21 @@
 {
   "host": "",
-  "domain": "DEFAULT",
+  "domain": "",
   "project": "",
-  "testplan.rootfolder": "Subject/Trash",
-  "testlab.rootfolder": "Root/Automation Framework TEST",
   "user": "",
   "password": "",
-  "version.control.enabled": "false"
+  "testPlanRootFolder": "Subject",
+  "testLabRootFolder": "Root",
+  "testPlanFolderPath": "",
+  "testLabFolderPath": "",
+  "testSetName": "tryWithAutomation",
+  "versionControlEnabled": false,
+  "testCaseRequiredFieldDefaultValues": {
+    "user-36": "PEDAS",//AppUnderTest
+    "user-12": "TF Regression",//Klassifikation
+    "user-33": "No",//RBT relevant
+    "user-28": "1-Durchstich",//Testcharakter
+    "user-01": "P6173",//Projekt
+    "user-34": "vollautomatisiert"//TA Grad
+  }
 }

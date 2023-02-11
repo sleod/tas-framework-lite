@@ -1,6 +1,11 @@
 package ch.qa.testautomation.framework.rest.hpqc.connection;
 
+import ch.qa.testautomation.framework.common.utils.DateTimeUtils;
+import ch.qa.testautomation.framework.exception.ApollonBaseException;
+import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
+
 import java.util.LinkedList;
+import java.util.Locale;
 import java.util.Map;
 
 import static ch.qa.testautomation.framework.common.logging.SystemLogger.log;
@@ -8,7 +13,7 @@ import static ch.qa.testautomation.framework.common.logging.SystemLogger.log;
 /**
  * Object Class of QC Entity
  */
-public class QCEntity {
+public class QCEntity implements Comparable<QCEntity> {
 
     private final Map<String, String> entityFields;
     private final int entityType;
@@ -21,12 +26,12 @@ public class QCEntity {
      * @param fields     name of required fields
      * @param entityType type of Entity
      */
-    public QCEntity(Map<String, String> fields, String xmlSchema, int entityType) throws IllegalArgumentException {
+    public QCEntity(Map<String, String> fields, String xmlSchema, int entityType) {
         this.entityType = entityType;
         entityFields = QCEntities.getRequiredFields(xmlSchema);
         if (!verifyAttributs(entityFields, fields)) {
             entityFields.forEach((kk, vv) -> log("INFO", kk + " -> " + vv));
-            throw new IllegalArgumentException("QCEntity unsatisfied! Required Value of Field is missing! Check up the fields Definition for the Entity!");
+            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "QCEntity unsatisfied! Required Value of Field is missing! Check up the fields Definition for the Entity!");
         }
     }
 
@@ -46,8 +51,17 @@ public class QCEntity {
      *
      * @return id
      */
-    public String getQcEntityID() {
-        return entityFields.get("id");
+    public String getEntityID() {
+        return getFieldValue("id");
+    }
+
+    /**
+     * get entity name
+     *
+     * @return name
+     */
+    public String getEntityName() {
+        return getFieldValue("name");
     }
 
     /**
@@ -79,12 +93,6 @@ public class QCEntity {
         return entityFields.put(key, value);
     }
 
-    /**
-     * get field name of entity
-     *
-     * @param key
-     * @return
-     */
     public String getFieldValue(String key) {
         return entityFields.get(key);
     }
@@ -103,6 +111,12 @@ public class QCEntity {
         keys.forEach(entityFields::remove);
     }
 
+    @Override
+    public int compareTo(QCEntity target) {
+        return DateTimeUtils.parseStringToInstant(getFieldValue("last-modified"), "yyyy-MM-dd HH:mm:ss", Locale.GERMANY)
+                .compareTo(DateTimeUtils.parseStringToInstant(target.getFieldValue("last-modified"), "yyyy-MM-dd HH:mm:ss", Locale.GERMANY));
+    }
+
     /**
      * insert override input attributes into required fields map
      * then after this, required fields should not contain empty String name
@@ -113,10 +127,8 @@ public class QCEntity {
      * @return verification result
      */
     private boolean verifyAttributs(Map<String, String> attributeRequired, Map<String, String> attributes) {
-        attributes.forEach((kk, vv) -> {
-            if (!vv.isEmpty())
-                attributeRequired.put(kk, vv);
-        });
+        attributes.forEach((key, value) -> attributeRequired.put(key, String.valueOf(value).replace("null", "")));
         return (!attributeRequired.containsValue(""));
     }
+
 }

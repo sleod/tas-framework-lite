@@ -1,5 +1,6 @@
 package ch.qa.testautomation.framework.common.utils;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.jsoup.Jsoup;
 
 import java.util.Objects;
@@ -23,26 +24,9 @@ public class StringTextUtils {
         if (matcher.find()) {
             return matcher.group(1);
         } else {
-            log("INFO", "Wrong content: \n" + content);
-            return null;
+            log("INFO", "Pattern no match in content: \n" + content);
+            return "";
         }
-    }
-
-    /**
-     * fetch QC Requirement ID
-     *
-     * @param description text
-     * @return id
-     */
-    public static String fetchQCReqId(String description) {
-        String linkPattern = "\"td:.*EntityType=IRequirement&amp;EntityID=(\\d+)\"";
-        String id = getValueInContent(description, linkPattern);
-        if (id == null) {
-            String desc = replaceAllHTMLTags(description.replace("&nbsp;", ""));
-            String patternText = "EntityType=IRequirement&EntityID=(\\d+)";
-            id = getValueInContent(desc, patternText);
-        }
-        return id;
     }
 
     /**
@@ -51,7 +35,7 @@ public class StringTextUtils {
      * @param text text
      * @return clean html text
      */
-    public static String replaceAllHTMLTags(String text) {
+    public static String cleanHTMLTags(String text) {
         return Jsoup.parseBodyFragment(text).text();
     }
 
@@ -59,4 +43,7 @@ public class StringTextUtils {
         return Objects.nonNull(value) && !value.toString().isEmpty();
     }
 
+    public static String escapeHTML(String value) {
+        return StringEscapeUtils.escapeHtml4(value);
+    }
 }

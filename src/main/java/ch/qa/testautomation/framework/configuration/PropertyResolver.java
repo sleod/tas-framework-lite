@@ -264,6 +264,10 @@ public class PropertyResolver {
         return getProperty(RUN_JIRA_SYNC.key(), "false").equalsIgnoreCase("true");
     }
 
+    public static boolean isQCSyncEnabled() {
+        return getProperty(RUN_QC_SYNC.key(), "false").equalsIgnoreCase("true");
+    }
+
     public static boolean isRebaseAllureReport() {
         return getProperty(ALLURE_REPORT_REBASE.key(), "false").equalsIgnoreCase("true");
     }
@@ -348,7 +352,7 @@ public class PropertyResolver {
     }
 
     public static String getDriverResourceLocation() {
-        return getProperty(RESOURCE_DRIVER_LOCATION.key(), "");
+        return getProperty(RESOURCE_DRIVER_LOCATION.key(), "Git - RCH Framework Solution Items/Java/DriverVersions/");
     }
 
     public static String getResourceTFSProject() {

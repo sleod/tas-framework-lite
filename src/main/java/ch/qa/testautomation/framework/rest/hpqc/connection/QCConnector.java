@@ -1,9 +1,7 @@
 package ch.qa.testautomation.framework.rest.hpqc.connection;
 
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
-import ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.framework.intefaces.RestDriver;
-import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
@@ -43,19 +41,6 @@ public class QCConnector implements RestDriver {
         this.host = host;
         this.user = user;
         this.password = password;
-        initialize();
-    }
-
-    /**
-     * create new instance of QCConnector with input settings
-     *
-     * @param configFilePath config file path
-     */
-    public QCConnector(String configFilePath) {
-        JsonNode config = JSONContainerFactory.getConfig(configFilePath);
-        this.host = config.get("host").asText();
-        this.user = config.get("user").asText();
-        this.password = config.get("password").asText();
         initialize();
     }
 
@@ -124,7 +109,7 @@ public class QCConnector implements RestDriver {
         String path = "rest/domains/" + domain + "/projects/" + project + "/" + container + "/" + entityID + "/" + QCConstants.ATTACHMENT_CONTAINER;
         currPath = path;
         response = getAttachmentsFromQCEntity(domain, project, entityID, entityType, attachName);
-        if (response.getStatus() == 200) {
+        if (response.getStatus() == 200) {//update if found
             response = webTarget.path(path + "/" + attachName)
                     .request()
                     .header("Cookie", cookies)
@@ -147,34 +132,34 @@ public class QCConnector implements RestDriver {
         return createQCEntity(path, xmlContent);
     }
 
-    public Response updateQCEntity(String domain, String project, int entityType, String entityId, String uptodate) {
+    public Response updateQCEntity(String domain, String project, int entityType, String entityId, String payload) {
         String path = "rest/domains/" + domain + "/projects/" + project + "/"
                 + (QCConstants.getContainerName(entityType) + "/" + entityId);
-        return updateQCEntity(path, uptodate);
+        return updateQCEntity(path, payload);
     }
 
-    public Response updateQCEntityWithVersion(String domain, String project, int entityType, String entityId, String upToDate) {
+    public Response updateQCEntityWithVersion(String domain, String project, int entityType, String entityId, String payload) {
         //lock entity
         response = lockAndUnlockQCEntity(domain, project, entityType, entityId, "lock");
-        log("INFO", "Locked: " + entityType + " with id: " + entityId);
+        log("DEBUG", "Locked: " + entityType + " with id: " + entityId);
         //Check out
         response = checkOutQCEntity(domain, project, entityType, entityId);
-        log("INFO", "Checked out: " + entityType + " with id: " + entityId);
+        log("DEBUG", "Checked out: " + entityType + " with id: " + entityId);
         //update entity
-        response = updateQCEntity(domain, project, entityType, entityId, upToDate);
-        log("INFO", "updated: " + entityType + " with id: " + entityId);
+        response = updateQCEntity(domain, project, entityType, entityId, payload);
+        log("DEBUG", "updated: " + entityType + " with id: " + entityId);
         //check in
         response = checkInQCEntity(domain, project, entityType, entityId, response.readEntity(String.class));
-        log("INFO", "Checked in: " + entityType + " with id: " + entityId);
+        log("DEBUG", "Checked in: " + entityType + " with id: " + entityId);
         //unlock
         response = lockAndUnlockQCEntity(domain, project, entityType, entityId, "unlock");
-        log("INFO", "unlocked: " + entityType + " with id: " + entityId);
+        log("DEBUG", "unlocked: " + entityType + " with id: " + entityId);
 
         return response;
     }
 
     public Response updateQCEntityWithVersion(String domain, String project, QCEntity qce) {
-        response = updateQCEntityWithVersion(domain, project, qce.getEntityType(), qce.getFieldValue("id"), qce.getXMLContent());
+        response = updateQCEntityWithVersion(domain, project, qce.getEntityType(), qce.getEntityID(), qce.getXMLContent());
         return response;
     }
 
@@ -220,10 +205,6 @@ public class QCConnector implements RestDriver {
      * unlock: DELETE
      * rest/domains/{domain}/projects/{project}/{EntityType}/{Entity ID}/lock
      *
-     * @param domain     domain of qc
-     * @param project    project of qc
-     * @param entityType entity type
-     * @param entityId   entity id
      * @param action     = lock or unlock
      * @return response of request
      */
@@ -246,7 +227,7 @@ public class QCConnector implements RestDriver {
 
     @Override
     public Response delete(String path) {
-        log("INFO", "DELETE: path-> " + path);
+        log("DEBUG", "DELETE: path-> " + path);
         response = webTarget.path(path)
                 .request(mediaType)
                 .header("Cookie", cookies)
@@ -256,7 +237,7 @@ public class QCConnector implements RestDriver {
 
     @Override
     public Response put(String path, String xml) {
-        log("INFO", "PUT: path-> " + path + "\nXML-> " + xml);
+        log("DEBUG", "PUT: path-> " + path + "\nXML-> " + xml);
         response = webTarget.path(path)
                 .request(mediaType)
                 .header("Cookie", cookies)
@@ -267,35 +248,29 @@ public class QCConnector implements RestDriver {
     /**
      * update QC entity with full content
      *
-     * @param domain  domain
-     * @param project project
-     * @param entity  target entity
+     * @param entity target entity
      * @return response
      */
     public Response updateQCEntity(String domain, String project, QCEntity entity) {
-        String path = "rest/domains/" + domain + "/projects/" + project + "/" + (QCConstants.getContainerName(entity.getEntityType())
-                + "/" + entity.getFieldValue("id"));
+        String path = "rest/domains/" + domain + "/projects/" + project + "/" + QCConstants.getContainerName(entity.getEntityType())
+                + "/" + entity.getEntityID();
         return put(path, entity.getXMLContent());
     }
 
     /**
      * update QC Entity with particle content
      *
-     * @param domain   domain
-     * @param project  project
-     * @param entity   target entity
-     * @param upToDate particle content
+     * @param payload particle content
      * @return response
      */
-    public Response updateQCEntity(String domain, String project, QCEntity entity, String upToDate) {
-        String path = "rest/domains/" + domain + "/projects/" + project + "/" + (QCConstants.getContainerName(entity.getEntityType())
-                + "/" + entity.getFieldValue("id"));
-        return put(path, upToDate);
+    public Response updateQCEntity(String domain, String project, String container, String entityId, String payload) {
+        String path = "rest/domains/" + domain + "/projects/" + project + "/" + container + "/" + entityId;
+        return put(path, payload);
     }
 
     @Override
     public Response get(String path) {
-        log("INFO", "GET: path-> " + path);
+        log("DEBUG", "GET: path-> " + path);
         response = webTarget.path(path)
                 .request(mediaType)
                 .header("Cookie", cookies)
@@ -305,7 +280,7 @@ public class QCConnector implements RestDriver {
 
     @Override
     public Response get(String path, String query) {
-        log("INFO", "Get: path-> " + path + "\nQuery-> " + query);
+        log("DEBUG", "Get: path-> " + path + "\nQuery-> " + query);
         response = webTarget.path(path)
                 .queryParam("query", URLEncoder.encode(query, StandardCharsets.UTF_8))
                 .request(mediaType)
@@ -325,7 +300,7 @@ public class QCConnector implements RestDriver {
      */
     @Override
     public Response get(String path, String key, String value) {
-        log("TRACE", "Request Get: " + path + "\nWith Query: " + key + "=" + value);
+        log("DEBUG", "Request Get: " + path + "\nWith Query: " + key + "=" + value);
         response = webTarget.path(path)
                 .queryParam(key, value)
                 .request(mediaType)
@@ -337,7 +312,7 @@ public class QCConnector implements RestDriver {
 
     @Override
     public Response get(String path, Map<String, String> params) {
-        trace("Request Get: " + path);
+        debug("Request Get: " + path);
         for (Map.Entry<String, String> entry : params.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
@@ -358,7 +333,7 @@ public class QCConnector implements RestDriver {
 
     @Override
     public Response post(String path, String xml) {
-        log("INFO", "POST: path-> " + path + "\nXML-> " + xml);
+        log("DEBUG", "POST: path-> " + path + "\nXML-> " + xml);
         response = webTarget.path(path)
                 .request(mediaType)
                 .header("Cookie", cookies)
@@ -371,28 +346,12 @@ public class QCConnector implements RestDriver {
      *
      * @param path     "api/authentication/sign-in"
      * @param username username
-     * @param passw    password
+     * @param password password
      * @return response of query
      */
-    public Response basicAuthentication(String path, String username, String passw) {
-        String encoding = PropertyResolver.encodeBase64(username + ":" + passw);
+    public Response basicAuthentication(String path, String username, String password) {
+        String encoding = PropertyResolver.encodeBase64(username + ":" + password);
         return signIn(path, encoding);
-    }
-
-    /**
-     * print response of rest request
-     *
-     * @param all if print all
-     */
-    public String printResponse(boolean all) {
-        log("INFO", "\n============getResponse============");
-        log("INFO", String.valueOf(response.getStatus()));
-        String entry = "";
-        if (all) {
-            entry = response.readEntity(String.class);
-            log("INFO", entry);
-        }
-        return entry;
     }
 
     @Override
@@ -421,17 +380,17 @@ public class QCConnector implements RestDriver {
     }
 
     private Response signIn(String path, String encoded) {
-        trace("Sign-in: " + path);
-        return webTarget.path(path).request().header("Authorization ", "Basic " + encoded).post(null);
+        info("Sign-in: " + path);
+        return webTarget.path(path).request().header("Authorization", "Basic " + encoded).post(null);
     }
 
     private void printCookies() {
-        response.getCookies().forEach((key, value) -> trace("Cookie: " + key + "->" + value));
+        response.getCookies().forEach((key, value) -> debug("Cookie: " + key + "->" + value));
     }
 
     private Response signOut(String path, String encoded) {
         info("Sign-out: " + path);
-        return webTarget.path(path).request().header("Authorization ", "Basic " + encoded).get();
+        return webTarget.path(path).request().header("Authorization", "Basic " + encoded).get();
     }
 
     private Response requestAttachment(String path) {
@@ -456,8 +415,8 @@ public class QCConnector implements RestDriver {
         return post(path, xml);
     }
 
-    private Response updateQCEntity(String path, String uptodate) {
-        return put(path, uptodate);
+    private Response updateQCEntity(String path, String payload) {
+        return put(path, payload);
     }
 
     /**

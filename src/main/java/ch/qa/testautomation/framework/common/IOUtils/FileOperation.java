@@ -68,7 +68,7 @@ public class FileOperation {
 
     /**
      * @param filePath is absolute path from file to read
-     * @return String of file content in list in utf-8
+     * @return list of lined string of file content in list in utf-8
      */
     public static List<String> readFileToStringList(String filePath) {
         List<String> list = Collections.emptyList();
@@ -86,7 +86,7 @@ public class FileOperation {
 
     /**
      * @param inputStream is input stream of file
-     * @return String of file content with break
+     * @return string of file content with break
      */
     public static String readFileToLinedString(InputStream inputStream) {
         StringBuilder sb = new StringBuilder();
