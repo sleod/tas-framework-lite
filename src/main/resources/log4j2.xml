@@ -4,7 +4,7 @@
         <Property name="basePath">target/logs</Property>
     </Properties>
     <CustomLevels>
-        <CustomLevel name="STEP_INFO" intLevel="450"/>
+        <CustomLevel name="STEP_INFO" intLevel="350"/>
     </CustomLevels>
     <Appenders>
         <RollingFile name="RollingFile" fileName="${basePath}/${date:yyyy-MM-dd}/all.trace.log" filePattern="${basePath}/$${date:yyyy-MM-dd}/all.trace-%d{yyyy-MM-dd}-%i.log" ignoreExceptions="false">

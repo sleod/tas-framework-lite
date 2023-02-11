@@ -26,7 +26,7 @@ public class SystemLogger {
     //name for default system logger. Main key for operating appender and loggers.
     private static final String LOGGER_NAME = PropertyResolver.getLoggerName();
     private static final Logger LOGGER = LogManager.getLogger(LOGGER_NAME);
-    public static final Level STEP_INFO = Level.forName("STEP_INFO", 450);
+    public static final Level STEP_INFO = Level.forName("STEP_INFO", 350);
     private static TestStepResult stepResult;
 
     public static void setCurrTestStepResult(TestStepResult stepResult) {
@@ -67,26 +67,6 @@ public class SystemLogger {
      */
     public static void error(Throwable ex) {
         LOGGER.error(ex.getMessage(), ex);
-    }
-
-    /**
-     * log string with pattern to format
-     *
-     * @param level   level name
-     * @param pattern pattern for format
-     * @param args    used for format via pattern
-     */
-    public static void log(String level, String pattern, String... args) {
-        String format = pattern.replace("{}", "%s");
-        Object[] strings = new String[args.length];
-        for (int i = 0; i < args.length; i++) {
-            if (args[i] == null) {
-                strings[i] = "null";
-            } else {
-                strings[i] = args[i];
-            }
-        }
-        log(level, String.format(format, strings));
     }
 
     public static void warn(String msg) {
