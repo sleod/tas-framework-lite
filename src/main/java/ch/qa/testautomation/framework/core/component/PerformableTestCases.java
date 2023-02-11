@@ -37,7 +37,7 @@ public abstract class PerformableTestCases {
             setUpSelenide();
             trace("Test Run contains Test Cases: " + testCaseObjects.size());
         } catch (Throwable throwable) {
-            errorAndStop(throwable);
+            fatal(throwable);
         }
     }
 

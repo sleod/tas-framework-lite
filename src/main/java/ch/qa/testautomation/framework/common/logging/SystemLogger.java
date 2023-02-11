@@ -24,10 +24,22 @@ import java.io.Writer;
  */
 public class SystemLogger {
 
+    /**
+     * Level	Value   Description
+     * OFF	    0	    No logging
+     * FATAL	100	    The application is unusable. Action needs to be taken immediately.
+     * ERROR	200	    An error occurred in the application.
+     * WARN	    300	    Something unexpected—though not necessarily an error—happened and needs to be watched.
+     * INFO	    400	    A normal, expected, relevant event happened.
+     * DEBUG	500	    Used for debugging purposes
+     * TRACE	600	    Used for debugging purposes—includes the most detailed information
+     */
+
     //name for default system logger. Main key for operating appender and loggers.
     private static final String LOGGER_NAME = PropertyResolver.getLoggerName();
     private static final Logger LOGGER = LogManager.getLogger(LOGGER_NAME);
     private static final String DEFAULT_PATTERN = "%d{ISO8601} [%t] %-5level: %msg%n%throwable";
+    public static final Level STEP_INFO = Level.forName("STEP_INFO", 450);
     private static TestStepResult stepResult;
 
     public static void setCurrTestStepResult(TestStepResult stepResult) {
@@ -35,8 +47,8 @@ public class SystemLogger {
     }
 
     public static void logStepInfo(String text) {
-        String info = getSimpleCustomInfo("INFO", "Step Info: " + text);
-        info(text);
+        String info = getSimpleCustomInfo("STEP_INFO", text);
+        stepInfo(text);
         stepResult.logInfo(info);
     }
 
@@ -55,14 +67,19 @@ public class SystemLogger {
      *
      * @param ex throwable
      */
-    public static void error(Throwable ex) {
-        LOGGER.error(ex.getMessage(), ex);
-    }
-
-    public static void errorAndStop(Throwable ex) {
-        LOGGER.error(ex.getMessage(), ex);
+    public static void fatal(Throwable ex) {
+        LOGGER.fatal(ex.getMessage(), ex);
         //exit system with exception in init phase
         System.exit(1);
+    }
+
+    /**
+     * log throwable with fatal error that need to terminate system immediately
+     *
+     * @param ex throwable
+     */
+    public static void error(Throwable ex) {
+        LOGGER.error(ex.getMessage(), ex);
     }
 
     /**
@@ -85,22 +102,34 @@ public class SystemLogger {
         log(level, String.format(format, strings));
     }
 
-    public static void info(String info) {
-        LOGGER.info(info);
-    }
-
-    public static void debug(String info) {
-        if(PropertyResolver.isPrintDebugTrace()){
-            LOGGER.debug(info);
+    public static void warn(String msg) {
+        if (Level.getLevel(PropertyResolver.getLogLevelApollon()).intLevel() >= Level.WARN.intLevel()) {
+            LOGGER.warn(msg);
         }
     }
 
-    public static void trace(String info) {
-        LOGGER.trace(info);
+    public static void info(String msg) {
+        if (Level.getLevel(PropertyResolver.getLogLevelApollon()).intLevel() >= Level.INFO.intLevel()) {
+            LOGGER.info(msg);
+        }
     }
 
-    public static void warn(String info) {
-        LOGGER.warn(info);
+    public static void stepInfo(String msg) {
+        if (Level.getLevel(PropertyResolver.getLogLevelApollon()).intLevel() >= STEP_INFO.intLevel()) {
+            LOGGER.log(STEP_INFO, msg);
+        }
+    }
+
+    public static void debug(String msg) {
+        if (Level.getLevel(PropertyResolver.getLogLevelApollon()).intLevel() >= Level.DEBUG.intLevel()) {
+            LOGGER.debug(msg);
+        }
+    }
+
+    public static void trace(String msg) {
+        if (Level.getLevel(PropertyResolver.getLogLevelApollon()).intLevel() >= Level.TRACE.intLevel()) {
+            LOGGER.trace(msg);
+        }
     }
 
     /**
@@ -279,3 +308,4 @@ public class SystemLogger {
     }
 
 }
+

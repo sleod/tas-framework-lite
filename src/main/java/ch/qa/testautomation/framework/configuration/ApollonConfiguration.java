@@ -1,5 +1,7 @@
 package ch.qa.testautomation.framework.configuration;
 
+import org.apache.logging.log4j.Level;
+
 import static ch.qa.testautomation.framework.common.enumerations.PropertyKey.*;
 
 public class ApollonConfiguration {
@@ -222,6 +224,17 @@ public class ApollonConfiguration {
         PropertyResolver.setProperty(ALLURE_REPORT_CLEANUP.key(), String.valueOf(value));
         return this;
     }
+
+    /**
+     * Set level for the Apollon log level
+     *
+     * @param logLevel logLevel
+     */
+    public ApollonConfiguration setLogLevelApollon(Level logLevel) {
+        PropertyResolver.setProperty(LOG_LEVEL_APOLLON.key(), logLevel.name());
+        return this;
+    }
+
 
     /**
      * toggle if more deep trace information in console

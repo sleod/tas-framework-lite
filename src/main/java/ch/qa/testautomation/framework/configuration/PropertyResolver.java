@@ -6,6 +6,7 @@ import ch.qa.testautomation.framework.common.enumerations.PropertyKey;
 import ch.qa.testautomation.framework.exception.ApollonBaseException;
 import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
 import org.apache.commons.lang3.EnumUtils;
+import org.apache.logging.log4j.Level;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -230,8 +231,8 @@ public class PropertyResolver {
         return getProperty(RUN_STOP_ON_ERROR.key(), "true").equalsIgnoreCase("true");
     }
 
-    public static boolean isPrintDebugTrace() {
-        return getProperty(DEBUG_TRACE_OUTPUT.key(), "false").equalsIgnoreCase("true");
+    public static String getLogLevelApollon() {
+        return getProperty(LOG_LEVEL_APOLLON.key(), Level.INFO.name());
     }
 
     public static void setIsDebugMode(boolean isDebugMode) {

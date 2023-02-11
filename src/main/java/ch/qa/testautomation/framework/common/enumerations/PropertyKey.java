@@ -22,6 +22,7 @@ public enum PropertyKey {
     DRIVER_CONFIG_LOCATION("driver.config.location"),
     PAGE_CONFIG_LOCATION("page.config.location"),
     OCR_TESSDATA_LOCATION("ocr.tessdata.location"),
+    LOG_LEVEL_APOLLON("log.level.apollon"),
     DEBUG_TRACE_OUTPUT("debug.trace.output"),
     RUN_TFS_CONNECT("run.tfs.connect"),
     RUN_TFS_SYNC("run.tfs.sync"),

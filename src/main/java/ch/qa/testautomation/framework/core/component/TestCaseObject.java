@@ -299,7 +299,7 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
             DriverManager.setCurrentPlatform("");
             TestRunManager.loadDriver(getTestCase(), getName());
         } catch (Throwable throwable) {
-            SystemLogger.errorAndStop(throwable);
+            SystemLogger.fatal(throwable);
         }
         if (shouldRestoreSession) {
             TestRunManager.restoreSessions();

@@ -17,12 +17,14 @@ public enum ImageFormat {
 
     public static ImageFormat getFormat(String format) {
         switch (format) {
-            case "jpg":
+            case "jpg" -> {
                 return JPEG;
-            case "PNG":
+            }
+            case "PNG" -> {
                 return PNG;
+            }
         }
-        throw new ApollonBaseException(ApollonErrorKeys.FORMAT_NOT_SUPPORTED);
+        throw new ApollonBaseException(ApollonErrorKeys.ENUM_NOT_SUPPORTED);
     }
 
     public String value() {
