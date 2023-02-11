@@ -21,7 +21,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.info;
 import static ch.qa.testautomation.framework.common.logging.SystemLogger.warn;
 
 public class TestDataContainer {
@@ -210,7 +210,7 @@ public class TestDataContainer {
                     filePath = filePaths.get(0).toString();
                 }
             }
-            trace("Load test data file: " + filePath);
+            info("Load test data file: " + filePath);
             loadWithFile(filePath);
         } else {
             throw new ApollonBaseException(ApollonErrorKeys.TEST_DATA_REFERENCE_NO_MATCH, testDataRef);
@@ -235,7 +235,7 @@ public class TestDataContainer {
     }
 
     public static void loadGlobalTestData(Path path) {
-        trace("Load Global Test Data: " + path);
+        info("Load Global Test Data: " + path);
         String content = FileOperation.readFileToLinedString(path.toString());
         try {
             globalTestData = new ObjectMapper().readTree(content);

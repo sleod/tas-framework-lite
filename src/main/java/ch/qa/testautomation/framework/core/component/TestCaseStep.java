@@ -3,7 +3,6 @@ package ch.qa.testautomation.framework.core.component;
 import ch.qa.testautomation.framework.common.enumerations.TestStatus;
 import ch.qa.testautomation.framework.common.logging.ScreenCapture;
 import ch.qa.testautomation.framework.common.logging.Screenshot;
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.annotations.*;
 import ch.qa.testautomation.framework.core.json.container.JSONTestCaseStep;
@@ -24,6 +23,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static ch.qa.testautomation.framework.common.logging.SystemLogger.logStepInfo;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.setCurrTestStepResult;
 import static ch.qa.testautomation.framework.common.utils.StringTextUtils.isValid;
 
 public class TestCaseStep implements Executable {
@@ -126,7 +126,7 @@ public class TestCaseStep implements Executable {
      */
     public void run() {
         TestStepMonitor.setCurrentStep(this);
-        SystemLogger.setCurrTestStepResult(testStepResult);
+        setCurrTestStepResult(testStepResult);
         logStepInfo("Step Start: " + testStepResult.getName());
         if (TestStepMonitor.isStop() || noRun) {
             noRun();
@@ -263,7 +263,7 @@ public class TestCaseStep implements Executable {
      */
     private void invokeMethod(Method method, Object instance, Object... args) throws InvocationTargetException, IllegalAccessException {
         if (args.length > 0) {
-            SystemLogger.logStepInfo("Parameters: " + Strings.join(" | ", Arrays.stream(args).map(Object::toString).collect(Collectors.toList())));
+            logStepInfo("Parameters: " + Strings.join(" | ", Arrays.stream(args).map(Object::toString).collect(Collectors.toList())));
         }
         method.invoke(instance, args);
         testStepResult.setStatus(TestStatus.PASS);

@@ -25,8 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.warn;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.*;
 import static ch.qa.testautomation.framework.common.utils.StringTextUtils.isValid;
 import static ch.qa.testautomation.framework.core.json.deserialization.JSONContainerFactory.*;
 
@@ -40,13 +39,13 @@ public class ReportBuilder {
      * @param testRunResult test run result
      */
     public void startRecordingTest(TestRunResult testRunResult) {
-        trace("Start recording Test Run ...");
+        info("Start recording Test Run ...");
         String folder = PropertyResolver.getTestCaseReportLocation();
         String today = DateTimeUtils.getFormattedDateNow(PropertyResolver.getDataFormat());
         String fileName = folder + today + "/" + testRunResult.getName() + "/" + "report_" + DateTimeUtils.getFormattedLocalTimestamp() + ".log";
         File logFile = new File(fileName);
         logFile.getParentFile().mkdirs();
-        trace("Set up log file: " + logFile.getAbsolutePath());
+        info("Set up log file: " + logFile.getAbsolutePath());
         testRunResult.setLogFilePath(logFile.getAbsolutePath());
     }
 
@@ -56,7 +55,7 @@ public class ReportBuilder {
      * @param testRunResult test run result
      */
     public void stopRecordingTest(TestRunResult testRunResult) {
-        trace("Stop recording Test Run ...");
+        info("Stop recording Test Run ...");
         StringBuilder logContent = new StringBuilder();
         logContent.append(testRunResult.getBegin()).append("\n");
         for (TestStepResult testStepResult : testRunResult.getStepResults()) {
@@ -158,7 +157,7 @@ public class ReportBuilder {
      * generate environment properties with every thing
      */
     public void generateEnvironmentProperties() {
-        trace("Prepare Environment Property List for Report later.");
+        info("Prepare Environment Property List for Report later.");
         Properties properties = getPropertiesList();
         SortedProperties propertiesSorted = sortProperties(properties);
         String environment = PropertyResolver.getAllureResultsDir() + "environment.properties";
@@ -232,7 +231,7 @@ public class ReportBuilder {
                 }
             }
         } catch (IOException ex) {
-            warn("IO Exception while restore history file after test run!\n" + ex.getMessage());
+            debug("IO Exception while restore history file after test run!\n" + ex.getMessage());
         }
     }
 

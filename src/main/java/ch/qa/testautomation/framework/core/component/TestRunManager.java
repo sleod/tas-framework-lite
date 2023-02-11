@@ -5,7 +5,6 @@ import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.enumerations.PropertyKey;
 import ch.qa.testautomation.framework.common.enumerations.TestType;
 import ch.qa.testautomation.framework.common.logging.ScreenCapture;
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.json.container.JSONRunnerConfig;
 import ch.qa.testautomation.framework.core.json.container.JSONTestCase;
@@ -95,7 +94,7 @@ public class TestRunManager {
             }
             if (metaFilters.contains(include1) || metaFilters.contains(include2)) {
                 toBeAdd = true;
-                trace("Pickup Test Case: " + jsonTestCase.getName());
+                info("Pickup Test Case: " + jsonTestCase.getName());
             }
         }
         return toBeAdd;
@@ -141,7 +140,7 @@ public class TestRunManager {
             throw new ApollonBaseException(ApollonErrorKeys.TEST_CASE_NOT_FOUND, PropertyResolver.getTestCaseLocation());
         }
         if (!metaFilters.isEmpty()) {
-            trace("Filters: " + Arrays.toString(metaFilters.toArray()));
+            info("Filters: " + Arrays.toString(metaFilters.toArray()));
         } else {
             warn("No Filter is set, all found test case will be executed!");
         }
@@ -171,17 +170,17 @@ public class TestRunManager {
     }
 
     public static void cleanResultsByPresent() {
-        trace("Clean Allure Results on Server if present.");
+        info("Clean Allure Results on Server if present.");
         new ReportBuilderAllureService().cleanResultsByPresent();
     }
 
     public static void uploadSingleTestRunReport() {
-        trace("Upload Allure Results to Server.");
+        info("Upload Allure Results to Server.");
         new ReportBuilderAllureService().uploadAllureResults();
     }
 
     public static void generateReportOnService() {
-        trace("Generate Allure Report on Server.");
+        info("Generate Allure Report on Server.");
         new ReportBuilderAllureService().generateReportOnService();
     }
 
@@ -237,7 +236,7 @@ public class TestRunManager {
      * @param testCaseName test case name
      */
     public static void loadDriver(JSONTestCase jsonTestCase, String testCaseName) {
-        trace("Load driver for: " + testCaseName);
+        info("Load driver for: " + testCaseName);
         //load all driver config
         TestType type = TestType.valueOf(jsonTestCase.getType().toUpperCase());
         switch (type) {
@@ -304,7 +303,7 @@ public class TestRunManager {
                                 new_tco.setTestCaseId(testCaseId.toString());
                                 normCases.add(new_tco);
                             } else {//no add to list
-                                trace(new_tco.getName() + " is ignored because of '-' value in testCaseId.");
+                                info(new_tco.getName() + " is ignored because of '-' value in testCaseId.");
                             }
                         } else {//mobile App case, check test case id map
                             if (Objects.nonNull(testData.get("testCaseIdMap"))) {
@@ -370,20 +369,20 @@ public class TestRunManager {
     }
 
     public synchronized static void jiraFeedback(List<TestCaseObject> testCaseObjects) {
-        trace("Feedback Test Result back to JIRA...");
+        info("Feedback Test Result back to JIRA...");
         try {
             getJiraRestClient().updateRunStatusInExecution(jiraExecutionConfig, getTestRunResultMap(testCaseObjects));
         } catch (Throwable throwable) {
-            SystemLogger.warn("JIRA Feedback failed: " + throwable.getMessage());
+            warn("JIRA Feedback failed: " + throwable.getMessage());
         }
     }
 
     public synchronized static void qcFeedback(List<TestCaseObject> testCaseObjects) {
-        trace("Feedback Test Result back to QC...");
+        info("Feedback Test Result back to QC...");
         try {
             getQCRestClient().syncTestCasesRunResults(testCaseObjects);
         } catch (Throwable throwable) {
-            SystemLogger.warn("QC Feedback failed: " + throwable.getMessage());
+            warn("QC Feedback failed: " + throwable.getMessage());
         }
     }
 
@@ -424,7 +423,7 @@ public class TestRunManager {
                 throw new ApollonBaseException(ApollonErrorKeys.CONFIG_ERROR, exception, "DB");
             }
         } else {
-            trace("DB Connection Config was not found in resource.");
+            warn("DB Connection Config was not found in resource.");
         }
     }
 
@@ -440,7 +439,7 @@ public class TestRunManager {
                 throw new ApollonBaseException(ApollonErrorKeys.CONFIG_ERROR, exception, "REST");
             }
         } else {
-            trace("REST Connection Config was not found in resource.");
+            warn("REST Connection Config was not found in resource.");
         }
     }
 
@@ -571,7 +570,7 @@ public class TestRunManager {
             } else if (paths.size() == 1) {
                 TestDataContainer.loadGlobalTestData(paths.get(0));
             } else {
-                trace("No global test data file detected!");
+                info("No global test data file detected!");
             }
         }
     }

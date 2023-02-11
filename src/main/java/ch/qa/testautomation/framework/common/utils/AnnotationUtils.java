@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Map;
 
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.info;
 
 /**
  * Changes the annotation value for the given key of the given annotation to newValue and returns
@@ -41,7 +41,7 @@ public class AnnotationUtils {
         String how = config.get("how");
         String using = config.get("using");
         memberValues.put(how, using);
-        trace("modified field annotation to: " + how + " = " + using);
+        info("modified field annotation to: " + how + " = " + using);
     }
 
     /**

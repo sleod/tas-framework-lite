@@ -18,8 +18,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.warn;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.*;
 import static ch.qa.testautomation.framework.exception.ApollonErrorKeys.CUSTOM_MESSAGE;
 import static ch.qa.testautomation.framework.exception.ApollonErrorKeys.DOWNLOAD_WEB_DRIVER_NOT_DEVELOPED_YET;
 
@@ -164,16 +163,16 @@ public class ExternAppController {
             } else {
                 builder.command("sh", "-c", command);
             }
-            trace("Executing command: " + command);
+            info("Executing command: " + command);
             Process process = builder.start();
             exitCode = process.waitFor();
-            trace("Process exit code: " + exitCode);
+            info("Process exit code: " + exitCode);
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
             while ((line = reader.readLine()) != null) {
                 output.append(line).append("\n");
             }
-            trace("Output: " + output);
+            info("Output: " + output);
         } catch (IOException | InterruptedException ex) {
             throw new ApollonBaseException(CUSTOM_MESSAGE, "Exception while execute command line: " + command, ex);
         }
@@ -217,7 +216,7 @@ public class ExternAppController {
                 driverPath = checkDriverVersionWithBrowser(paths, browserVersion);
             }
             if (paths.isEmpty() || driverPath == null) {//in case existing not match or nothing found, try to download
-                warn("No File matched to current browser! Try to download driver!");
+                info("No File matched to current browser! Try to download driver!");
                 boolean success = tryToDownloadDriver(driverFileName, browserVersion);
                 if (success) {
                     paths = FileLocator.listRegularFilesRecursiveMatchedToName(driverDir, 3, driverFileName);
@@ -227,7 +226,7 @@ public class ExternAppController {
                 }
             }
             if (driverPath != null) {
-                trace("Find Driver: " + driverPath.toFile().getName() + " with Version: " + browserVersion);
+                info("Find Driver: " + driverPath.toFile().getName() + " with Version: " + browserVersion);
                 return driverPath;
             } else {
                 throw new ApollonBaseException(CUSTOM_MESSAGE, "No matched driver for current test browser was found or downloaded!");
@@ -272,14 +271,14 @@ public class ExternAppController {
                 String driverVersion = matcher.group(1);
                 //match Chrome version with existing driver and return driver path
                 if (driverVersion.equals(browserVersion)) {
-                    trace("Find match driver: " + path);
+                    info("Find match driver: " + path);
                     return path;
                 } else {
-                    warn("Check Given Driver: <" + path + "> has Version: " + response[1]
+                    debug("Check Given Driver: <" + path + "> has Version: " + response[1]
                             + ", but not match to Browser Version: " + browserVersion);
                 }
             } else {
-                warn("Version can not be recognized with given pattern in: " + response[1]);
+                debug("Version can not be recognized with given pattern in: " + response[1]);
             }
         }
         return null;
@@ -308,7 +307,7 @@ public class ExternAppController {
         if (matcher.find()) {
             return matcher.group(1);
         } else {
-            warn("No Version was found with given Pattern -> " + response[1]);
+            debug("No Version was found with given Pattern -> " + response[1]);
             return response[1];
         }
     }
@@ -337,7 +336,7 @@ public class ExternAppController {
         if (matcher.find()) {
             return matcher.group(1);
         } else {
-            warn("No Version was found with given Pattern -> " + response[1]);
+            debug("No Version was found with given Pattern -> " + response[1]);
             return response[1];
         }
     }
@@ -356,7 +355,7 @@ public class ExternAppController {
             File driverFile = new File(downloadFolder + "\\drivers.zip");
             String filePath = FileLocator.getProjectBaseDir() + "/src/main/resources/" + PropertyResolver.getWebDriverBinLocation() + "/drivers.zip";
             File target = new File(filePath);
-            trace("Write to target: " + target.getAbsolutePath());
+            info("Write to target: " + target.getAbsolutePath());
             FileOperation.copyFileTo(driverFile.toPath(), target.toPath());
             unzipAndDelete(target);
             return true;

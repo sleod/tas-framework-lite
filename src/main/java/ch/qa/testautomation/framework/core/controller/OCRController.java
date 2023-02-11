@@ -1,7 +1,6 @@
 package ch.qa.testautomation.framework.core.controller;
 
 import ch.qa.testautomation.framework.common.IOUtils.FileLocator;
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import net.sourceforge.tess4j.ITessAPI;
 import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract;
@@ -10,6 +9,7 @@ import net.sourceforge.tess4j.Word;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.info;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
@@ -47,7 +47,7 @@ public class OCRController {
         for (Word word : tesseract.getWords(image, ITERATOR_LEVEL)) {
             if (word.getText().contains(text)) {
                 boundingBox = word.getBoundingBox();
-                SystemLogger.trace("Find Element with Text: " + text + " on " + boundingBox);
+                info("Find Element with Text: " + text + " on " + boundingBox);
                 break;
             }
         }

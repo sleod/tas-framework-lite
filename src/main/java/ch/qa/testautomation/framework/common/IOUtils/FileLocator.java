@@ -1,6 +1,5 @@
 package ch.qa.testautomation.framework.common.IOUtils;
 
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.exception.ApollonBaseException;
 import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
 import org.apache.commons.collections4.CollectionUtils;
@@ -17,8 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.warn;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.*;
 import static java.lang.Integer.MAX_VALUE;
 
 public class FileLocator {
@@ -78,7 +76,7 @@ public class FileLocator {
             throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_READING, ex, sDir + "/" + name);
         }
         if (paths.isEmpty()) {
-            trace("File with name '" + name + "' was not found in folder " + sDir);
+            debug("File with name '" + name + "' was not found in folder " + sDir);
         }
         return paths;
     }
@@ -130,7 +128,7 @@ public class FileLocator {
             Path filePath = it.next();
             if (!Files.isDirectory(filePath)) {
                 paths.add(filePath);
-                SystemLogger.trace("Found File: " + filePath);
+                info("Found File: " + filePath);
             }
         }
         return paths;
@@ -175,10 +173,10 @@ public class FileLocator {
     public static Path findLocalResource(String relativePath) {
         Path path = findResource(relativePath);
         if (!path.toString().contains("jar!")) {
-            trace("Found Local Path: " + relativePath);
+            info("Found Local Path: " + relativePath);
             return path;
         } else {
-            warn("Local Path: " + relativePath + " can not be found!");
+            debug("Local Path: " + relativePath + " can not be found!");
             return null;
         }
     }

@@ -5,7 +5,7 @@ import ch.qa.testautomation.framework.core.controller.ExternAppController;
 
 import java.io.File;
 
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.info;
 
 public class OperationSystemUtils {
 
@@ -17,7 +17,7 @@ public class OperationSystemUtils {
         if (!driverName.endsWith(".exe")) {
             driverName += ".exe";
         }
-        trace("Try to clean up remain running web driver in Windows OS: " + driverName);
+        info("Try to clean up remain running web driver in Windows OS: " + driverName);
         ExternAppController.executeCommand("taskkill /f /fi \"pid gt 0\" /im " + driverName);
     }
 
@@ -26,7 +26,7 @@ public class OperationSystemUtils {
         if (driverName.endsWith(".exe")) {
             driverName = driverName.replace(".exe", "");
         }
-        trace("Try to clean up remain running web driver in non Windows OS: " + driverName);
+        info("Try to clean up remain running web driver in non Windows OS: " + driverName);
         ExternAppController.executeCommand("killall '" + driverName + "'");
     }
 

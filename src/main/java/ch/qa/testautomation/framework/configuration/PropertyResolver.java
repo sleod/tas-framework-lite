@@ -35,16 +35,16 @@ public class PropertyResolver {
                 if (fileStream != null) {
                     getProperties().load(fileStream);
                 } else {
-                    warn(filePath + " can be not loaded into properties!");
+                    debug(filePath + " can be not loaded into properties!");
                 }
                 if (getProperties().isEmpty()) {
-                    trace("No custom defined properties loaded. Using default configuration...");
+                    info("No custom defined properties loaded. Using default configuration...");
                 }
             } catch (IOException ex) {
                 throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_GENERAL, ex, "load run properties");
             }
         } else {
-            trace("Path for properties file is not valid: " + filePath + ". No custom properties file will be loaded.");
+            debug("Path for properties file is not valid: " + filePath + ". No custom properties file will be loaded.");
         }
     }
 
@@ -303,9 +303,9 @@ public class PropertyResolver {
     public static void setProperty(String key, String value) {
         getProperties().setProperty(key, value.trim());
         if (!key.toLowerCase().contains("pat") && !key.toLowerCase().contains("password")) {
-            trace("Set " + key + " -> " + value);
+            info("Set " + key + " -> " + value);
         } else {
-            trace("Set " + key + " -> XXXXXXXXXXXXXXXX");
+            info("Set " + key + " -> XXXXXXXXXXXXXXXX");
         }
     }
 

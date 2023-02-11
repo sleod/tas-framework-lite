@@ -317,7 +317,7 @@ public class QCConnector implements RestDriver {
             String key = entry.getKey();
             String value = entry.getValue();
             webTarget = webTarget.queryParam(key, value);
-            trace("Query: " + key + "=" + value);
+            debug("Query: " + key + "=" + value);
         }
         response = webTarget.path(path).request(mediaType)
                 .header("Cookie", cookies)

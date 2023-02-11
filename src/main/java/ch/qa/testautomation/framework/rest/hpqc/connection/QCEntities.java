@@ -1,6 +1,5 @@
 package ch.qa.testautomation.framework.rest.hpqc.connection;
 
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.common.utils.StringTextUtils;
 import ch.qa.testautomation.framework.common.utils.XMLUtils;
 import ch.qa.testautomation.framework.exception.ApollonBaseException;
@@ -14,6 +13,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.debug;
 
 /**
  * Utils for Entities
@@ -36,7 +37,7 @@ public class QCEntities {
                 return fetchQCEntitiesFromDocument(root);
             }
         } catch (IOException | JDOMException ex) {
-            SystemLogger.warn("No QC Entity can be found in result!");
+            debug("No QC Entity can be found in result!");
         }
         return qcEntities;
     }

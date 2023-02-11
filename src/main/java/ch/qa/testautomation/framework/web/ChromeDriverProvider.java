@@ -1,6 +1,5 @@
 package ch.qa.testautomation.framework.web;
 
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -10,6 +9,8 @@ import java.io.File;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.info;
 
 public class ChromeDriverProvider extends WebDriverProvider {
     private final ChromeOptions options;
@@ -65,7 +66,7 @@ public class ChromeDriverProvider extends WebDriverProvider {
         String dPath = PropertyResolver.getDownloadDir();
         chromePrefs.put("download.default_directory", dPath);
         if (!new File(dPath).exists() && new File(dPath).mkdirs()) {
-            SystemLogger.trace("Download Directory not exists! Make Dirs: " + dPath);
+            info("Download Directory not exists! Make Dirs: " + dPath);
         }
         chromePrefs.put("download.prompt_for_download", false);
         chromePrefs.put("download.open_pdf_in_system_reader", PropertyResolver.isOpenPDFInSystemReader());

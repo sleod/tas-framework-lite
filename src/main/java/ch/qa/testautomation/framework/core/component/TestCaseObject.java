@@ -3,7 +3,6 @@ package ch.qa.testautomation.framework.core.component;
 import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.enumerations.TestStatus;
 import ch.qa.testautomation.framework.common.enumerations.TestType;
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.common.utils.AnnotationReflector;
 import ch.qa.testautomation.framework.common.utils.AnnotationUtils;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
@@ -25,6 +24,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Stream;
+
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.fatal;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.info;
 
 public class TestCaseObject implements Comparable<TestCaseObject> {
 
@@ -256,7 +258,7 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
      * after test
      */
     public void afterTest() {
-        SystemLogger.info("Finish Test Case: " + getName());
+        info("Finish Test Case: " + getName());
         invokeWithAnnotation(AfterTest.class);
         testRunResult.stopNow("Test Case Ends: " + getName());
         //default after test: build Report
@@ -272,7 +274,7 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
             TestRunManager.qcFeedback(Collections.singletonList(this));
         }
 
-        SystemLogger.trace("Generate Allure Result: " + getName());
+        info("Generate Allure Result: " + getName());
         //generate allure results files for this test case
         getReportBuilder().generateAllureResults(Collections.singletonList(this));
         getReportBuilder().generateEnvironmentProperties();
@@ -299,14 +301,14 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
             DriverManager.setCurrentPlatform("");
             TestRunManager.loadDriver(getTestCase(), getName());
         } catch (Throwable throwable) {
-            SystemLogger.fatal(throwable);
+            fatal(throwable);
         }
         if (shouldRestoreSession) {
             TestRunManager.restoreSessions();
         }
         testRunResult.setName(getName());
         testRunResult.startNow("Test Case Begin: " + getName());
-        SystemLogger.info("Start Test Case: " + getName());
+        info("Start Test Case: " + getName());
         invokeWithAnnotation(BeforeTest.class);
         getReportBuilder().startRecordingTest(testRunResult);
         if (testCase.getType().contains("web_app")) {

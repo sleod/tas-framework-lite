@@ -16,8 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.warn;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.*;
 import static java.util.Arrays.asList;
 
 public class FileOperation {
@@ -79,7 +78,7 @@ public class FileOperation {
                 throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_READING, ex, filePath);
             }
         } else {
-            warn("File to read does not exist! -> " + filePath);
+            debug("File to read does not exist! -> " + filePath);
         }
         return list;
     }
@@ -129,7 +128,7 @@ public class FileOperation {
             FilenameFilter filter = (file, name) -> name.toLowerCase().endsWith(".".concat(suffix.toLowerCase()));
             return asList(Objects.requireNonNull(root.listFiles(filter)));
         } else {
-            warn(root.getAbsolutePath() + " may not a directory or an empty one!");
+            debug(root.getAbsolutePath() + " may not a directory or an empty one!");
             return Collections.emptyList();
         }
     }
@@ -147,7 +146,7 @@ public class FileOperation {
             };
             return asList(Objects.requireNonNull(root.listFiles(filter)));
         } else {
-            warn(root.getAbsolutePath() + " may not a directory or an empty one!");
+            debug(root.getAbsolutePath() + " may not a directory or an empty one!");
             return Collections.emptyList();
         }
     }
@@ -193,7 +192,7 @@ public class FileOperation {
      */
     public static void deleteFile(File file) throws IOException {
         boolean dq = Files.deleteIfExists(file.toPath());
-        trace("try to deleteQCEntityInQC File: " + file + " : " + dq);
+        info("try to deleteQCEntityInQC File: " + file + " : " + dq);
     }
 
     /**
@@ -432,7 +431,7 @@ public class FileOperation {
         try {
             Files.move(srcFile, tarFile, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {
-            warn("IOException while moving file " + srcFile + " to " + tarFile + "!\n" + ex.getMessage());
+            debug("IOException while moving file " + srcFile + " to " + tarFile + "!\n" + ex.getMessage());
         }
     }
 

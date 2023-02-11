@@ -21,7 +21,7 @@ import java.io.File;
 
 import static ch.qa.testautomation.framework.common.enumerations.BrowserName.CHROME;
 import static ch.qa.testautomation.framework.common.enumerations.BrowserName.EDGE;
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.info;
 import static ch.qa.testautomation.framework.common.logging.SystemLogger.warn;
 import static ch.qa.testautomation.framework.configuration.PropertyResolver.*;
 import static com.codeborne.selenide.Selenide.open;
@@ -114,7 +114,7 @@ public class DriverManager {
      */
     public static void cleanUp() {
         if (PropertyResolver.isWindows()) {
-            trace("Clean Up Driver and browser session in Windows System!");
+            info("Clean Up Driver and browser session in Windows System!");
             OperationSystemUtils.cleanUpWindowsDriverProcess();
         } else {
             OperationSystemUtils.cleanUpNonWindowsDriverProcess();

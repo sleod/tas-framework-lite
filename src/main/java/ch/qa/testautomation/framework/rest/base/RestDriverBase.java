@@ -14,7 +14,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.debug;
 import static ch.qa.testautomation.framework.common.logging.SystemLogger.warn;
 import static ch.qa.testautomation.framework.common.utils.StringTextUtils.isValid;
 
@@ -130,7 +130,7 @@ public class RestDriverBase implements RestDriver {
 
     @Override
     public Response get(String path) {
-        trace("Request GET: " + path);
+        debug("Request GET: " + path);
         response = webTarget.path(path)
                 .request(mediaType)
                 .header("Authorization", authorizationToken)
@@ -147,7 +147,7 @@ public class RestDriverBase implements RestDriver {
      */
     @Override
     public Response get(String path, String query) {
-        trace("Request Get: " + path + "\nWith Query: " + query);
+        debug("Request Get: " + path + "\nWith Query: " + query);
         response = webTarget.path(path)
                 .queryParam("query", RestClientBase.encodeUrlPath(query))
                 .request(mediaType)
@@ -166,7 +166,7 @@ public class RestDriverBase implements RestDriver {
      */
     @Override
     public Response get(String path, String key, String value) {
-        trace("Request Get: " + path + "\nWith Query: " + key + "=" + value);
+        debug("Request Get: " + path + "\nWith Query: " + key + "=" + value);
         response = webTarget.path(path)
                 .queryParam(key, value)
                 .request(mediaType)
@@ -184,12 +184,12 @@ public class RestDriverBase implements RestDriver {
      */
     @Override
     public Response get(String path, Map<String, String> params) {
-        trace("Request Get: " + path);
+        debug("Request Get: " + path);
         for (Map.Entry<String, String> entry : params.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
             webTarget = webTarget.queryParam(key, value);
-            trace("Query: " + key + "=" + value);
+            debug("Query: " + key + "=" + value);
         }
         response = webTarget.path(path).request(mediaType)
                 .header("Authorization", authorizationToken)
@@ -200,7 +200,7 @@ public class RestDriverBase implements RestDriver {
 
     @Override
     public Response post(String path, String payload) {
-        trace("Request POST: " + path);
+        debug("Request POST: " + path);
         response = webTarget.path(path)
                 .request(mediaType)
                 .header("Authorization", authorizationToken)
@@ -209,12 +209,12 @@ public class RestDriverBase implements RestDriver {
     }
 
     public Response post(String path, String payload, Map<String, String> params) {
-        trace("Request POST: " + path);
+        debug("Request POST: " + path);
         for (Map.Entry<String, String> entry : params.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
             webTarget = webTarget.queryParam(key, value);
-            trace("Query: " + key + "=" + value);
+            debug("Query: " + key + "=" + value);
         }
         response = webTarget.path(path).request(mediaType)
                 .header("Authorization", authorizationToken)
@@ -225,7 +225,7 @@ public class RestDriverBase implements RestDriver {
 
     @Override
     public Response put(String path, String payload) {
-        trace("Request POST: " + path);
+        debug("Request POST: " + path);
         response = webTarget.path(path)
                 .request(mediaType)
                 .header("Authorization", authorizationToken)
@@ -235,7 +235,7 @@ public class RestDriverBase implements RestDriver {
 
     @Override
     public Response delete(String path) {
-        trace("Request DELETE: " + path);
+        debug("Request DELETE: " + path);
         response = webTarget.path(path)
                 .request(mediaType)
                 .header("Authorization", authorizationToken)
@@ -244,7 +244,7 @@ public class RestDriverBase implements RestDriver {
     }
 
     public Response patch(String path, String payload) {
-        trace("Request PATCH: " + path);
+        debug("Request PATCH: " + path);
         response = webTarget.path(path)
                 .request(mediaType)
                 .header("Authorization", authorizationToken)
@@ -281,7 +281,7 @@ public class RestDriverBase implements RestDriver {
     }
 
     public void printCookies() {
-        response.getCookies().forEach((key, value) -> trace("Cookie: " + key + "->" + value));
+        response.getCookies().forEach((key, value) -> debug("Cookie: " + key + "->" + value));
     }
 
     public void secureParameter(String param, String paramName) {

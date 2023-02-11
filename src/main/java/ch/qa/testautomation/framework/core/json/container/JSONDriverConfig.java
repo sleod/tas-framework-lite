@@ -1,11 +1,12 @@
 package ch.qa.testautomation.framework.core.json.container;
 
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.info;
 
 public class JSONDriverConfig extends JSONContainer{
     private String platformName;
@@ -53,9 +54,9 @@ public class JSONDriverConfig extends JSONContainer{
     public void setIdle(boolean idle) {
         isIdle = idle;
         if (idle) {
-            SystemLogger.trace("Set Config " + getDeviceName() + " Idle.");
+            info("Set Config " + getDeviceName() + " Idle.");
         } else {
-            SystemLogger.trace("Set Config " + getDeviceName() + " busy.");
+            info("Set Config " + getDeviceName() + " busy.");
         }
     }
 

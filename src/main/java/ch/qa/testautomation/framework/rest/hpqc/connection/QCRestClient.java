@@ -2,7 +2,6 @@ package ch.qa.testautomation.framework.rest.hpqc.connection;
 
 import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
 import ch.qa.testautomation.framework.common.logging.Screenshot;
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.core.component.TestCaseObject;
 import ch.qa.testautomation.framework.core.component.TestCaseStep;
 import ch.qa.testautomation.framework.core.component.TestRunResult;
@@ -26,6 +25,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.info;
 import static ch.qa.testautomation.framework.common.utils.StringTextUtils.isValid;
 
 public class QCRestClient {
@@ -810,7 +810,7 @@ public class QCRestClient {
      */
     public Response appendAttachment(int entityType, String entityId, File file) {
         byte[] content = FileOperation.readFileToByteArray(file);
-        SystemLogger.info("Try to Upload Attachment: " + file.getName());
+        info("Try to Upload Attachment: " + file.getName());
         return qcConnector.appendAttachmentsToQCEntity(domain, project, entityId, entityType, file.getName(), content);
     }
 
@@ -880,9 +880,9 @@ public class QCRestClient {
                 testInstanceID = getInstancesIdByTestCaseId(tcID, testSetID).get(0).getEntityID();
             }
             //output messages
-            messages.forEach(message -> SystemLogger.info(message.getMessage()));
+            messages.forEach(message -> info(message.getMessage()));
             //add new run: test variant will be added as a run to original test instance
-            addNewRunToInstance(testInstanceID, testCaseObject.getTestRunResult()).forEach(message -> SystemLogger.info(message.getMessage()));
+            addNewRunToInstance(testInstanceID, testCaseObject.getTestRunResult()).forEach(message -> info(message.getMessage()));
         });
     }
 
@@ -928,7 +928,7 @@ public class QCRestClient {
         if (testPlanRootFolderID.isEmpty()) {
             testPlanRootFolderID = getEntityIDByName(QCConstants.ENTITY_TYPE_TESTPLAN_FOLDER, testPlanRootFolder);
         }
-        SystemLogger.info("testPlanRootFolderID: " + testPlanRootFolderID);
+        info("testPlanRootFolderID: " + testPlanRootFolderID);
         return testPlanRootFolderID;
     }
 
@@ -939,7 +939,7 @@ public class QCRestClient {
         if (testLabRootFolderID.isEmpty()) {
             testLabRootFolderID = getEntityIDByName(QCConstants.ENTITY_TYPE_TESTLAB_FOLDER, testLabRootFolder);
         }
-        SystemLogger.info("testLabRootFolderID: " + testLabRootFolderID);
+        info("testLabRootFolderID: " + testLabRootFolderID);
         return testLabRootFolderID;
     }
 

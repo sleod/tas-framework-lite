@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static ch.qa.testautomation.framework.common.logging.SystemLogger.error;
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.info;
 
 /**
  * TestStep Monitor for each testcase
@@ -84,7 +84,7 @@ public class TestStepMonitor {
 
     public static void beforeAllSteps() {
         if (getCurrentTest() != null) {
-            trace("Finish Pre-Process of Test Case: " + getCurrentTest().getName());
+            info("Finish Pre-Process of Test Case: " + getCurrentTest().getName());
             getCurrentTest().beforeTest();
             setIsStop(false);
         }
@@ -92,7 +92,7 @@ public class TestStepMonitor {
 
     public static void afterAllSteps() {
         if (getCurrentTest() != null) {
-            trace("Finish Post-Process of Test Case: " + getCurrentTest().getName());
+            info("Finish Post-Process of Test Case: " + getCurrentTest().getName());
             try {
                 getCurrentTest().afterTest();
             } catch (Throwable ex) {

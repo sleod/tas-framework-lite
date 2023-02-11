@@ -1,6 +1,5 @@
 package ch.qa.testautomation.framework.rest.base;
 
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.exception.ApollonBaseException;
 import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -15,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.debug;
 import static ch.qa.testautomation.framework.core.json.ObjectMapperSingleton.getObjectMapper;
 
 public class RestClientBase {
@@ -31,7 +31,7 @@ public class RestClientBase {
     public static JsonNode getResponseNode(Response response, String errorMessage) {
         ObjectMapper objectMapper = getObjectMapper();
         JsonNode responseNode;
-        SystemLogger.trace(response.toString());
+        debug(response.toString());
         if (isSuccessful(response)) {
             try {
                 responseNode = objectMapper.readTree(response.readEntity(String.class));
@@ -39,8 +39,8 @@ public class RestClientBase {
                 throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, ex, "Exception while read tree of Json!");
             }
         } else {
-            SystemLogger.debug("Status code: " + response.getStatus());
-            SystemLogger.debug(response.readEntity(String.class));
+            debug("Status code: " + response.getStatus());
+            debug(response.readEntity(String.class));
             throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, errorMessage);
         }
         return responseNode;
@@ -74,17 +74,20 @@ public class RestClientBase {
     public static void storeStreamIntoFile(Response response, File targetFile) {
         if (isSuccessful(response)) {
             targetFile.getParentFile().mkdirs();
-            SystemLogger.trace("Write to target: " + targetFile.getAbsolutePath());
+            info("Write to target: " + targetFile.getAbsolutePath());
             try {
                 Files.copy(response.readEntity(InputStream.class), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                SystemLogger.trace("Storage File Successful: " + targetFile.getName());
+                info("Storage File Successful: " + targetFile.getName());
             } catch (IOException ex) {
                 throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_WRITING, ex, targetFile.getPath());
             }
         } else {
-            SystemLogger.debug(response.readEntity(String.class));
+            debug(response.readEntity(String.class));
             throw new ApollonBaseException(ApollonErrorKeys.FAIL_TO_DOWNLOAD_FILE, targetFile.getName(),response.getStatus());
         }
+    }
+
+    private static void info(String s) {
     }
 
     public static boolean isSuccessful(Response response) {

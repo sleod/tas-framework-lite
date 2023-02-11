@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import static ch.qa.testautomation.framework.common.logging.ScreenCapture.getScreenshot;
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.info;
 
 /**
  * Web Driver Provider which can be extended for
@@ -23,7 +23,7 @@ public abstract class WebDriverProvider implements ScreenshotTaker, DriverProvid
 
     public void setDriver(WebDriver driver) {
         drivers.put(Thread.currentThread().getName(), driver);
-        trace("Save web driver for: " + Thread.currentThread().getName());
+        info("Save web driver for: " + Thread.currentThread().getName());
     }
 
     @Override
@@ -31,10 +31,10 @@ public abstract class WebDriverProvider implements ScreenshotTaker, DriverProvid
     public WebDriver getDriver() {
         String tid = Thread.currentThread().getName();
         if (drivers.get(tid) == null) {
-            trace("Init web driver for: " + tid);
+            info("Init web driver for: " + tid);
             initialize();
         } else {
-            trace("Get web driver for: " + tid);
+            info("Get web driver for: " + tid);
         }
         return drivers.get(tid);
     }
@@ -44,9 +44,9 @@ public abstract class WebDriverProvider implements ScreenshotTaker, DriverProvid
         String tid = Thread.currentThread().getName();
         if (Objects.nonNull(drivers.get(tid))) {
             if (PropertyResolver.isKeepBrowser()) {
-                trace("Keep browser session for: " + tid);
+                info("Keep browser session for: " + tid);
             } else {
-                trace("Close web driver for: " + tid);
+                info("Close web driver for: " + tid);
                 drivers.get(tid).quit();
             }
             drivers.remove(tid);
@@ -79,6 +79,6 @@ public abstract class WebDriverProvider implements ScreenshotTaker, DriverProvid
             height = Integer.parseInt(dimensions[1]);
         }
         driver.manage().window().setSize(new org.openqa.selenium.Dimension(width, height));
-        trace("Used screen size width: " + width + " height: " + height);
+        info("Used screen size width: " + width + " height: " + height);
     }
 }

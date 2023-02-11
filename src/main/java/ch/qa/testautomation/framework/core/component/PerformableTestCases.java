@@ -14,7 +14,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Stream;
 
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.*;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.fatal;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.info;
 import static ch.qa.testautomation.framework.common.utils.StringTextUtils.isValid;
 import static ch.qa.testautomation.framework.configuration.PropertyResolver.*;
 import static ch.qa.testautomation.framework.core.component.TestRunManager.*;
@@ -35,7 +36,7 @@ public abstract class PerformableTestCases {
             testCaseObjects = initTestCases(findAllFilePathOfTestCaseFile(includeFilePatterns(), excludeFilePatterns()), getMetaFilters());
             loadGlobalTestData();
             setUpSelenide();
-            trace("Test Run contains Test Cases: " + testCaseObjects.size());
+            info("Test Run contains Test Cases: " + testCaseObjects.size());
         } catch (Throwable throwable) {
             fatal(throwable);
         }

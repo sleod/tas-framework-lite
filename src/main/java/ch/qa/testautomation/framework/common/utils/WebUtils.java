@@ -1,6 +1,5 @@
 package ch.qa.testautomation.framework.common.utils;
 
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.exception.ApollonBaseException;
 import ch.qa.testautomation.framework.exception.ApollonErrorKeys;
 import com.codeborne.selenide.Condition;
@@ -20,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.debug;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.warn;
 import static ch.qa.testautomation.framework.common.utils.StringTextUtils.isValid;
 import static com.codeborne.selenide.Selectors.*;
 import static com.codeborne.selenide.Selenide.$;
@@ -115,7 +116,7 @@ public class WebUtils {
         try {
             driver.switchTo().window(tabs2.get(index));
         } catch (IndexOutOfBoundsException ex) {
-            SystemLogger.trace("Switch Tab with index: " + index + " failed!");
+            debug("Switch Tab with index: " + index + " failed!");
         }
     }
 
@@ -250,7 +251,7 @@ public class WebUtils {
                 .stream().filter(ele -> ele.text().equals(text)).toList();
         if (result.size() > 0) {
             if (result.size() > 1) {
-                SystemLogger.warn("Warning: with the text: " + text + " more than one element was found!");
+                warn("Warning: with the text: " + text + " more than one element was found!");
             }
             return result.get(0);
         } else {

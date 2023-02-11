@@ -2,7 +2,6 @@ package ch.qa.testautomation.framework.core.json.deserialization;
 
 import ch.qa.testautomation.framework.common.IOUtils.FileLocator;
 import ch.qa.testautomation.framework.common.IOUtils.FileOperation;
-import ch.qa.testautomation.framework.common.logging.SystemLogger;
 import ch.qa.testautomation.framework.configuration.PropertyResolver;
 import ch.qa.testautomation.framework.core.json.container.*;
 import ch.qa.testautomation.framework.exception.ApollonBaseException;
@@ -19,8 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.trace;
-import static ch.qa.testautomation.framework.common.logging.SystemLogger.warn;
+import static ch.qa.testautomation.framework.common.logging.SystemLogger.*;
 import static ch.qa.testautomation.framework.core.json.ObjectMapperSingleton.getObjectMapper;
 import static java.util.Arrays.asList;
 
@@ -71,7 +69,7 @@ public class JSONContainerFactory {
             }
         } else {
             // JsonNode root represents a single value field - do something with it.
-            SystemLogger.trace(root.toString());
+            info(root.toString());
         }
     }
 
@@ -104,7 +102,7 @@ public class JSONContainerFactory {
      * @return list of driver configs or preset driver config single
      */
     public static Map<String, JSONDriverConfig> getDriverConfigs(String folderPath, String configFileName) {
-        trace("Try to find driver config in: " + folderPath);
+        info("Try to find driver config in: " + folderPath);
         File[] files = FileOperation.getResourceFolderFiles(folderPath);
         Map<String, JSONDriverConfig> configs = new LinkedHashMap<>();
         for (File file : files) {
@@ -113,7 +111,7 @@ public class JSONContainerFactory {
                 if (jsonString.contains(HUB_URL_KEY)) {
                     JSONDriverConfig driverConfig = buildJSONObject(jsonString, JSONDriverConfig.class);
                     if (file.getName().equalsIgnoreCase(configFileName)) {
-                        trace("Load given Driver Config: " + configFileName);
+                        info("Load given Driver Config: " + configFileName);
                         return Collections.singletonMap(configFileName, driverConfig);
                     } else {
                         configs.put(file.getName(), driverConfig);
@@ -168,7 +166,7 @@ public class JSONContainerFactory {
         if (new File(dirPath).exists()) {
             return FileLocator.findPaths(new File(dirPath).toPath(), Collections.singletonList("*.json"), Collections.singletonList(""), dirPath);
         } else {
-            warn("No History File of Allure Report found!");
+            debug("No History File of Allure Report found!");
             return Collections.emptyList();
         }
     }
