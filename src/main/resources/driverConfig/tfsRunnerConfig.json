@@ -1,7 +1,7 @@
 {
-  "runName": "Automated Test Run with ...",
-  "planId": "583674",
-  "suiteId": "681728",
+  "runName": "",
+  "planId": "",
+  "suiteId": "",
   "configurationId": "",
   "fullRun": true,
   "failureRetest": false,
@@ -9,10 +9,10 @@
   "selectedTestCaseIds": [],
   "tfsConfig": {
     "host": "",
-    "organization": "tfs",
+    "organization": "",
     "collection": "",
     "project": "",
     "pat": "",
-    "apiVersion": "5.0"
+    "apiVersion": ""
   }
 }

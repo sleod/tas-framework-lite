@@ -4,18 +4,13 @@
   "project": "",
   "user": "",
   "password": "",
-  "testPlanRootFolder": "Subject",
-  "testLabRootFolder": "Root",
+  "testPlanRootFolder": "",
+  "testLabRootFolder": "",
   "testPlanFolderPath": "",
   "testLabFolderPath": "",
-  "testSetName": "tryWithAutomation",
+  "testSetName": "",
   "versionControlEnabled": false,
   "testCaseRequiredFieldDefaultValues": {
-    "user-36": "PEDAS",//AppUnderTest
-    "user-12": "TF Regression",//Klassifikation
-    "user-33": "No",//RBT relevant
-    "user-28": "1-Durchstich",//Testcharakter
-    "user-01": "P6173",//Projekt
-    "user-34": "vollautomatisiert"//TA Grad
+    "user-01": ""
   }
 }

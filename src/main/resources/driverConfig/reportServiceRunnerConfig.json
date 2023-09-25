@@ -1,10 +1,10 @@
 {
   "allureServiceConfig": {
     "host": "",
-    "project_id": "apollon-framework-unit-testing",
-    "force_project_creation": "true",
-    "execution_name": "Automated Test",
+    "project_id": "",
+    "force_project_creation": "",
+    "execution_name": "",
     "execution_from": "",
-    "execution_type": "gitlab"
+    "execution_type": ""
   }
 }

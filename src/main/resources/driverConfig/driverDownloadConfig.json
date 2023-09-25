@@ -1,0 +1,9 @@
+{
+  "platform": "linux64", //mac-arm64, mac-x64, win32, win64, linux64
+  "installChrome": true,
+  "location": "chrome",
+  "browser": "chrome",
+  "downloadLink": "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/",
+  "azureDevOpsLink": "Git - RCH Framework Solution Items/Java/DriverVersions/",
+  "sharedFileLink": ""
+}

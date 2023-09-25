@@ -1,11 +1,11 @@
 {
-  "runName": "Automated Test Run with ...",
+  "runName": "Automated Test Run with Real Device",
   "testPlanId": "",
-  "testExecutionId": "TEST-95",
+  "testExecutionIdMap": {
+    "Android": "BANKING-3149",
+    "iOS": "BANKING-3323"
+  },
   "projectKey": "BANKING",
   "fullRun": false,
-  "failureRetest": false,
-  "selectedTestCaseIds": [
-    "TEST-30"
-  ]
+  "failureRetest": false
 }
