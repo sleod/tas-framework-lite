@@ -245,7 +245,7 @@ public class ExternAppController {
             }
             if (paths.isEmpty() || driverPath == null) {//in case existing not match or nothing found, try to download
                 info("No local driver matched to current browser! Try to download driver!");
-                if (tryToDownloadDriver()) {
+                if (tryToDownloadDriver(driverFileName, browserVersion)) {
                     paths = FileLocator.listRegularFilesRecursiveMatchedToName(driverDir, 3, driverFileName);
                     driverPath = checkDriverVersionWithBrowser(paths, browserVersion);
                 }
@@ -318,18 +318,14 @@ public class ExternAppController {
      */
     public static String getCurrentChromeVersion() {
         String[] response;
-        if (isValid(PropertyResolver.getBrowserBinPath())) {
-            return processResponse(new String[]{"0", getChromeLatestStableVersion()});
-        } else {//take default
-            if (PropertyResolver.isWindows()) {
-                response = executeCommand("reg query \"HKEY_CURRENT_USER\\Software\\Google\\Chrome\\BLBeacon\" /v version");
-            } else if (PropertyResolver.isLinux()) {
-                response = executeCommand("google-chrome --version");
-            } else if (PropertyResolver.isMac()) {
-                response = executeCommand("/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --version");
-            } else {
-                throw new ApollonBaseException(CUSTOM_MESSAGE, "Unsupported Operation System: " + PropertyResolver.getProperty("os.name"));
-            }
+        if (PropertyResolver.isWindows()) {
+            response = executeCommand("reg query \"HKEY_CURRENT_USER\\Software\\Google\\Chrome\\BLBeacon\" /v version");
+        } else if (PropertyResolver.isLinux()) {
+            response = executeCommand("google-chrome --version");
+        } else if (PropertyResolver.isMac()) {
+            response = executeCommand("/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --version");
+        } else {
+            throw new ApollonBaseException(CUSTOM_MESSAGE, "Unsupported Operation System: " + PropertyResolver.getProperty("os.name"));
         }
         return processResponse(response);
     }
@@ -355,7 +351,13 @@ public class ExternAppController {
 
     public static String processResponse(String[] response) {
         if (Integer.parseInt(response[0]) != 0) {
-            throw new ApollonBaseException(CUSTOM_MESSAGE, "Check Version went Wrong!\n" + response[1]);
+            if (response[1].contains("not found")) {
+                warn("No browser was found locally. Need be downloaded!");
+                response[0] = "0";
+                response[1] = getChromeLatestStableVersion();
+            } else {
+                throw new ApollonBaseException(CUSTOM_MESSAGE, "Check Version went Wrong!\n" + response[1]);
+            }
         }
         Matcher matcher = pattern.matcher(response[1]);
         if (matcher.find()) {
@@ -371,22 +373,19 @@ public class ExternAppController {
      *
      * @return folder of drivers
      */
-    public static boolean tryToDownloadDriver() {
-        if (!FileOperation.isFileExists(PropertyResolver.getDriverDownloadConfigFile())) {
-            throw new ApollonBaseException(CUSTOM_MESSAGE, "Failed on downloading driver! Config File not exist! -> " + PropertyResolver.getDriverDownloadConfigFile());
-        }
+    public static boolean tryToDownloadDriver(String driverFileName, String browserVersion) {
         DownloadStrategy strategy = DownloadStrategy.valueOf(PropertyResolver.getDownloadStrategy().toUpperCase());
-        JsonNode config = JSONContainerFactory.getConfig(PropertyResolver.getDriverDownloadConfigFile());
+        JsonNode config = getDownloadConfig();
         switch (strategy) {
             case ONLINE -> {
                 return downloadDriverOnline(config);
             }
             case SHARED_FILE -> {
-                return downloadSharedDriver(config.get("sharedFileLink").asText());
+                return downloadSharedDriver(config);
             }
             case AUTO -> {
                 info("Try to download driver with auto detection mode...");
-                boolean success = downloadSharedDriver(config.get("sharedFileLink").asText());
+                boolean success = downloadSharedDriver(config);
                 if (!success) {
                     success = downloadDriverOnline(config);
                 }
@@ -394,6 +393,13 @@ public class ExternAppController {
             }
         }
         return false;
+    }
+
+    private static JsonNode getDownloadConfig() {
+        if (!FileOperation.isFileExists(PropertyResolver.getDriverDownloadConfigFile())) {
+            throw new ApollonBaseException(CUSTOM_MESSAGE, "Failed on downloading driver! Config File not exist! -> " + PropertyResolver.getDriverDownloadConfigFile());
+        }
+        return JSONContainerFactory.getConfig(PropertyResolver.getDriverDownloadConfigFile());
     }
 
     public static boolean downloadDriverOnline(JsonNode config) {
@@ -433,31 +439,55 @@ public class ExternAppController {
         }
     }
 
-    private static String getChromeLatestStableVersion() {
-        ObjectMapper mapper = new ObjectMapper();
-        String url = "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json";
-        JsonNode jsonNode;
-        try {
-            jsonNode = mapper.readTree(new URL(url));
-        } catch (IOException ex) {
-            throw new ApollonBaseException(CUSTOM_MESSAGE, ex, "Exception by get json from google! -> " + url);
-        }
-        return jsonNode.get("channels").get("Stable").get("version").asText();
+    public static void setCurrentBrowser(String location, String browser) {
+        Path browserBinPath = FileLocator.findExactFile(location, 5, PropertyResolver.isWindows() ? browser + ".exe" : browser);
+        //set chrome bin file path - chromeOption
+        PropertyResolver.setBrowserBinPath(browserBinPath.toFile().getAbsolutePath());
+        grantPermission(browserBinPath, 755);
     }
 
-    public static boolean downloadSharedDriver(String sharedFileLink) {
+    private static String getChromeLatestStableVersion() {
+        JsonNode config = getDownloadConfig();
+        if (DownloadStrategy.ONLINE.equals(DownloadStrategy.valueOf(PropertyResolver.getDownloadStrategy().toUpperCase()))) {
+            ObjectMapper mapper = new ObjectMapper();
+            String url = config.get("lastKnownGoodVersions").asText();
+            JsonNode jsonNode;
+            try {
+                jsonNode = mapper.readTree(new URL(url));
+            } catch (IOException ex) {
+                throw new ApollonBaseException(CUSTOM_MESSAGE, ex, "Exception by get json from google! -> " + url);
+            }
+            return jsonNode.get("channels").get("Stable").get("version").asText();
+        } else return config.get("version").asText();
+
+    }
+
+    public static boolean downloadSharedDriver(JsonNode config) {
         info("Try to download with shared file link for driver.");
+        String sharedFileLink = config.get("sharedFileLink").asText();
         if (!isValid(sharedFileLink)) {
-            debug("Shared File Link of Driver was not found in Config!");
+            debug("Shared File Link was invalid in Config! -> " + sharedFileLink);
             return false;
         }
-        File driverFile = new File(sharedFileLink + "\\drivers.zip");
         String filePath = FileLocator.getProjectBaseDir() + "/src/main/resources/" + PropertyResolver.getWebDriverBinLocation() + "/drivers.zip";
+        copySharedResource(sharedFileLink + "/drivers.zip", filePath);
+        if (config.get("installBrowser").asBoolean()) {
+            String location = FileLocator.getProjectBaseDir() + "/src/main/resources/" + PropertyResolver.getWebDriverBinLocation();
+            filePath = location + "/browser.zip";
+            String browser = config.get("browser").asText();
+            String browserPath = sharedFileLink + "/" + browser + "-" + config.get("platform").asText() + ".zip";
+            copySharedResource(browserPath, filePath);
+            setCurrentBrowser(location, browser);
+        }
+        return true;
+    }
+
+    public static void copySharedResource(String resourcePath, String filePath) {
+        File targetFile = new File(resourcePath);
         File target = new File(filePath);
         debug("Write to target: " + target.getAbsolutePath());
-        FileOperation.copyFileTo(driverFile.toPath(), target.toPath());
+        FileOperation.copyFileTo(targetFile.toPath(), target.toPath());
         unzipAndDelete(target);
-        return true;
     }
 
     public static void grantPermission(Path browserBinPath, int code) {

@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ch.qa.testautomation</groupId>
     <artifactId>tas-framework</artifactId>
-    <version>4.1.01-RELEASE</version>
+    <version>4.1.05-RELEASE</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
