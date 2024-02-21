@@ -7,6 +7,8 @@ import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import ch.qa.testautomation.tas.intefaces.DriverProvider;
 import ch.qa.testautomation.tas.intefaces.ScreenshotTaker;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -90,6 +92,6 @@ public class RemoteWebDriverProvider implements DriverProvider, ScreenshotTaker 
 
     @Override
     public Screenshot takeScreenShot() {
-        return getScreenshot(getDriver());
+        return getScreenshot(((TakesScreenshot) getDriver()).getScreenshotAs(OutputType.BASE64));
     }
 }

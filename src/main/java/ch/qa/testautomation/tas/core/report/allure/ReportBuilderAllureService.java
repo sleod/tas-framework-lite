@@ -3,7 +3,7 @@ package ch.qa.testautomation.tas.core.report.allure;
 import ch.qa.testautomation.tas.common.IOUtils.FileOperation;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
-import ch.qa.testautomation.tas.rest.allure.AllureRestClient;
+import ch.qa.testautomation.tas.rest.connection.allure.AllureRestClient;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

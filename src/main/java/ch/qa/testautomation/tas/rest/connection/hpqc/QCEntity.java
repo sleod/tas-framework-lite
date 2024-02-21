@@ -1,4 +1,4 @@
-package ch.qa.testautomation.tas.rest.hpqc;
+package ch.qa.testautomation.tas.rest.connection.hpqc;
 
 import ch.qa.testautomation.tas.common.utils.DateTimeUtils;
 import ch.qa.testautomation.tas.exception.ExceptionBase;

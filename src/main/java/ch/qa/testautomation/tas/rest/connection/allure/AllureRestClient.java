@@ -1,4 +1,4 @@
-package ch.qa.testautomation.tas.rest.allure;
+package ch.qa.testautomation.tas.rest.connection.allure;
 
 import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.debug;
-import static ch.qa.testautomation.tas.rest.base.RestClientBase.checkResponse;
+import static ch.qa.testautomation.tas.rest.base.TASRestClient.checkResponse;
 
 /**
  * Liefert Methoden, um mit dem Allure Service zu kommunizieren

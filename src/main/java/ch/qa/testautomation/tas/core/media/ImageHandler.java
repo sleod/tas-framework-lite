@@ -7,6 +7,7 @@ import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.component.TestRunResult;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
+import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
@@ -63,7 +64,7 @@ public class ImageHandler {
         String filePath = location + UUID.randomUUID() + ".png";
         File imageFile = new File(filePath);
         try {
-            ImageIO.write(ScreenCapture.takeScreenShot(taker), "png", imageFile);
+            ImageIO.write(ScreenCapture.takeScreenShot(taker.getScreenshotAs(OutputType.FILE)), "png", imageFile);
         } catch (IOException ex) {
             throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_WRITING, ex, filePath);
         }

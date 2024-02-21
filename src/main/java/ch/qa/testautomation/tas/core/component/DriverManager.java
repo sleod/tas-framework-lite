@@ -8,8 +8,8 @@ import ch.qa.testautomation.tas.core.media.ImageHandler;
 import ch.qa.testautomation.tas.core.service.RemoteWebDriverConfigService;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
-import ch.qa.testautomation.tas.rest.RestDriverProvider;
-import ch.qa.testautomation.tas.rest.base.RestDriverBase;
+import ch.qa.testautomation.tas.rest.base.RestDriverProvider;
+import ch.qa.testautomation.tas.rest.base.TASRestDriver;
 import ch.qa.testautomation.tas.web.ChromeDriverProvider;
 import ch.qa.testautomation.tas.web.EdgeDriverProvider;
 import ch.qa.testautomation.tas.web.RemoteWebDriverProvider;
@@ -139,8 +139,8 @@ public class DriverManager {
      * clean up driver processes in OS
      */
     public static void cleanUp() {
-        info("Clean Up Driver and browser session in Windows System!");
-        OperationSystemUtils.cleanUpDriverProcess();
+        info("Clean Up remain driver session in Operation System.");
+        OperationSystemUtils.cleanUpWebDriverProcess();
         OperationSystemUtils.cleanBrowserProcess();
     }
 
@@ -185,7 +185,7 @@ public class DriverManager {
      *
      * @return rest driver
      */
-    public static RestDriverBase getRestDriver() {
+    public static TASRestDriver getRestDriver() {
         return restDriverProvider.getDriver();
     }
 
@@ -197,7 +197,7 @@ public class DriverManager {
      * @param password password of rest
      * @return rest driver
      */
-    public static RestDriverBase getRestDriverWithParam(String host, String user, String password) {
+    public static TASRestDriver getRestDriverWithParam(String host, String user, String password) {
         return restDriverProvider.getDriver(host, user, password);
     }
 
@@ -208,7 +208,7 @@ public class DriverManager {
      * @param authorizationToken = 'Basic base64.encode(user:password)' or 'Bearer PAT'
      * @return rest driver
      */
-    public static RestDriverBase getRestDriverWithParam(String host, String authorizationToken) {
+    public static TASRestDriver getRestDriverWithParam(String host, String authorizationToken) {
         return restDriverProvider.getDriver(host, authorizationToken);
     }
 

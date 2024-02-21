@@ -12,7 +12,7 @@ public class OperationSystemUtils {
     /**
      * clean up all remain tasks of web driver in system task list
      */
-    public static void cleanUpDriverProcess() {
+    public static void cleanUpWebDriverProcess() {
         String driverName = new File(PropertyResolver.getChromeDriverFileName()).getName();
         info("Try to clean up remain running web driver in non Windows OS: " + driverName);
         if (PropertyResolver.isWindows()) {

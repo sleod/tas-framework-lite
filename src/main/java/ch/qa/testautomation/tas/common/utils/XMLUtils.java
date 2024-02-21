@@ -1,6 +1,6 @@
 package ch.qa.testautomation.tas.common.utils;
 
-import com.google.common.collect.Lists;
+import org.apache.commons.lang3.stream.Streams;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -77,11 +77,11 @@ public class XMLUtils {
      */
     public static List<Element> getFilteredElements(Element root, String tagName) {
         if (root.getName().equalsIgnoreCase(tagName)) {
-            return Lists.newArrayList(root);
+            return List.of(root);
         }
         ElementFilter filter = new ElementFilter(tagName);
         Iterator<Element> nodes = root.getDescendants(filter);
-        return Lists.newArrayList(nodes);
+        return Streams.of(nodes).toList();
     }
 
     /**
@@ -118,3 +118,4 @@ public class XMLUtils {
     }
 
 }
+

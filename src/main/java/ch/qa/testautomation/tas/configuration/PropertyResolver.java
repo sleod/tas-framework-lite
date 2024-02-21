@@ -240,7 +240,7 @@ public class PropertyResolver {
         return getProperty(DEMO_MODE_ENABLED.key(), "false").equalsIgnoreCase("true");
     }
 
-    public static boolean setBrowserFullscreenEnabled() {
+    public static boolean getBrowserFullscreenEnabled() {
         return getProperty(DRIVER_BROWSER_FULLSCREEN.key(), "false").equalsIgnoreCase("true");
     }
 

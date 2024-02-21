@@ -4,6 +4,7 @@ import ch.qa.testautomation.tas.common.logging.Screenshot;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.intefaces.DriverProvider;
 import ch.qa.testautomation.tas.intefaces.ScreenshotTaker;
+import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
@@ -63,7 +64,7 @@ public abstract class WebDriverProvider implements ScreenshotTaker, DriverProvid
      */
     @Override
     public synchronized Screenshot takeScreenShot() {
-        return getScreenshot((TakesScreenshot) getDriver());
+        return getScreenshot(((TakesScreenshot) getDriver()).getScreenshotAs(OutputType.BASE64));
     }
 
     public static void configureWindowSize(WebDriver driver, boolean useMaxSize) {

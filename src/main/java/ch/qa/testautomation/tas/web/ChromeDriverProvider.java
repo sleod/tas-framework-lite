@@ -87,7 +87,7 @@ public class ChromeDriverProvider extends WebDriverProvider {
     }
 
     private static boolean isChromeMaximised() {
-        return PropertyResolver.setBrowserFullscreenEnabled();
+        return PropertyResolver.getBrowserFullscreenEnabled();
     }
 
     private static void configurePosition(ChromeOptions options) {

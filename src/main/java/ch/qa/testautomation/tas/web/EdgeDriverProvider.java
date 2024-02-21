@@ -22,7 +22,7 @@ public class EdgeDriverProvider extends WebDriverProvider {
     }
 
     private boolean isIEMaximised() {
-        return PropertyResolver.setBrowserFullscreenEnabled();
+        return PropertyResolver.getBrowserFullscreenEnabled();
     }
 
     private boolean isHeadless() {

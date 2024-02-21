@@ -9,8 +9,8 @@ import ch.qa.testautomation.tas.core.json.container.JSONRunnerConfig;
 import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
-import ch.qa.testautomation.tas.rest.hpqc.QCRestClient;
-import ch.qa.testautomation.tas.rest.jira.JIRARestClient;
+import ch.qa.testautomation.tas.rest.connection.hpqc.QCRestClient;
+import ch.qa.testautomation.tas.rest.connection.jira.JIRARestClient;
 
 import java.util.HashMap;
 import java.util.List;

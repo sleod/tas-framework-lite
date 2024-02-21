@@ -5,17 +5,17 @@ import ch.qa.testautomation.tas.core.controller.UserRobot;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import ch.qa.testautomation.tas.intefaces.ScreenshotTaker;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.Base64;
 
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
+import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
 
 public class ScreenCapture {
 
@@ -56,12 +56,12 @@ public class ScreenCapture {
     /**
      * take screenshot manuel
      *
-     * @param shooter screenshots taker
+     * @param input image file
      * @return BufferedImage
      */
-    public static BufferedImage takeScreenShot(TakesScreenshot shooter) {
+    public static BufferedImage takeScreenShot(File input) {
         try {
-            return ImageIO.read(shooter.getScreenshotAs(OutputType.FILE));
+            return ImageIO.read(input);
         } catch (IOException ex) {
             throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_SCREEN_CAPTURE, ex);
         }
@@ -71,17 +71,16 @@ public class ScreenCapture {
     /**
      * standard method for taking screen
      *
-     * @param shooter TakesScreenshot
+     * @param codes base64 encoded image content
      * @return screenshot
      */
-    public static Screenshot getScreenshot(TakesScreenshot shooter) {
+    public static Screenshot getScreenshot(String codes) {
         String testCaseName = TestStepMonitor.getCurrentTestCaseName();
         String stepName = TestStepMonitor.getCurrentTestStepName();
         Screenshot screenshot = null;
-        if (shooter != null) {
+        if (isValid(codes)) {
             info("*** save screenshot to Report for Test Case: " + testCaseName + " -> " + stepName);
-            String imageData = shooter.getScreenshotAs(OutputType.BASE64);
-            byte[] decodedBytes = Base64.getMimeDecoder().decode(imageData);
+            byte[] decodedBytes = Base64.getMimeDecoder().decode(codes);
             try {
                 screenshot = new Screenshot(ImageIO.read(new ByteArrayInputStream(decodedBytes)), testCaseName, stepName, "");
             } catch (ExceptionBase | IOException ex) {

@@ -54,10 +54,21 @@ public class DBConnector {
         return resultSet.stream().filter(line -> line.get(key).equals(data)).findAny().orElse(Collections.emptyMap());
     }
 
+    /**
+     * Normalize Value in Result Set into String. (null -> 'null')
+     * @param dbData DB Result Set
+     * @return normalized result set in string map
+     */
     public static Map<String, String> normalizeDBData(Map<String, Object> dbData) {
         return dbData.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue())));
     }
 
+    /**
+     * Normalize Value in Result Set into String. (null -> given String)
+     * @param dbData DB Result Set
+     * @param replaceNull string for replace null
+     * @return normalized result set in string map
+     */
     public static Map<String, String> normalizeDBData(Map<String, Object> dbData, String replaceNull) {
         return dbData.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> replaceNull(e.getValue(), replaceNull)));
     }
@@ -66,6 +77,13 @@ public class DBConnector {
         return Objects.isNull(dbValue) ? replacement : dbValue.toString();
     }
 
+    /**
+     * Formate DB Date into given format
+     * @param date Date from DB
+     * @param srcFormat Date format in DB
+     * @param tarFormat Date formate to be converted
+     * @return formatted date
+     */
     public static String formatDate(Object date, String srcFormat, String tarFormat) {
         if (Objects.nonNull(srcFormat) && Objects.nonNull(tarFormat) && !srcFormat.isEmpty() && !tarFormat.isEmpty()) {
             return DateTimeUtils.formatSimpleDate(date.toString(), srcFormat, tarFormat);
@@ -74,6 +92,12 @@ public class DBConnector {
         }
     }
 
+    /**
+     * Fetch Data in DB Result Set with key into mapped string map, in case key : values in 1 : 1 relationship
+     * @param key for mapping
+     * @param dbData db result set
+     * @return mapped string map
+     */
     public static Map<String, Map<String, Object>> fetchDBDataIntoMap(String key, List<Map<String, Object>> dbData) {
         Map<String, Map<String, Object>> dbMap = new HashMap<>(dbData.size());
         dbData.forEach(row -> {
@@ -82,6 +106,12 @@ public class DBConnector {
         return dbMap;
     }
 
+    /**
+     * Fetch Data in DB Result Set with keys into mapped string map, in case keys (group) : values in 1 : 1 relationship
+     * @param keys key group for mapping
+     * @param dbData db result set
+     * @return mapped string map
+     */
     public static Map<String, Map<String, Object>> fetchDBDataIntoMapWithCombKeys(List<Map<String, Object>> dbData, String... keys) {
         Map<String, Map<String, Object>> dbMap = new HashMap<>(dbData.size());
         dbData.forEach(row -> {
@@ -92,6 +122,12 @@ public class DBConnector {
         return dbMap;
     }
 
+    /**
+     * Fetch Data in DB Result Set with keys into mapped string map, in case keys (group) : values in 1 : n relationship
+     * @param key for mapping
+     * @param dbData db result set
+     * @return mapped string map
+     */
     public static Map<String, List<Map<String, Object>>> fetchDBDataIntoMapListWithKey(String key, List<Map<String, Object>> dbData) {
         Map<String, List<Map<String, Object>>> dbMapList = new HashMap<>(dbData.size());
         dbData.forEach(row -> {
@@ -107,6 +143,12 @@ public class DBConnector {
         return dbMapList;
     }
 
+    /**
+     * Convert DB Keys in lowercase / uppercase
+     * @param dataMap DB Result Set
+     * @param isToLowercase flag for convert
+     * @return converted map
+     */
     public static Map<String, Object> convertKeyTo(Map<String, Object> dataMap, boolean isToLowercase) {
         if (Objects.nonNull(dataMap) && !dataMap.isEmpty()) {
             Map<String, Object> theMap = new HashMap<>(dataMap.size());

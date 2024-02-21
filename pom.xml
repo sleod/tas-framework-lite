@@ -15,7 +15,6 @@
         <maven.compiler.target>17</maven.compiler.target>
         <maven.plugin.jar.version>3.3.0</maven.plugin.jar.version>
         <maven.plugin.source.version>3.3.0</maven.plugin.source.version>
-        <maven.plugin.resource.version>3.3.0</maven.plugin.resource.version>
         <maven.surefire.version>3.2.5</maven.surefire.version>
         <aspectj.version>1.9.21</aspectj.version>
         <commons-exec.version>1.4.0</commons-exec.version>
@@ -251,42 +250,20 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>${maven.plugin.resource.version}</version>
-                <executions>
-                    <execution>
-                        <id>copy-resources</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${basedir}/target/classes</outputDirectory>
-                            <includeEmptyDirs>true</includeEmptyDirs>
-                            <resources>
-                                <resource>
-                                    <directory>${basedir}/src/main/resources</directory>
-                                    <filtering>false</filtering>
-                                    <excludes>
-                                        <exclude>**/*.exe</exclude>
-                                    </excludes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>${maven.plugin.jar.version}</version>
                 <configuration>
+                    <!-- Include all files in src/main/resources except .exe and .traineddata files -->
+                    <includes>
+                        <include>**/</include>
+                    </includes>
                     <excludes>
                         <exclude>**/*.exe</exclude>
                         <exclude>**/*.traineddata</exclude>
                     </excludes>
                 </configuration>
             </plugin>
+            <!-- Maven Source Plugin for creating source JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -301,7 +278,7 @@
                     <execution>
                         <id>attach-sources</id>
                         <goals>
-                            <goal>jar</goal>
+                            <goal>jar-no-fork</goal>
                         </goals>
                     </execution>
                 </executions>

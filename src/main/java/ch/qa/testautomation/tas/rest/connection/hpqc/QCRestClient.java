@@ -1,4 +1,4 @@
-package ch.qa.testautomation.tas.rest.hpqc;
+package ch.qa.testautomation.tas.rest.connection.hpqc;
 
 import ch.qa.testautomation.tas.common.IOUtils.FileOperation;
 import ch.qa.testautomation.tas.common.logging.Screenshot;

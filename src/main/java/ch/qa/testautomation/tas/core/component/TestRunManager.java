@@ -13,7 +13,7 @@ import ch.qa.testautomation.tas.core.report.ReportBuilder;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import ch.qa.testautomation.tas.rest.base.QUERY_OPTION;
-import ch.qa.testautomation.tas.rest.jira.JIRARestClient;
+import ch.qa.testautomation.tas.rest.connection.jira.JIRARestClient;
 import com.beust.jcommander.Strings;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;

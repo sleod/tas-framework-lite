@@ -16,15 +16,15 @@ import static ch.qa.testautomation.tas.common.logging.SystemLogger.debug;
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
 import static ch.qa.testautomation.tas.core.json.ObjectMapperSingleton.getObjectMapper;
 
-public class RestClientBase {
+public class TASRestClient {
 
-    private final RestDriverBase restDriver;
+    private final TASRestDriver restDriver;
 
-    public RestClientBase(RestDriverBase restDriver) {
+    public TASRestClient(TASRestDriver restDriver) {
         this.restDriver = restDriver;
     }
 
-    public RestDriverBase getRestDriver() {
+    public TASRestDriver getRestDriver() {
         return restDriver;
     }
 

@@ -1,12 +1,12 @@
-package ch.qa.testautomation.tas.rest;
+package ch.qa.testautomation.tas.rest.base;
 
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.intefaces.DriverProvider;
-import ch.qa.testautomation.tas.rest.base.RestDriverBase;
+import ch.qa.testautomation.tas.rest.base.TASRestDriver;
 
 public class RestDriverProvider implements DriverProvider {
 
-    private RestDriverBase restDriver = null;
+    private TASRestDriver restDriver = null;
     private String user = "";
     private String password = "";
     private String host;
@@ -54,7 +54,7 @@ public class RestDriverProvider implements DriverProvider {
 
     @Override
     @SuppressWarnings("unchecked")
-    public RestDriverBase getDriver() {
+    public TASRestDriver getDriver() {
         if (restDriver == null) {
             initialize();
         }
@@ -68,7 +68,7 @@ public class RestDriverProvider implements DriverProvider {
      * @param patToken personal access token
      * @return rest driver
      */
-    public RestDriverBase getDriver(String host, String patToken) {
+    public TASRestDriver getDriver(String host, String patToken) {
         setHost(host);
         setPatToken(patToken);
         return restDriver;
@@ -77,7 +77,7 @@ public class RestDriverProvider implements DriverProvider {
     /**
      * get driver with host, user and password
      */
-    public RestDriverBase getDriver(String host, String user, String password) {
+    public TASRestDriver getDriver(String host, String user, String password) {
         setHost(host);
         setUser(user);
         setPassword(password);
@@ -95,18 +95,18 @@ public class RestDriverProvider implements DriverProvider {
     public void initialize() {
         if (!host.isEmpty()) {
             if (!user.isEmpty() && !password.isEmpty()) {
-                restDriver = new RestDriverBase(host, user, password);
+                restDriver = new TASRestDriver(host, user, password);
             } else if (!patToken.isEmpty()) {
-                restDriver = new RestDriverBase(host, patToken);
+                restDriver = new TASRestDriver(host, patToken);
             } else {
-                restDriver = new RestDriverBase(host);
+                restDriver = new TASRestDriver(host);
             }
         } else {
-            restDriver = new RestDriverBase();
+            restDriver = new TASRestDriver();
         }
     }
 
-    public void setDriver(RestDriverBase restDriver) {
+    public void setDriver(TASRestDriver restDriver) {
         this.restDriver = restDriver;
     }
 }

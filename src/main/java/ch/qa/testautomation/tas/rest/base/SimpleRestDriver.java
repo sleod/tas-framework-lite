@@ -43,21 +43,40 @@ public class SimpleRestDriver implements RestDriver {
         this.mediaType = mediaType;
     }
 
+    /**
+     * Constructor with Proxy settings
+     *
+     * @param proxyURL proxy url
+     * @param port     proxy port
+     * @param user     proxy user, empty string for no user required
+     * @param pass     proxy pass, empty string for no pass required
+     */
     public SimpleRestDriver(String proxyURL, int port, String user, String pass) {
         HttpUrlConnectorProvider connectorProvider = new HttpUrlConnectorProvider()
                 .connectionFactory(new ProxyConnectionFactory(Proxy.Type.HTTP, proxyURL, port));
         ClientConfig config = new ClientConfig().connectorProvider(connectorProvider);
-        if(isValid(user)&&isValid(pass)){
+        if (isValid(user) && isValid(pass)) {
             config.property(ClientProperties.PROXY_USERNAME, user).property(ClientProperties.PROXY_PASSWORD, pass);
         }
         client = ClientBuilder.newClient(config);
     }
 
+    /**
+     * Set Basic Authentication
+     *
+     * @param user     user
+     * @param password pass plain text
+     */
     public void setBasicAuth(String user, String password) {
         String authorizationToken = "Basic " + PropertyResolver.encodeBase64(user + ":" + password);
         addHeader("Authorization", authorizationToken);
     }
 
+    /**
+     * Set Bearer Token
+     *
+     * @param authorizationToken Bearer Token
+     */
     public void setBearerToken(String authorizationToken) {
         addHeader("Authorization", "Bearer " + authorizationToken);
     }
@@ -139,6 +158,10 @@ public class SimpleRestDriver implements RestDriver {
 
     public void addHeader(String key, String value) {
         headers.put(key, value);
+    }
+
+    public void setCookie(String cookie) {
+        addHeader("Cookie", cookie);
     }
 
     public void cleanHeaders() {

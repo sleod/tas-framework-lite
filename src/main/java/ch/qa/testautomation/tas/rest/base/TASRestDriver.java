@@ -14,7 +14,7 @@ import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
 /**
  * general rest driver with basic authentication
  */
-public class RestDriverBase extends SimpleRestDriver {
+public class TASRestDriver extends SimpleRestDriver {
 
     protected Response response;
     protected String host = "";
@@ -26,7 +26,7 @@ public class RestDriverBase extends SimpleRestDriver {
      * @param user     user
      * @param password password
      */
-    public RestDriverBase(String host, String user, String password) {
+    public TASRestDriver(String host, String user, String password) {
         secureParameter(host, "Host of Endpoint");
         secureParameter(user, "User for Basic Authorization");
         secureParameter(password, "Password for Basic Authorization");
@@ -39,7 +39,7 @@ public class RestDriverBase extends SimpleRestDriver {
      *
      * @param host host
      */
-    public RestDriverBase(String host) {
+    public TASRestDriver(String host) {
         secureParameter(host, "Host of Endpoint");
         this.host = host;
     }
@@ -50,7 +50,7 @@ public class RestDriverBase extends SimpleRestDriver {
      * @param host     host
      * @param patToken personal access token
      */
-    public RestDriverBase(String host, String patToken) {
+    public TASRestDriver(String host, String patToken) {
         secureParameter(host, "Host of Endpoint");
         secureParameter(patToken, "Personal Access Token");
         this.host = host;
@@ -65,7 +65,7 @@ public class RestDriverBase extends SimpleRestDriver {
      * @param user     proxy user
      * @param pass     proxy pass
      */
-    public RestDriverBase(String proxyURL, int port, String user, String pass) {
+    public TASRestDriver(String proxyURL, int port, String user, String pass) {
         super(proxyURL, port, user, pass);
     }
 
@@ -73,7 +73,7 @@ public class RestDriverBase extends SimpleRestDriver {
     /**
      * Construction with rest config defined host and Authorization parameters
      */
-    public RestDriverBase() {
+    public TASRestDriver() {
         super();
     }
 

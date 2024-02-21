@@ -1,4 +1,4 @@
-package ch.qa.testautomation.tas.rest.jira;
+package ch.qa.testautomation.tas.rest.connection.jira;
 
 import ch.qa.testautomation.tas.common.IOUtils.FileOperation;
 import ch.qa.testautomation.tas.common.utils.DateTimeUtils;
@@ -12,8 +12,8 @@ import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import ch.qa.testautomation.tas.rest.base.QUERY_OPTION;
-import ch.qa.testautomation.tas.rest.base.RestClientBase;
-import ch.qa.testautomation.tas.rest.base.RestDriverBase;
+import ch.qa.testautomation.tas.rest.base.TASRestClient;
+import ch.qa.testautomation.tas.rest.base.TASRestDriver;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -26,7 +26,7 @@ import java.util.*;
 
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
 
-public class JIRARestClient extends RestClientBase {
+public class JIRARestClient extends TASRestClient {
     private String user = "";
     private static final String GENERAL_PATH = "rest/api/latest/";
     private static final String XRAY_PATH = "rest/raven/latest/api/";
@@ -39,7 +39,7 @@ public class JIRARestClient extends RestClientBase {
      * @param host     jiraUrl
      */
     public JIRARestClient(String host, String username, String password) {
-        super(new RestDriverBase(host, username, password));
+        super(new TASRestDriver(host, username, password));
         this.user = username;
     }
 
@@ -49,7 +49,7 @@ public class JIRARestClient extends RestClientBase {
      * @param patToken PAT Token
      */
     public JIRARestClient(String host, String patToken) {
-        super(new RestDriverBase(host, patToken));
+        super(new TASRestDriver(host, patToken));
     }
 
     /**
