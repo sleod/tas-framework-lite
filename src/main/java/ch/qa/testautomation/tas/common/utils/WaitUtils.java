@@ -1,7 +1,7 @@
 package ch.qa.testautomation.tas.common.utils;
 
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import com.codeborne.selenide.SelenideElement;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -128,7 +128,7 @@ public class WaitUtils {
             TimeUnit.SECONDS.sleep(sec);
         } catch (Exception ex) {
             Thread.currentThread().interrupt();
-            throw new ApollonBaseException(ApollonErrorKeys.INTERRUPTED_WHILE_WAITING, ex);
+            throw new ExceptionBase(ExceptionErrorKeys.INTERRUPTED_WHILE_WAITING, ex);
         }
     }
 
@@ -137,7 +137,7 @@ public class WaitUtils {
             TimeUnit.MILLISECONDS.sleep(ms);
         } catch (Exception ex) {
             Thread.currentThread().interrupt();
-            throw new ApollonBaseException(ApollonErrorKeys.INTERRUPTED_WHILE_WAITING, ex);
+            throw new ExceptionBase(ExceptionErrorKeys.INTERRUPTED_WHILE_WAITING, ex);
         }
     }
 

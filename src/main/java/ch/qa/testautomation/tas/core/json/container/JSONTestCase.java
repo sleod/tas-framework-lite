@@ -2,8 +2,8 @@ package ch.qa.testautomation.tas.core.json.container;
 
 import ch.qa.testautomation.tas.core.json.customDeserializer.CustomStepListDeserializer;
 import ch.qa.testautomation.tas.core.json.customDeserializer.CustomStringListDeserializer;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.apache.commons.collections4.CollectionUtils;
@@ -137,7 +137,7 @@ public class JSONTestCase extends JSONContainer {
     public void setName(String name) {
         this.name = name.trim();
         if (name.isEmpty()) {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Name of Test Case is empty!");
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Name of Test Case is empty!");
         }
     }
 
@@ -258,5 +258,4 @@ public class JSONTestCase extends JSONContainer {
                 steps,
                 additionalTestDataFile);
     }
-
 }

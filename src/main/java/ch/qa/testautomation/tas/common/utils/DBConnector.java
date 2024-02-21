@@ -3,8 +3,8 @@ package ch.qa.testautomation.tas.common.utils;
 import ch.qa.testautomation.tas.common.IOUtils.FileLocator;
 import ch.qa.testautomation.tas.common.IOUtils.FileOperation;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 
 import java.sql.*;
 import java.util.*;
@@ -20,7 +20,6 @@ import static ch.qa.testautomation.tas.configuration.PropertyResolver.*;
  * DB Connector
  * configured only for mysql and oracle now
  */
-
 public class DBConnector {
 
     /**
@@ -35,10 +34,10 @@ public class DBConnector {
             String location = FileLocator.findResource(PropertyResolver.getTestDataLocation()).toString();
             sqlStatement = FileOperation.readFileToLinedString(FileLocator.findExactFile(location, 5, sqlContentOrFilename).toString());
             if (sqlStatement.isEmpty()) {
-                throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Given .sql File can not be found in test data! SQL: " + sqlContentOrFilename);
+                throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Given .sql File can not be found in test data! SQL: " + sqlContentOrFilename);
             }
         } else if (!sqlContentOrFilename.toLowerCase().startsWith("select")) {//
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Given Context is neither .sql file nor Select Statement");
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Given Context is neither .sql file nor Select Statement");
         }
         return sqlStatement;
     }
@@ -176,7 +175,7 @@ public class DBConnector {
                 // Set up the connection with the DB
                 connect = DriverManager.getConnection(url, user, PropertyResolver.decodeBase64(password));
             } else {
-                throw new ApollonBaseException(ApollonErrorKeys.CONNECTION_TO_DB_IS_NOT_SET_WELL);
+                throw new ExceptionBase(ExceptionErrorKeys.CONNECTION_TO_DB_IS_NOT_SET_WELL);
             }
             // Statements allow to issue SQL queries to the database
             Statement statement = Objects.requireNonNull(connect).createStatement();
@@ -184,13 +183,13 @@ public class DBConnector {
             trace("Execute SQL: " + sql);
             results = writeResultSet(statement.executeQuery(sql));
         } catch (ClassNotFoundException | SQLException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Exception while connect to DB and execute SQL! " + ex.getMessage());
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Exception while connect to DB and execute SQL! " + ex.getMessage());
         } finally {
             if (connect != null) {
                 try {
                     connect.close();
                 } catch (SQLException ex) {
-                    throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Exception by trying to close connection! " + ex.getMessage());
+                    throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Exception by trying to close connection! " + ex.getMessage());
                 }
             }
         }

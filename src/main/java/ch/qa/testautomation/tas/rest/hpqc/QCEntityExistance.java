@@ -1,4 +1,4 @@
-package ch.qa.testautomation.tas.rest.hpqc.connection;
+package ch.qa.testautomation.tas.rest.hpqc;
 
 public class QCEntityExistance {
     private final boolean isExist;

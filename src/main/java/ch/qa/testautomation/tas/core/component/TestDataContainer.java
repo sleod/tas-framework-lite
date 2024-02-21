@@ -7,8 +7,8 @@ import ch.qa.testautomation.tas.common.utils.DBConnector;
 import ch.qa.testautomation.tas.common.utils.StringTextUtils;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.json.ObjectMapperSingleton;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -39,7 +39,7 @@ public class TestDataContainer {
             loadTestData(testDataRef);
             loadAdditionalTestData(additional);
         } else {
-            throw new ApollonBaseException(ApollonErrorKeys.TEST_DATA_FOR_TEST_OBJECT_NOT_DEFINED);
+            throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_FOR_TEST_OBJECT_NOT_DEFINED);
         }
     }
 
@@ -94,7 +94,7 @@ public class TestDataContainer {
         if (StringTextUtils.isValid(fileRef)) {
             String addTestDataRef = fileRef.toLowerCase();
             if (!addTestDataRef.startsWith("file:") && !addTestDataRef.endsWith(".json")) {
-                throw new ApollonBaseException(ApollonErrorKeys.ADDITIONAL_TEST_DATA_FILE_CAN_ONLY_BE_JSON);
+                throw new ExceptionBase(ExceptionErrorKeys.ADDITIONAL_TEST_DATA_FILE_CAN_ONLY_BE_JSON);
             } else {
                 additionalData = true;
                 loadTestData(fileRef);
@@ -135,7 +135,7 @@ public class TestDataContainer {
 
     public Object getParameter(String key, int parameterRow) {
         if (key.isEmpty()) {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Key of parameter should not be empty!");
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Key of parameter should not be empty!");
         }
         if (key.startsWith("global.")) {
             return getTestDataInJSON(key.replace("global.", ""), globalTestData);
@@ -174,7 +174,7 @@ public class TestDataContainer {
                     if (current instanceof ObjectNode) {
                         current = current.get(layers[index]);
                     } else {
-                        throw new ApollonBaseException(ApollonErrorKeys.TEST_DATA_PARAMETER_NOT_FOUND, key);
+                        throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_PARAMETER_NOT_FOUND, key);
                     }
                 }
                 if (current instanceof ObjectNode) {
@@ -182,13 +182,13 @@ public class TestDataContainer {
                 } else if (current instanceof ArrayNode && key.endsWith(".values")) {
                     return current;
                 } else {
-                    throw new ApollonBaseException(ApollonErrorKeys.TEST_DATA_PARAMETER_NOT_FOUND, key);
+                    throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_PARAMETER_NOT_FOUND, key);
                 }
             }
             if (PropertyResolver.isSimpleStringParameterAllowed()) {
                 return key;
             } else {
-                throw new ApollonBaseException(ApollonErrorKeys.KEY_NOT_FOUND_IN_TEST_DATA_SOURCE, key);
+                throw new ExceptionBase(ExceptionErrorKeys.KEY_NOT_FOUND_IN_TEST_DATA_SOURCE, key);
             }
         }
     }
@@ -212,7 +212,7 @@ public class TestDataContainer {
             info("Load test data file: " + filePath);
             loadWithFile(filePath);
         } else {
-            throw new ApollonBaseException(ApollonErrorKeys.TEST_DATA_REFERENCE_NO_MATCH, testDataRef);
+            throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_REFERENCE_NO_MATCH, testDataRef);
         }
     }
 
@@ -228,7 +228,7 @@ public class TestDataContainer {
                 case SQL -> loadDBContent(testDataRef);
                 case JSON -> loadJSONContent(testDataRef);
                 default ->
-                        throw new ApollonBaseException(ApollonErrorKeys.TEST_DATA_REFERENCE_FORMAT_UNSUPPORTED, testDataRef);
+                        throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_REFERENCE_FORMAT_UNSUPPORTED, testDataRef);
             }
         }
     }
@@ -239,7 +239,7 @@ public class TestDataContainer {
         try {
             globalTestData = new ObjectMapper().readTree(content);
         } catch (JsonProcessingException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, path);
+            throw new ExceptionBase(ExceptionErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, path);
         }
     }
 
@@ -279,7 +279,7 @@ public class TestDataContainer {
             if (commentBlockClosed) {
                 Object[] values = line.split(";");
                 if (values.length != columns.length) {
-                    throw new ApollonBaseException(ApollonErrorKeys.COLUMN_AND_CSV_HEADER_ARE_NOT_IDENTICAL, rowNumber);
+                    throw new ExceptionBase(ExceptionErrorKeys.COLUMN_AND_CSV_HEADER_ARE_NOT_IDENTICAL, rowNumber);
                 }
                 for (int i = 0; i < columns.length; i++) {
                     rowContent.put(columns[i], values[i]);
@@ -321,7 +321,7 @@ public class TestDataContainer {
                 jsonData = data;
             }
         } catch (JsonProcessingException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, testDataRef);
+            throw new ExceptionBase(ExceptionErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, testDataRef);
         }
     }
 }

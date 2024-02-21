@@ -1,4 +1,4 @@
-package ch.qa.testautomation.tas.rest.allure.connection;
+package ch.qa.testautomation.tas.rest.allure;
 
 import ch.qa.testautomation.tas.common.IOUtils.FileOperation;
 import com.fasterxml.jackson.databind.ObjectMapper;

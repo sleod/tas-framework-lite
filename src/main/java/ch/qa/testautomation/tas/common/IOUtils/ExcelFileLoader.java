@@ -1,7 +1,7 @@
 package ch.qa.testautomation.tas.common.IOUtils;
 
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -35,7 +35,7 @@ public class ExcelFileLoader {
                 workbook = new HSSFWorkbook(excelFile);
             }
         } catch (IOException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_GENERAL, ex, "Exception while load Excel file: " + path);
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_GENERAL, ex, "Exception while load Excel file: " + path);
         }
         return workbook;
     }
@@ -49,7 +49,7 @@ public class ExcelFileLoader {
      */
     public static List<Map<String, Object>> readExcelTable(Workbook workbook, String sheetName, int startColumn, int startRow) {
         if (workbook == null) {
-            throw new ApollonBaseException(ApollonErrorKeys.NULL_EXCEPTION, "Excel Sheet");
+            throw new ExceptionBase(ExceptionErrorKeys.NULL_EXCEPTION, "Excel Sheet");
         }
         List<Map<String, Object>> table = new LinkedList<>();
         Sheet dataTypeSheet = workbook.getSheet(sheetName);
@@ -104,7 +104,7 @@ public class ExcelFileLoader {
             }
             if (currentRow.getRowNum() == 0) {//first line for column name
                 if (value == null) {
-                    throw new ApollonBaseException(ApollonErrorKeys.NULL_EXCEPTION, "Column Name");
+                    throw new ExceptionBase(ExceptionErrorKeys.NULL_EXCEPTION, "Column Name");
                 }
                 keySet.add(String.valueOf(value));
             } else {

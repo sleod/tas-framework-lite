@@ -2,8 +2,8 @@ package ch.qa.testautomation.tas.core.component;
 
 import ch.qa.testautomation.tas.common.enumerations.TestStatus;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import org.junit.jupiter.api.Assertions;
 import org.opentest4j.TestAbortedException;
 
@@ -96,7 +96,7 @@ public class TestStepMonitor {
             try {
                 getCurrentTest().afterTest();
             } catch (Throwable ex) {
-                error(new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, ex, "Post Process of Test Case can not be executed!"));
+                error(new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, ex, "Post Process of Test Case can not be executed!"));
             }
         }
     }

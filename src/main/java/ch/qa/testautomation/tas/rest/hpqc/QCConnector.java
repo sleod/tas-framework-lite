@@ -1,4 +1,4 @@
-package ch.qa.testautomation.tas.rest.hpqc.connection;
+package ch.qa.testautomation.tas.rest.hpqc;
 
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.intefaces.RestDriver;

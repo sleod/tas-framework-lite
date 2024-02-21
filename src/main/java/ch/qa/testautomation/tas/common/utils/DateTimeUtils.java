@@ -1,7 +1,7 @@
 package ch.qa.testautomation.tas.common.utils;
 
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -40,7 +40,7 @@ public class DateTimeUtils {
         try {
             date = simpleDateFormat.parse(dateString);
         } catch (ParseException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.EXCEPTION_BY_PARSING, ex, "String to Date");
+            throw new ExceptionBase(ExceptionErrorKeys.EXCEPTION_BY_PARSING, ex, "String to Date");
         }
         return date;
     }
@@ -58,7 +58,7 @@ public class DateTimeUtils {
         try {
             date = simpleDateFormat.parse(dateString).toInstant();
         } catch (ParseException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.EXCEPTION_BY_PARSING, ex, "String to Date");
+            throw new ExceptionBase(ExceptionErrorKeys.EXCEPTION_BY_PARSING, ex, "String to Date");
         }
         return date;
     }

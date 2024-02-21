@@ -1,8 +1,8 @@
-package ch.qa.testautomation.tas.rest.allure.connection;
+package ch.qa.testautomation.tas.rest.allure;
 
 import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import ch.qa.testautomation.tas.rest.base.SimpleRestDriver;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.ws.rs.core.Response;
@@ -39,7 +39,7 @@ public class AllureRestClient {
     public AllureRestClient(Map<String, String> config) {
         restDriver = new SimpleRestDriver();
         if (config.get(PROJECT_ID_PARAM).isEmpty()) {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, PROJECT_ID_IS_NOT_DEFINED);
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, PROJECT_ID_IS_NOT_DEFINED);
         }
         this.allureServiceConfig = config;
         this.transferFileBuilder = new TransferFileBuilder();

@@ -2,8 +2,8 @@ package ch.qa.testautomation.tas.common.logging;
 
 import ch.qa.testautomation.tas.core.component.TestStepMonitor;
 import ch.qa.testautomation.tas.core.controller.UserRobot;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import ch.qa.testautomation.tas.intefaces.ScreenshotTaker;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
@@ -32,7 +32,7 @@ public class ScreenCapture {
         try {
             return new Screenshot(UserRobot.captureMainFullScreen(), testCaseName, stepName, "");
         } catch (AWTException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_SCREEN_CAPTURE, ex);
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_SCREEN_CAPTURE, ex);
         }
     }
 
@@ -63,7 +63,7 @@ public class ScreenCapture {
         try {
             return ImageIO.read(shooter.getScreenshotAs(OutputType.FILE));
         } catch (IOException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_SCREEN_CAPTURE, ex);
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_SCREEN_CAPTURE, ex);
         }
 
     }
@@ -84,8 +84,8 @@ public class ScreenCapture {
             byte[] decodedBytes = Base64.getMimeDecoder().decode(imageData);
             try {
                 screenshot = new Screenshot(ImageIO.read(new ByteArrayInputStream(decodedBytes)), testCaseName, stepName, "");
-            } catch (ApollonBaseException | IOException ex) {
-                throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_SCREEN_CAPTURE, ex);
+            } catch (ExceptionBase | IOException ex) {
+                throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_SCREEN_CAPTURE, ex);
             }
         }
         return screenshot;

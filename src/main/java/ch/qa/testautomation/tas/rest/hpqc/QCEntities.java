@@ -1,10 +1,10 @@
-package ch.qa.testautomation.tas.rest.hpqc.connection;
+package ch.qa.testautomation.tas.rest.hpqc;
 
 import ch.qa.testautomation.tas.common.logging.SystemLogger;
 import ch.qa.testautomation.tas.common.utils.StringTextUtils;
 import ch.qa.testautomation.tas.common.utils.XMLUtils;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -100,7 +100,7 @@ public class QCEntities {
             fields.forEach(field -> requiredFields.put(field.getAttributeValue(QCConstants.TAG_NAME), ""));
             return requiredFields;
         } catch (IOException | JDOMException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Exception while getting XML Schema from QC!", ex);
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Exception while getting XML Schema from QC!", ex);
         }
     }
 

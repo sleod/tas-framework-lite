@@ -1,8 +1,8 @@
-package ch.qa.testautomation.tas.rest.hpqc.connection;
+package ch.qa.testautomation.tas.rest.hpqc;
 
 import ch.qa.testautomation.tas.common.utils.DateTimeUtils;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 
 import java.util.LinkedList;
 import java.util.Locale;
@@ -31,7 +31,7 @@ public class QCEntity implements Comparable<QCEntity> {
         entityFields = QCEntities.getRequiredFields(xmlSchema);
         if (!verifyAttributs(entityFields, fields)) {
             entityFields.forEach((kk, vv) -> info(kk + " -> " + vv));
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "QCEntity unsatisfied! Required Value of Field is missing! Check up the fields Definition for the Entity!");
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "QCEntity unsatisfied! Required Value of Field is missing! Check up the fields Definition for the Entity!");
         }
     }
 

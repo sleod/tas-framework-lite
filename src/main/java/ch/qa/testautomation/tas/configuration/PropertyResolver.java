@@ -3,8 +3,8 @@ package ch.qa.testautomation.tas.configuration;
 import ch.qa.testautomation.tas.common.IOUtils.FileLocator;
 import ch.qa.testautomation.tas.common.enumerations.DownloadStrategy;
 import ch.qa.testautomation.tas.common.enumerations.PropertyKey;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.logging.log4j.Level;
 
@@ -168,8 +168,7 @@ public class PropertyResolver {
     }
 
     public static boolean isWindows() {
-        return getProperty("os.name").toLowerCase()
-                .contains("windows");
+        return getProperty("os.name").toLowerCase().contains("windows");
     }
 
     public static String getEdgeDriverFileName() {
@@ -276,7 +275,7 @@ public class PropertyResolver {
     }
 
     public static String getDownloadStrategy() {
-        return getProperty(DRIVER_DOWNLOAD_STRATEGY.key(), DownloadStrategy.AUTO.strategy());
+        return getProperty(DRIVER_DOWNLOAD_STRATEGY.key(), DownloadStrategy.AUTO.name());
     }
 
     public static String getLogLevelApollon() {
@@ -438,6 +437,10 @@ public class PropertyResolver {
         PropertyResolver.setProperty(EXECUTION_REMOTE_DEVICE_ENABLED.key(), String.valueOf(value));
     }
 
+    public static String getStartUrl() {
+        return getProperty(RUN_START_URL.key());
+    }
+
     public static String getJiraUser() {
         return getProperty(JIRA_USER.key(), "");
     }
@@ -561,7 +564,7 @@ public class PropertyResolver {
         }
 
         if (!isOK) {
-            throw new ApollonBaseException(ApollonErrorKeys.PROPERTIES_HAS_CONFLICT);
+            throw new ExceptionBase(ExceptionErrorKeys.PROPERTIES_HAS_CONFLICT);
         }
     }
 

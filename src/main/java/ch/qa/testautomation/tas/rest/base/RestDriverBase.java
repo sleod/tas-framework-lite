@@ -1,7 +1,7 @@
 package ch.qa.testautomation.tas.rest.base;
 
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
@@ -56,6 +56,19 @@ public class RestDriverBase extends SimpleRestDriver {
         this.host = host;
         setBearerToken(patToken);
     }
+
+    /**
+     * Construction with proxy setting
+     *
+     * @param proxyURL proxy url
+     * @param port     port
+     * @param user     proxy user
+     * @param pass     proxy pass
+     */
+    public RestDriverBase(String proxyURL, int port, String user, String pass) {
+        super(proxyURL, port, user, pass);
+    }
+
 
     /**
      * Construction with rest config defined host and Authorization parameters
@@ -185,7 +198,7 @@ public class RestDriverBase extends SimpleRestDriver {
 
     public void secureParameter(String param, String paramName) {
         if (!isValid(param)) {
-            throw new ApollonBaseException(ApollonErrorKeys.NULL_EXCEPTION_EMPTY, paramName);
+            throw new ExceptionBase(ExceptionErrorKeys.NULL_EXCEPTION_EMPTY, paramName);
         }
     }
 
@@ -195,7 +208,7 @@ public class RestDriverBase extends SimpleRestDriver {
 
     public String getQueryUrl(String path) {
         if (!isValid(host)) {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Host for REST Call is invalid! -> " + host);
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Host for REST Call is invalid! -> " + host);
         } else if (path.startsWith("http")) {
             return path;
         }

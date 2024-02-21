@@ -1,11 +1,11 @@
 package ch.qa.testautomation.tas.common.IOUtils;
 
-import ch.qa.testautomation.tas.core.assertion.Assertion;
 import ch.qa.testautomation.tas.core.assertion.Matchers;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matcher;
+import org.junit.jupiter.api.Assertions;
 
 import java.io.*;
 import java.net.URL;
@@ -22,7 +22,7 @@ import static java.util.Arrays.asList;
 
 public class FileOperation {
 
-    private static final List<String> extensions = asList("txt", "csv", "log", "out", "html", "json", "xml", "pdf", "png", "jpg", "jpeg", "mp4", "zip");
+    private static final List<String> extensions = asList("txt", "csv", "log", "out", "html", "json", "xml", "pdf", "png", "jpg", "jpeg", "mp4");
     private static final String UUID_REGEX = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-5][0-9a-fA-F]{3}-[089ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}";
 
     public static boolean isAllowedFileExtension(String fileName) {
@@ -44,14 +44,11 @@ public class FileOperation {
                 case "xml" -> mediaType = "application/xml";
                 case "json" -> mediaType = "application/json";
                 case "mp4" -> mediaType = "video/mp4";
-                case "zip" -> mediaType = "application/zip";
-                case "html" -> mediaType = "text/html";
-                case "csv" -> mediaType = "text/csv";
                 default -> mediaType = "text/plain";
             }
             return mediaType;
         } else {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "File is not allowed in Framework: " + fileName);
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "File is not allowed in Framework: " + fileName);
         }
     }
 
@@ -71,25 +68,25 @@ public class FileOperation {
 
     /**
      * @param filePath is absolute path from file to read
-     * @return String of file content in list in utf-8
+     * @return list of lined string of file content in list in utf-8
      */
     public static List<String> readFileToStringList(String filePath) {
-        List<String> list;
+        List<String> list = Collections.emptyList();
         if (isFileExists(filePath)) {
             try {
                 list = Files.readAllLines(getFile(filePath), StandardCharsets.UTF_8);
             } catch (IOException ex) {
-                throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_READING, ex, filePath);
+                throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_READING, ex, filePath);
             }
         } else {
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_READING, "File to read does not exist! -> " + filePath);
+            debug("File to read does not exist! -> " + filePath);
         }
         return list;
     }
 
     /**
      * @param inputStream is input stream of file
-     * @return String of file content with break
+     * @return string of file content with break
      */
     public static String readFileToLinedString(InputStream inputStream) {
         StringBuilder sb = new StringBuilder();
@@ -101,10 +98,10 @@ public class FileOperation {
                     sb.append(System.lineSeparator());
                 }
             } catch (IOException ex) {
-                throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_READING, ex, "InputStream");
+                throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_READING, ex, "InputStream");
             }
         } else {
-            throw new ApollonBaseException(ApollonErrorKeys.NULL_EXCEPTION, "InputStream");
+            throw new ExceptionBase(ExceptionErrorKeys.NULL_EXCEPTION, "InputStream");
         }
         return sb.toString();
     }
@@ -219,10 +216,10 @@ public class FileOperation {
             if (retrieveFileFromResourcesAsStream(srcFile) != null) {
                 Files.copy(retrieveFileFromResourcesAsStream(srcFile), absoluteTargetFile.toPath());
             } else {
-                throw new ApollonBaseException(ApollonErrorKeys.PATH_NOT_FOUND, srcFile);
+                throw new ExceptionBase(ExceptionErrorKeys.OBJECT_NOT_FOUND, srcFile);
             }
         } catch (IOException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_READING, ex, srcFile);
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_READING, ex, srcFile);
         }
         return absoluteTargetFile;
     }
@@ -235,7 +232,7 @@ public class FileOperation {
      */
     public static InputStream retrieveFileFromResourcesAsStream(String relativePath) {
         if (relativePath == null || relativePath.isEmpty()) {
-            throw new ApollonBaseException(ApollonErrorKeys.NULL_EXCEPTION_EMPTY, "relativePath");
+            throw new ExceptionBase(ExceptionErrorKeys.NULL_EXCEPTION_EMPTY, "relativePath");
         } else {
             return FileOperation.class.getClassLoader().getResourceAsStream(relativePath);
         }
@@ -267,36 +264,13 @@ public class FileOperation {
     }
 
     /**
-     * stream media base64 encoded content to file
-     *
-     * @param media  to be written
-     * @param target to local file
-     */
-    public static void streamMediaStringToFile(String media, File target) {
-        try {
-            FileOutputStream stream = new FileOutputStream(target);
-            stream.write(Base64.getMimeDecoder().decode(media));
-            stream.close();
-        } catch (Exception ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_WRITING, ex, target);
-        }
-    }
-
-    /**
      * write byte array of content to file in utf-8
      *
      * @param bytes  to be written
      * @param target to local file
      */
     public static void writeBytesToFile(byte[] bytes, File target) {
-        try {
-            if (!target.getParentFile().exists()) {
-                Assertion.assertTrue(target.getParentFile().mkdirs(), "Failed on make Folder for File: " + target.getAbsolutePath());
-            }
-            Files.write(target.toPath(), bytes);
-        } catch (IOException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_WRITING, ex, target);
-        }
+        writeStringToFile(new String(bytes), target);
     }
 
     /**
@@ -308,11 +282,11 @@ public class FileOperation {
     public static void writeStringToFile(String text, File target) {
         try {
             if (!target.getParentFile().exists()) {
-                Assertion.assertTrue(target.getParentFile().mkdirs(), "Failed on make Folder for File: " + target.getAbsolutePath());
+                Assertions.assertTrue(target.getParentFile().mkdirs(), "Failed on make Folder for File: " + target.getAbsolutePath());
             }
             Files.writeString(target.toPath(), text, StandardCharsets.UTF_8);
         } catch (IOException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_WRITING, ex, target);
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_WRITING, ex, target);
         }
     }
 
@@ -326,7 +300,7 @@ public class FileOperation {
         if (isValid(path)) {
             writeStringToFile(text, new File(path));
         } else {
-            throw new ApollonBaseException(ApollonErrorKeys.NULL_EXCEPTION, "path");
+            throw new ExceptionBase(ExceptionErrorKeys.NULL_EXCEPTION, "path");
         }
     }
 
@@ -341,7 +315,7 @@ public class FileOperation {
         try {
             return Files.readAllBytes(file.toPath());
         } catch (IOException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_WRITING, ex, file.getPath());
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_WRITING, ex, file.getPath());
         }
     }
 
@@ -356,7 +330,7 @@ public class FileOperation {
             try {
                 Files.deleteIfExists(new File(path).toPath());
             } catch (IOException ex) {
-                throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_GENERAL, ex, "removing file");
+                throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_GENERAL, ex, "removing file");
             }
         });
     }
@@ -372,7 +346,7 @@ public class FileOperation {
         try {
             FileUtils.deleteDirectory(file);
         } catch (IOException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_GENERAL, ex, "removing folder " + pathDir);
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_GENERAL, ex, "removing folder " + pathDir);
         }
     }
 
@@ -406,7 +380,12 @@ public class FileOperation {
      * @return encoded string
      */
     public static String encodeFileToBase64(File file) {
-        return Base64.getEncoder().encodeToString(readFileToByteArray(file));
+        try {
+            byte[] fileContent = Files.readAllBytes(file.toPath());
+            return Base64.getEncoder().encodeToString(fileContent);
+        } catch (IOException ex) {
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_GENERAL, ex, "encoding file " + file.getName());
+        }
     }
 
     /**
@@ -468,10 +447,9 @@ public class FileOperation {
             if (!tarFile.toFile().getParentFile().exists()) {
                 tarFile.toFile().mkdirs();
             }
-            debug("Copy file: " + srcFile + " -> " + tarFile);
             Files.copy(srcFile, tarFile, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_GENERAL, ex, "Copy file: " + srcFile + " to file: " + tarFile, ex);
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_GENERAL, ex, "moving file: " + srcFile + " to file: " + tarFile, ex);
         }
     }
 

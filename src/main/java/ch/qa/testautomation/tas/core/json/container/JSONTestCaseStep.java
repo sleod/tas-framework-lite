@@ -67,7 +67,7 @@ public class JSONTestCaseStep extends JSONContainer {
         // self check
         if (this == target) return true;
         // null check
-        if (target == null) return false;
+        if (Objects.isNull(target)) return false;
         // type check and cast
         if (getClass() != target.getClass()) return false;
         JSONTestCaseStep other = (JSONTestCaseStep) target;
@@ -83,4 +83,5 @@ public class JSONTestCaseStep extends JSONContainer {
     public int hashCode() {
         return Objects.hash(name, testObject, using, comment);
     }
+
 }

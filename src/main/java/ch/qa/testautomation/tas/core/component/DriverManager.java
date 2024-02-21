@@ -6,8 +6,8 @@ import ch.qa.testautomation.tas.core.controller.ExternAppController;
 import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.tas.core.media.ImageHandler;
 import ch.qa.testautomation.tas.core.service.RemoteWebDriverConfigService;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import ch.qa.testautomation.tas.rest.RestDriverProvider;
 import ch.qa.testautomation.tas.rest.base.RestDriverBase;
 import ch.qa.testautomation.tas.web.ChromeDriverProvider;
@@ -56,7 +56,7 @@ public class DriverManager {
                 webDriverProvider = installChromeDriver(null);
             }
         } else {
-            throw new ApollonBaseException(ApollonErrorKeys.BROWSER_NOT_SUPPORTED, browserName);
+            throw new ExceptionBase(ExceptionErrorKeys.BROWSER_NOT_SUPPORTED, browserName);
         }
     }
 
@@ -167,7 +167,7 @@ public class DriverManager {
         if (remoteWebDriverProvider != null) {
             return remoteWebDriverProvider.getDriver();
         }
-        throw new ApollonBaseException(ApollonErrorKeys.NO_WEB_DRIVER_INITIALIZED);
+        throw new ExceptionBase(ExceptionErrorKeys.NO_WEB_DRIVER_INITIALIZED);
     }
 
     /**

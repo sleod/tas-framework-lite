@@ -1,7 +1,7 @@
 package ch.qa.testautomation.tas.rest.base;
 
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.ws.rs.core.Response;
@@ -41,10 +41,10 @@ public class RestClientBase {
                 response.close();
                 return getObjectMapper().readTree(body);
             } catch (JsonProcessingException ex) {
-                throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, ex, "Exception while read tree of Json!");
+                throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, ex, "Exception while read tree of Json!");
             }
         } else {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, errorMessage);
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, errorMessage);
         }
     }
 
@@ -61,11 +61,11 @@ public class RestClientBase {
                 Files.copy(response.readEntity(InputStream.class), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 info("Storage File Successful: " + targetFile.getName());
             } catch (IOException ex) {
-                throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_WRITING, ex, targetFile.getPath());
+                throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_WRITING, ex, targetFile.getPath());
             }
         } else {
             debug(response.readEntity(String.class));
-            throw new ApollonBaseException(ApollonErrorKeys.FAIL_TO_DOWNLOAD_FILE, targetFile.getName(), response.getStatus());
+            throw new ExceptionBase(ExceptionErrorKeys.FAIL_TO_DOWNLOAD_FILE, targetFile.getName(), response.getStatus());
         }
     }
 
@@ -75,7 +75,7 @@ public class RestClientBase {
 
     public static void checkResponse(Response response, String errorMessage) {
         if (!isSuccessful(response)) {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, errorMessage + response.getStatus() + System.lineSeparator() + response.readEntity(String.class));
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, errorMessage + response.getStatus() + System.lineSeparator() + response.readEntity(String.class));
         } else {
             debug("Rest Quer Successful: " + System.lineSeparator() + response);
         }

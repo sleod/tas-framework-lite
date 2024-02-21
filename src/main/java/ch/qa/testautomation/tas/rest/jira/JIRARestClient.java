@@ -1,4 +1,4 @@
-package ch.qa.testautomation.tas.rest.jira.connection;
+package ch.qa.testautomation.tas.rest.jira;
 
 import ch.qa.testautomation.tas.common.IOUtils.FileOperation;
 import ch.qa.testautomation.tas.common.utils.DateTimeUtils;
@@ -9,8 +9,8 @@ import ch.qa.testautomation.tas.core.component.DriverManager;
 import ch.qa.testautomation.tas.core.component.TestRunResult;
 import ch.qa.testautomation.tas.core.json.container.JSONRunnerConfig;
 import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import ch.qa.testautomation.tas.rest.base.QUERY_OPTION;
 import ch.qa.testautomation.tas.rest.base.RestClientBase;
 import ch.qa.testautomation.tas.rest.base.RestDriverBase;
@@ -110,7 +110,7 @@ public class JIRARestClient extends RestClientBase {
             return getResponseNode(getRestDriver().post(path, payload),
                     "Fail on create issue: " + path + "\nwith payload: " + payload);
         } else {
-            throw new ApollonBaseException(ApollonErrorKeys.JIRA_ISSUE_SUMMARY_EXISTS, summary);
+            throw new ExceptionBase(ExceptionErrorKeys.JIRA_ISSUE_SUMMARY_EXISTS, summary);
         }
     }
 
@@ -350,7 +350,7 @@ public class JIRARestClient extends RestClientBase {
         if (run != null) {
             updateRunStatus(run.get("id").asText(), testRunResult);
         } else {
-            throw new ApollonBaseException(ApollonErrorKeys.TEST_RUN_OR_TEST_RUN_RESULT_IS_NULL);
+            throw new ExceptionBase(ExceptionErrorKeys.TEST_RUN_OR_TEST_RUN_RESULT_IS_NULL);
         }
     }
 

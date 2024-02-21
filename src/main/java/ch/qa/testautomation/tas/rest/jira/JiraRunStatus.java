@@ -1,4 +1,4 @@
-package ch.qa.testautomation.tas.rest.jira.connection;
+package ch.qa.testautomation.tas.rest.jira;
 
 public enum JiraRunStatus {
     FAIL(-1, "FAIL"), PASS(1, "PASS"), TODO(0, "TODO"), ABORTED(4, "ABORTED"),

@@ -1,8 +1,9 @@
 {
   "platform": "linux64", //mac-arm64, mac-x64, win32, win64, linux64
-  "installChrome": false,
-  "location": "chrome",
+  "installBrowser": true,
   "browser": "chrome",
+  "version": "",
   "downloadLink": "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/",
+  "lastKnownGoodVersions": "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json",
   "sharedFileLink": ""
 }

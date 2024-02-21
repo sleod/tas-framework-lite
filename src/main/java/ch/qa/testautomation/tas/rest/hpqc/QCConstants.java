@@ -1,4 +1,4 @@
-package ch.qa.testautomation.tas.rest.hpqc.connection;
+package ch.qa.testautomation.tas.rest.hpqc;
 
 
 public final class QCConstants {

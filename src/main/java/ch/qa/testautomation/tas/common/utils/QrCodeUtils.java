@@ -1,7 +1,7 @@
 package ch.qa.testautomation.tas.common.utils;
 
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.MultiFormatReader;
 import com.google.zxing.NotFoundException;
@@ -33,7 +33,7 @@ public class QrCodeUtils {
                     (ImageIO.read(new FileInputStream(filePath)))));
             return new MultiFormatReader().decode(binaryBitmap).getText();
         } catch (NotFoundException | IOException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_GENERAL, ex, "reading QR Code with image " + filePath);
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_GENERAL, ex, "reading QR Code with image " + filePath);
         }
     }
 
@@ -57,7 +57,7 @@ public class QrCodeUtils {
             try {
                 imageOutFile.close();
             } catch (IOException ex) {
-                throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_GENERAL, ex, "writing file: " + fileOutputPath);
+                throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_GENERAL, ex, "writing file: " + fileOutputPath);
             }
         }
     }

@@ -1,7 +1,7 @@
 package ch.qa.testautomation.tas.common.IOUtils;
 
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -39,7 +39,7 @@ public class FileLocator {
      * @return A List of paths found
      */
     public static List<String> findPaths(Path searchIn, List<String> includes, List<String> excludes, String prefixWith) {
-        if(prefixWith.endsWith("/")){
+        if (prefixWith.endsWith("/")) {
             prefixWith = chop(prefixWith);
         }
         return normalise(prefix(prefixWith, sort(scanDirectory(searchIn, includes, excludes))));
@@ -59,7 +59,7 @@ public class FileLocator {
         try {
             paths = Files.find(Paths.get(sDir), maxDeep, (p, bfa) -> bfa.isRegularFile()).collect(Collectors.toList());
         } catch (IOException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_READING, ex, sDir);
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_READING, ex, sDir);
         }
         return paths;
     }
@@ -78,7 +78,7 @@ public class FileLocator {
             paths = Files.find(Paths.get(sDir), maxDeep, (p, bfa) -> bfa.isRegularFile() && p.getFileName().toString().matches(".*" + name + ".*"))
                     .collect(Collectors.toList());
         } catch (IOException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_READING, ex, sDir + "/" + name);
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_READING, ex, sDir + "/" + name);
         }
         if (paths.isEmpty()) {
             debug("File with name '" + name + "' was not found in folder " + sDir);
@@ -99,10 +99,10 @@ public class FileLocator {
         try {
             paths = Files.find(Paths.get(sDir), maxDeep, (p, bfa) -> bfa.isRegularFile() && p.getFileName().toString().matches(name)).findFirst();
         } catch (IOException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_READING, ex, sDir + "/" + name);
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_READING, ex, sDir + "/" + name);
         }
         if (paths.isEmpty()) {
-            throw new ApollonBaseException(ApollonErrorKeys.PATH_NOT_FOUND, sDir + "/" + name);
+            throw new ExceptionBase(ExceptionErrorKeys.OBJECT_NOT_FOUND, sDir + "/" + name);
         }
         return paths.get();
     }
@@ -147,7 +147,7 @@ public class FileLocator {
      */
     public static Path findResource(String relativePath) {
         if (!isResourceFileExists(relativePath)) {
-            throw new ApollonBaseException(ApollonErrorKeys.PATH_NOT_FOUND, relativePath);
+            throw new ExceptionBase(ExceptionErrorKeys.OBJECT_NOT_FOUND, relativePath);
         } else {
             String location = Objects.requireNonNull(FileLocator.class.getClassLoader().getResource(relativePath)).getPath();
             return new File(location).toPath();

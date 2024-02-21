@@ -4,8 +4,8 @@ import ch.qa.testautomation.tas.common.IOUtils.FileLocator;
 import ch.qa.testautomation.tas.common.IOUtils.FileOperation;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.json.container.*;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -189,7 +189,7 @@ public class JSONContainerFactory {
                 String serialized = getObjectMapper().writeValueAsString(result);
                 FileOperation.writeStringToFile(serialized, path);
             } catch (IOException ex) {
-                throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_WRITING, ex, path);
+                throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_WRITING, ex, path);
             }
         });
         return resultFilePaths;
@@ -201,7 +201,7 @@ public class JSONContainerFactory {
         try {
             node = getObjectMapper().readTree(content);
         } catch (JsonProcessingException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, path);
+            throw new ExceptionBase(ExceptionErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, path);
         }
         return node;
     }
@@ -294,7 +294,7 @@ public class JSONContainerFactory {
         try {
             fileData = getObjectMapper().readTree(content);
         } catch (JsonProcessingException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, filePath);
+            throw new ExceptionBase(ExceptionErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, filePath);
         }
         return fileData;
     }
@@ -327,7 +327,7 @@ public class JSONContainerFactory {
         try {
             return getObjectMapper().readValue(jsonString, myClass);
         } catch (JsonProcessingException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, myClass.getSimpleName());
+            throw new ExceptionBase(ExceptionErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, myClass.getSimpleName());
         }
     }
 

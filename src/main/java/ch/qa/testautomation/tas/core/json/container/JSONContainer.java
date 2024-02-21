@@ -1,6 +1,6 @@
 package ch.qa.testautomation.tas.core.json.container;
 
-import ch.qa.testautomation.tas.core.assertion.Assertion;
+import org.junit.jupiter.api.Assertions;
 
 import java.util.Arrays;
 
@@ -12,7 +12,7 @@ public abstract class JSONContainer {
             try {
                 stringBuilder.append(method.getName().substring(3)).append(": ").append(method.invoke(this)).append("\n");
             } catch (Throwable ex) {
-                Assertion.fail("Print DTO Object failed!\n" + ex.getMessage());
+                Assertions.fail("Print DTO Object failed!\n" + ex.getMessage());
             }
         });
         return stringBuilder.toString();

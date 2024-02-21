@@ -5,12 +5,17 @@ import ch.qa.testautomation.tas.intefaces.RestDriver;
 import jakarta.ws.rs.client.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.HttpUrlConnectorProvider;
 
+import java.net.Proxy;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.*;
+import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
 
 /**
  * general rest driver with basic authentication
@@ -36,6 +41,16 @@ public class SimpleRestDriver implements RestDriver {
     public SimpleRestDriver(MediaType mediaType) {
         client = ClientBuilder.newClient();
         this.mediaType = mediaType;
+    }
+
+    public SimpleRestDriver(String proxyURL, int port, String user, String pass) {
+        HttpUrlConnectorProvider connectorProvider = new HttpUrlConnectorProvider()
+                .connectionFactory(new ProxyConnectionFactory(Proxy.Type.HTTP, proxyURL, port));
+        ClientConfig config = new ClientConfig().connectorProvider(connectorProvider);
+        if(isValid(user)&&isValid(pass)){
+            config.property(ClientProperties.PROXY_USERNAME, user).property(ClientProperties.PROXY_PASSWORD, pass);
+        }
+        client = ClientBuilder.newClient(config);
     }
 
     public void setBasicAuth(String user, String password) {

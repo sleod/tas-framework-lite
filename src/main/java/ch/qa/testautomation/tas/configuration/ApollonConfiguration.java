@@ -90,17 +90,6 @@ public class ApollonConfiguration {
     }
 
     /**
-     * ***ONLY for TFS Server relevant***
-     * set external driver resource project, where driver can be downloaded
-     *
-     * @param value location like default: "ap.testtools"
-     */
-    public ApollonConfiguration setResourceTFSProject(String value) {
-        PropertyResolver.setProperty(RESOURCE_PROJECT.key(), value);
-        return this;
-    }
-
-    /**
      * set screenshot format
      *
      * @param value like png jpeg
@@ -146,7 +135,7 @@ public class ApollonConfiguration {
      * @param driverDownloadStrategy {@link DownloadStrategy}
      */
     public ApollonConfiguration setDriverDownloadStrategy(DownloadStrategy driverDownloadStrategy) {
-        PropertyResolver.setProperty(DRIVER_DOWNLOAD_STRATEGY.key(), driverDownloadStrategy.strategy());
+        PropertyResolver.setProperty(DRIVER_DOWNLOAD_STRATEGY.key(), driverDownloadStrategy.name());
         return this;
     }
 
@@ -248,18 +237,6 @@ public class ApollonConfiguration {
      */
     public ApollonConfiguration setLogLevelApollon(String levelName) {
         return setLogLevelApollon(Level.getLevel(levelName));
-    }
-
-
-    /**
-     * toggle if synchronize test result back to TFS,
-     * if true, tfs config will be required
-     *
-     * @param value boolean, default false
-     */
-    public ApollonConfiguration setTFSSyncEnabled(boolean value) {
-        PropertyResolver.setProperty(RUN_TFS_SYNC.key(), String.valueOf(value));
-        return this;
     }
 
     /**
@@ -427,24 +404,12 @@ public class ApollonConfiguration {
     }
 
     /**
-     * set config file for remote web test execution on server
-     * default is empty, Driver Service will find valid one for execution automatically
+     * set start url for run
      *
-     * @param value like: "remote_grid_chrome_105.json", "remote_emu_android_chrome_29"
+     * @param value url
      */
-    public ApollonConfiguration setRemoteWebDriverConfig(String value) {
-        PropertyResolver.setProperty(TEST_DRIVER_REMOTE_CONFIG.key(), value);
-        return this;
-    }
-
-    /**
-     * set config file for native mobile app test execution on server
-     * default is empty, Driver Service will find valid one for execution automatically
-     *
-     * @param value like: "mobile_ios_iphone_13p_15.json", "mobile_android_galaxy_s8_12.json"
-     */
-    public ApollonConfiguration setMobileAppDriverConfig(String value) {
-        PropertyResolver.setProperty(TEST_DRIVER_MOBILE_CONFIG.key(), value);
+    public ApollonConfiguration setStartUrl(String value) {
+        PropertyResolver.setProperty(RUN_START_URL.key(), value);
         return this;
     }
 
@@ -515,29 +480,6 @@ public class ApollonConfiguration {
      */
     public ApollonConfiguration setJiraExecutionConfig(String value) {
         PropertyResolver.setProperty(JIRA_EXEC_CONFIG.key(), value);
-        return this;
-    }
-
-    /**
-     * toggle if test run with remote parallel execution
-     *
-     * @param value boolean, default false
-     */
-    public ApollonConfiguration setExecutionRemoteParallelEnabled(boolean value) {
-        PropertyResolver.setProperty(EXECUTION_REMOTE_PARALLEL.key(), String.valueOf(value));
-        if (value) {
-            return setExecutionRemoteDeviceEnabled(true);
-        }
-        return this;
-    }
-
-    /**
-     * toggle if test run with remote parallel execution
-     *
-     * @param value boolean, default false
-     */
-    public ApollonConfiguration setExecutionRemoteDeviceEnabled(boolean value) {
-        PropertyResolver.setRemoteDeviceEnabled(value);
         return this;
     }
 

@@ -3,8 +3,8 @@ package ch.qa.testautomation.tas.core.component;
 import ch.qa.testautomation.tas.common.enumerations.TestStatus;
 import ch.qa.testautomation.tas.common.logging.Screenshot;
 import ch.qa.testautomation.tas.common.utils.DateTimeUtils;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -55,7 +55,7 @@ public class TestStepResult {
         if (testFailure != null) {
             return testFailure;
         } else {
-            return new TestFailure(new ApollonBaseException(ApollonErrorKeys.TEST_FAILURE_UNKNOWN));
+            return new TestFailure(new ExceptionBase(ExceptionErrorKeys.TEST_FAILURE_UNKNOWN));
         }
     }
 

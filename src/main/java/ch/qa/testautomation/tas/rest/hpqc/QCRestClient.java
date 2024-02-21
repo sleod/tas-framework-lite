@@ -1,4 +1,4 @@
-package ch.qa.testautomation.tas.rest.hpqc.connection;
+package ch.qa.testautomation.tas.rest.hpqc;
 
 import ch.qa.testautomation.tas.common.IOUtils.FileOperation;
 import ch.qa.testautomation.tas.common.logging.Screenshot;
@@ -9,8 +9,8 @@ import ch.qa.testautomation.tas.core.component.TestRunResult;
 import ch.qa.testautomation.tas.core.component.TestStepResult;
 import ch.qa.testautomation.tas.core.json.container.JSONTestCase;
 import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -105,7 +105,7 @@ public class QCRestClient {
         if (!entities.isEmpty()) {
             return entities.get(0);
         } else {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Entity in Response can not be found! ->" + entry);
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Entity in Response can not be found! ->" + entry);
         }
     }
 
@@ -158,7 +158,7 @@ public class QCRestClient {
                 designStep.setAttribute(QCConstants.PARAM_DESCRIPTION, convertTextToHTML(step[0]));
                 designStep.setAttribute(QCConstants.PARAM_EXPECTED, convertTextToHTML(step[1]));
             } else {
-                throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Unexpected foreign Design Step to update!");
+                throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Unexpected foreign Design Step to update!");
             }
         }).forEachOrdered((designStep) -> {
             Response response = updateEntityInQC(designStep);
@@ -534,7 +534,7 @@ public class QCRestClient {
         for (QCEntity runStep : runSteps) {
             List<TestStepResult> stepResults = tcrResult.getStepResults();
             if (stepResults.size() != runSteps.size()) {
-                throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Run Steps count are not equals step results count!");
+                throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Run Steps count are not equals step results count!");
             }
             int stepOrder = Integer.parseInt(runStep.getFieldValue(QCConstants.PARAM_STEP_ORDER));
             TestStepResult stepResult = stepResults.get(stepOrder - 1);
@@ -715,7 +715,7 @@ public class QCRestClient {
         if (!runs.isEmpty()) {
             return runs.get(runs.size() - 1);
         } else {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "No Runs found with Test Case ID:" + testCaseId);
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "No Runs found with Test Case ID:" + testCaseId);
         }
     }
 
@@ -724,7 +724,7 @@ public class QCRestClient {
         if (!runs.isEmpty()) {
             return runs.get(runs.size() - 1);
         } else {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "No Runs found with Test Case ID:" + instanceId);
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "No Runs found with Test Case ID:" + instanceId);
         }
     }
 
@@ -733,7 +733,7 @@ public class QCRestClient {
         if (!runs.isEmpty()) {
             return runs.get(runs.size() - 1);
         } else {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "No Run Step found with Design Step ID:" + designStepId);
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "No Run Step found with Design Step ID:" + designStepId);
         }
     }
 
@@ -826,7 +826,7 @@ public class QCRestClient {
                 return key + "[" + content + "]";
             }
         } else {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Query Parameter can not be empty!");
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Query Parameter can not be empty!");
         }
     }
 
@@ -967,7 +967,7 @@ public class QCRestClient {
             path = path.substring(keyword.length());
         }
         if (path.contains(keyword)) {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Test Plan Folder Path should not contain 'Subject' as sub folder!");
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Test Plan Folder Path should not contain 'Subject' as sub folder!");
         } else {
             return true;
         }

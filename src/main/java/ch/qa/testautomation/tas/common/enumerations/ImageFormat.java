@@ -1,7 +1,7 @@
 package ch.qa.testautomation.tas.common.enumerations;
 
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 
 /**
  * image format general, for screenshot is PNG recommended
@@ -24,7 +24,7 @@ public enum ImageFormat {
                 return PNG;
             }
         }
-        throw new ApollonBaseException(ApollonErrorKeys.ENUM_NOT_SUPPORTED,format);
+        throw new ExceptionBase(ExceptionErrorKeys.ENUM_NOT_SUPPORTED,format);
     }
 
     public String value() {

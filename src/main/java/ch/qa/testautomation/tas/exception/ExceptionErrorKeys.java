@@ -1,6 +1,6 @@
 package ch.qa.testautomation.tas.exception;
 
-public enum ApollonErrorKeys {
+public enum ExceptionErrorKeys {
 
     //Core Component
     TEST_DATA_REFERENCE_FORMAT_UNSUPPORTED("TEST_DATA_REFERENCE_FORMAT_UNSUPPORTED"),
@@ -108,7 +108,7 @@ public enum ApollonErrorKeys {
 
     private final String messageKey;
 
-    ApollonErrorKeys(String message) {
+    ExceptionErrorKeys(String message) {
         this.messageKey = message;
     }
 

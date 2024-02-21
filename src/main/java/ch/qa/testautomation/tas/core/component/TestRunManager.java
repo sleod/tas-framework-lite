@@ -10,10 +10,10 @@ import ch.qa.testautomation.tas.core.json.container.JSONRunnerConfig;
 import ch.qa.testautomation.tas.core.json.container.JSONTestCase;
 import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.tas.core.report.ReportBuilder;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import ch.qa.testautomation.tas.rest.base.QUERY_OPTION;
-import ch.qa.testautomation.tas.rest.jira.connection.JIRARestClient;
+import ch.qa.testautomation.tas.rest.jira.JIRARestClient;
 import com.beust.jcommander.Strings;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -132,13 +132,13 @@ public class TestRunManager {
                 selectedIds = null;
             }
             if (Objects.nonNull(selectedIds) && selectedIds.isEmpty()) {
-                throw new ApollonBaseException(ApollonErrorKeys.FAIL_ON_GET_TESTCASE_ID_FROM_TFS);
+                throw new ExceptionBase(ExceptionErrorKeys.FAIL_ON_GET_TESTCASE_ID_FROM_TFS);
             }
         } else {
             selectedIds = null;
         }
         if (filePaths.isEmpty()) {
-            throw new ApollonBaseException(ApollonErrorKeys.TEST_CASE_NOT_FOUND, PropertyResolver.getTestCaseLocation());
+            throw new ExceptionBase(ExceptionErrorKeys.TEST_CASE_NOT_FOUND, PropertyResolver.getTestCaseLocation());
         }
         if (!metaFilters.isEmpty()) {
             info("Filters: " + Arrays.toString(metaFilters.toArray()));
@@ -166,7 +166,7 @@ public class TestRunManager {
             }
         }
         if (testCaseObjects.isEmpty()) {
-            throw new ApollonBaseException(ApollonErrorKeys.TEST_CASE_NOT_FOUND, "With Meta Filter: " + Strings.join(",", metaFilters));
+            throw new ExceptionBase(ExceptionErrorKeys.TEST_CASE_NOT_FOUND, "With Meta Filter: " + Strings.join(",", metaFilters));
         }
         checkDuplicateNaming(testCaseObjects);
         return testCaseObjects;
@@ -176,7 +176,7 @@ public class TestRunManager {
      * Checks if multiple testcases have the same name or id.
      *
      * @param testCaseObjects list of type testCaseObject.
-     * @throws ApollonBaseException if duplicate found.
+     * @throws ExceptionBase if duplicate found.
      */
     protected static void checkDuplicateNaming(List<TestCaseObject> testCaseObjects) {
         Set<String> testCaseNames = new HashSet<>();
@@ -184,13 +184,13 @@ public class TestRunManager {
 
         for (TestCaseObject testCaseObject : testCaseObjects) {
             if (!testCaseNames.add(testCaseObject.getName())) {
-                throw new ApollonBaseException(ApollonErrorKeys.DEFINED_MULTIPLE_FILES, testCaseObject.getName());
+                throw new ExceptionBase(ExceptionErrorKeys.DEFINED_MULTIPLE_FILES, testCaseObject.getName());
             }
             //If ID is set, check if duplicate in case feedback enabled
             if ((PropertyResolver.isTFSSyncEnabled() || PropertyResolver.isJIRASyncEnabled())
                     && !testCaseObject.getTestCaseId().isEmpty() && !testCaseObject.getTestCaseId().equals("-")) {
                 if (!testCaseIds.add(testCaseObject.getTestCaseId())) {
-                    throw new ApollonBaseException(ApollonErrorKeys.DEFINED_MULTIPLE_TESTCASES, testCaseObject.getTestCaseId());
+                    throw new ExceptionBase(ExceptionErrorKeys.DEFINED_MULTIPLE_TESTCASES, testCaseObject.getTestCaseId());
                 }
             }
         }
@@ -218,26 +218,14 @@ public class TestRunManager {
         //load all driver config
         TestType type = TestType.valueOf(jsonTestCase.getType().toUpperCase());
         switch (type) {
-            case WEB_APP://local
-                if (!PropertyResolver.isExecutionRemoteParallelEnabled()) {
-                    DriverManager.setCurrentPlatform(System.getProperty("os.name"));
-                    DriverManager.setupWebDriver();
-                    ScreenCapture.setScreenTaker(DriverManager.getWebDriverProvider());
-                } else {//remote
-                    DriverManager.setupRemoteWebDriver();
-                    ScreenCapture.setScreenTaker(DriverManager.getRemoteWebDriverProvider());
-                }
-                break;
-            case REST:
-                DriverManager.setupRestDriver();
-                DriverManager.setCurrentPlatform(System.getProperty("os.name"));
-                break;
-            case APP:
-                DriverManager.setupNonDriver();
-                DriverManager.setCurrentPlatform(System.getProperty("os.name"));
-                break;
-            default:
-                throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Load Driver failed with unknown type: " + type);
+            case WEB_APP -> {//local
+                DriverManager.setupWebDriver();
+                ScreenCapture.setScreenTaker(DriverManager.getWebDriverProvider());
+            }
+            case REST -> DriverManager.setupRestDriver();
+            case APP -> DriverManager.setupNonDriver();
+            default ->
+                    throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Load Driver failed with unknown type: " + type);
         }
     }
 
@@ -249,7 +237,7 @@ public class TestRunManager {
      * @return if current test case selected
      */
     private static boolean isSelected(TestCaseObject testCaseObject, List<String> selectedIds) {
-        if (!PropertyResolver.isTFSSyncEnabled() && !PropertyResolver.isJIRASyncEnabled() || Objects.isNull(selectedIds)) {
+        if (!PropertyResolver.isJIRASyncEnabled() || Objects.isNull(selectedIds)) {
             return true;
         } else if (selectedIds.isEmpty()) {
             debug("List of Selected IDs is Empty! No test case can be selected!");
@@ -278,7 +266,7 @@ public class TestRunManager {
             List<Map<String, Object>> dataContent = testCaseObject.getTestDataContainer().getDataContent();
             for (int index = 0; index < dataContent.size(); index++) {
                 Map<String, Object> testData = dataContent.get(index);
-                String vNr = (index + 1) < 10 ? "0" + (index + 1) : String.valueOf(index);
+                String vNr = index + 1 < 10 ? "0" + (index + 1) : String.valueOf(index + 1);
                 if (!testData.containsKey("seriesNumber") && isValid(testCaseObject.getSeriesNumber())) {
                     String sNr = testCaseObject.getSeriesNumber() + "." + vNr;
                     testData.put("seriesNumber", sNr);
@@ -291,7 +279,7 @@ public class TestRunManager {
                 }
                 if (PropertyResolver.isTFSSyncEnabled() || PropertyResolver.isJIRASyncEnabled()) {
                     if (!testData.containsKey("testCaseId") && testData.get("testCaseId") != null && !testData.get("testCaseId").toString().isEmpty()) {
-                        throw new ApollonBaseException(ApollonErrorKeys.TEST_CASE_ID_IS_REQUIRED, testCaseObject.getName());
+                        throw new ExceptionBase(ExceptionErrorKeys.TEST_CASE_ID_IS_REQUIRED, testCaseObject.getName());
                     } else {//add tc to list with valid test case id
                         if (!new_tco.getTestType().equals(TestType.MOBILE_APP)) {//normal case
                             Object testCaseId = testData.get("testCaseId");
@@ -308,7 +296,7 @@ public class TestRunManager {
                                     });
                                     new_tco.setTestCaseIdMap(testCaseIdMap);
                                 } catch (JsonProcessingException ex) {
-                                    throw new ApollonBaseException(ApollonErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, testData.get("testCaseIdMap"));
+                                    throw new ExceptionBase(ExceptionErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, testData.get("testCaseIdMap"));
                                 }
                             }
                         }
@@ -323,7 +311,7 @@ public class TestRunManager {
             if (PropertyResolver.isTFSSyncEnabled() || PropertyResolver.isJIRASyncEnabled()) {
                 if (testCaseObject.getTestCaseId().isEmpty() && !testCaseObject.getTestType().equals(TestType.MOBILE_APP)
                         || testCaseObject.getTestType().equals(TestType.MOBILE_APP) && testCaseObject.getTestCaseIdMap().isEmpty()) {
-                    throw new ApollonBaseException(ApollonErrorKeys.TEST_CASE_ID_IS_REQUIRED, testCaseObject.getName());
+                    throw new ExceptionBase(ExceptionErrorKeys.TEST_CASE_ID_IS_REQUIRED, testCaseObject.getName());
                 } else if (testCaseObject.getTestCaseId().equals("-")) {
                     info(testCaseObject.getName() + " with testcase id '-' will not be executed!");
                 } else {
@@ -387,7 +375,7 @@ public class TestRunManager {
                 PropertyResolver.setProperty(PropertyKey.DB_TYPE.key(), dbConfig.get("type").asText());
                 PropertyResolver.setProperty(PropertyKey.DB_PORT.key(), dbConfig.get("port").asText());
             } catch (NullPointerException exception) {
-                throw new ApollonBaseException(ApollonErrorKeys.CONFIG_ERROR, exception, PropertyResolver.getDBConfigFile());
+                throw new ExceptionBase(ExceptionErrorKeys.CONFIG_ERROR, exception, PropertyResolver.getDBConfigFile());
             }
         } else {
             info("DB Connection Config was not found in resource.");
@@ -403,7 +391,7 @@ public class TestRunManager {
                 PropertyResolver.setProperty(PropertyKey.REST_HOST.key(), restConfig.get("host").asText());
                 PropertyResolver.setProperty(PropertyKey.REST_PAT.key(), restConfig.get("pat").asText());
             } catch (NullPointerException exception) {
-                throw new ApollonBaseException(ApollonErrorKeys.CONFIG_ERROR, exception, PropertyResolver.getRestConfigFile());
+                throw new ExceptionBase(ExceptionErrorKeys.CONFIG_ERROR, exception, PropertyResolver.getRestConfigFile());
             }
         } else {
             info("REST Connection Config was not found in resource.");
@@ -420,20 +408,20 @@ public class TestRunManager {
                     PropertyResolver.setProperty(PropertyKey.JIRA_HOST.key(), jiraConfig.get("host").asText());
                     PropertyResolver.setProperty(PropertyKey.JIRA_PAT.key(), jiraConfig.get("pat").asText());
                 } catch (NullPointerException exception) {
-                    throw new ApollonBaseException(ApollonErrorKeys.CONFIG_ERROR, exception, PropertyResolver.getJiraConfigFile());
+                    throw new ExceptionBase(ExceptionErrorKeys.CONFIG_ERROR, exception, PropertyResolver.getJiraConfigFile());
                 }
             } else {
-                throw new ApollonBaseException(ApollonErrorKeys.CONFIG_FILE_NOT_FOUND, PropertyResolver.getJiraConfigFile());
+                throw new ExceptionBase(ExceptionErrorKeys.CONFIG_FILE_NOT_FOUND, PropertyResolver.getJiraConfigFile());
             }
             if (FileOperation.isFileExists(PropertyResolver.getJiraExecutionConfigFile())) {
                 jiraExecutionConfig = JSONContainerFactory.getRunnerConfig(PropertyResolver.getJiraExecutionConfigFile());
             } else {
-                throw new ApollonBaseException(ApollonErrorKeys.CONFIG_FILE_NOT_FOUND, PropertyResolver.getJiraExecutionConfigFile());
+                throw new ExceptionBase(ExceptionErrorKeys.CONFIG_FILE_NOT_FOUND, PropertyResolver.getJiraExecutionConfigFile());
             }
             if (jiraExecutionConfig.getTestExecutionIdMap().isEmpty()
                     && (jiraExecutionConfig.isFullRun()
                     || jiraExecutionConfig.isFailureRetest())) {
-                throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "For full run or failure retest, the execution id must be provided.");
+                throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "For full run or failure retest, the execution id must be provided.");
             }
         }
     }
@@ -441,7 +429,7 @@ public class TestRunManager {
     private static void retrieveQCConfig() {
         if (PropertyResolver.isSyncToQCEnabled()) {
             if (!FileOperation.isFileExists(PropertyResolver.getQCConfigFile())) {
-                throw new ApollonBaseException(ApollonErrorKeys.CONFIG_FILE_NOT_FOUND, PropertyResolver.getQCConfigFile());
+                throw new ExceptionBase(ExceptionErrorKeys.CONFIG_FILE_NOT_FOUND, PropertyResolver.getQCConfigFile());
             } else {
                 JsonNode qcConfig = JSONContainerFactory.getConfig(PropertyResolver.getQCConfigFile());
                 if (!isValid(PropertyResolver.getQCUser()) && Objects.nonNull(qcConfig.get("user")) && isValid(qcConfig.get("user").asText())) {
@@ -451,10 +439,10 @@ public class TestRunManager {
                     PropertyResolver.setProperty(PropertyKey.QC_PASSWORD.key(), qcConfig.get("password").asText());
                 }
                 if (!isValid(PropertyResolver.getQCUser())) {
-                    throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "QC User not Set! Please disable qc sync or set user!");
+                    throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "QC User not Set! Please disable qc sync or set user!");
                 }
                 if (!isValid(PropertyResolver.getQCPassword())) {
-                    throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "QC Password not Set! Please disable qc sync or set password!");
+                    throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "QC Password not Set! Please disable qc sync or set password!");
                 }
 
             }
@@ -477,13 +465,13 @@ public class TestRunManager {
             if (!cookies.isEmpty()) {
                 cookies.forEach(cookie -> webDriver.manage().addCookie(cookie));
             } else {
-                throw new ApollonBaseException(ApollonErrorKeys.FAILED_TO_RELOAD_COOKIES);
+                throw new ExceptionBase(ExceptionErrorKeys.FAILED_TO_RELOAD_COOKIES);
             }
             if (currentURL != null && !currentURL.isEmpty()) {
                 webDriver.navigate().to(currentURL);
             }
         } else {
-            throw new ApollonBaseException(ApollonErrorKeys.FAILED_TO_RELOAD_COOKIES);
+            throw new ExceptionBase(ExceptionErrorKeys.FAILED_TO_RELOAD_COOKIES);
         }
     }
 
@@ -545,7 +533,7 @@ public class TestRunManager {
             List<Path> paths1 = FileLocator.listRegularFilesRecursiveMatchedToName(path.toString(), 5, "testData-global");
             paths.addAll(paths1);
             if (paths.size() > 1) {
-                throw new ApollonBaseException(ApollonErrorKeys.TEST_DATA_GLOBAL_FILE_SHOULD_BE_UNIQUE, Strings.join("|", paths.toArray()));
+                throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_GLOBAL_FILE_SHOULD_BE_UNIQUE, Strings.join("|", paths.toArray()));
             } else if (paths.size() == 1) {
                 TestDataContainer.loadGlobalTestData(paths.get(0));
             } else {

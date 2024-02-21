@@ -41,7 +41,8 @@
       "enum": [
         "TFS",
         "AzureDevOps",
-        "JIRA"
+        "JIRA",
+        "HPQC"
       ]
     },
     "testCaseId": {

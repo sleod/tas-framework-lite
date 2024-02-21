@@ -3,8 +3,8 @@ package ch.qa.testautomation.tas.web;
 import ch.qa.testautomation.tas.common.logging.Screenshot;
 import ch.qa.testautomation.tas.core.component.DriverManager;
 import ch.qa.testautomation.tas.core.json.container.JSONDriverConfig;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import ch.qa.testautomation.tas.intefaces.DriverProvider;
 import ch.qa.testautomation.tas.intefaces.ScreenshotTaker;
 import org.openqa.selenium.WebDriverException;
@@ -82,7 +82,7 @@ public class RemoteWebDriverProvider implements DriverProvider, ScreenshotTaker 
                     if (driver != null) {
                         driver.close();
                     }
-                    throw new ApollonBaseException(ApollonErrorKeys.INITIALIZATION_FAILED, ex, "Remote Web Driver");
+                    throw new ExceptionBase(ExceptionErrorKeys.INITIALIZATION_FAILED, ex, "Remote Web Driver");
                 }
             }
         }

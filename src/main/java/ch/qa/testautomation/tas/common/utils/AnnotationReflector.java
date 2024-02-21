@@ -1,7 +1,7 @@
 package ch.qa.testautomation.tas.common.utils;
 
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import org.reflections.Reflections;
 
 import java.lang.annotation.Annotation;
@@ -48,7 +48,7 @@ public class AnnotationReflector {
      */
     public static Set<Class<?>> getAnnotatedClass(String inPackage, Class<? extends Annotation> annotation) {
         if (inPackage == null || inPackage.isEmpty()) {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "PackageName of Test Automation is empty! Method for scanning all local packages is not implemented yet!!");
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "PackageName of Test Automation is empty! Method for scanning all local packages is not implemented yet!!");
         } else {
             return scanAnnotatedClass(Collections.singletonList(inPackage), annotation);
         }

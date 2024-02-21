@@ -33,7 +33,7 @@ public class MessageResolver {
             }
             return message;
         } catch (MissingResourceException e) {
-            return e.getMessage()+" " + "Parameter: " + Arrays.toString(parameter);
+            return messageKey + " " + Arrays.toString(parameter);
         }
     }
 }

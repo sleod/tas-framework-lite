@@ -2,8 +2,8 @@ package ch.qa.testautomation.tas.web;
 
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.media.ImageHandler;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
@@ -40,7 +40,7 @@ public class WebDriverEventCapture implements WebDriverListener {
         try {
             Thread.sleep(200);
         } catch (InterruptedException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, ex, "Sleep interrupted!");
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, ex, "Sleep interrupted!");
         }
     }
 

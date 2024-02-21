@@ -7,17 +7,16 @@ import ch.qa.testautomation.tas.common.logging.Screenshot;
 import ch.qa.testautomation.tas.common.logging.SystemLogger;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.annotations.*;
-import ch.qa.testautomation.tas.core.assertion.Assertion;
-import ch.qa.testautomation.tas.core.assertion.KnownIssueException;
 import ch.qa.testautomation.tas.core.json.container.JSONTestCaseStep;
 import ch.qa.testautomation.tas.core.json.container.JsonTestCaseMetaData;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import com.beust.jcommander.Strings;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.*;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.function.Executable;
 
 import java.lang.reflect.InvocationTargetException;
@@ -106,10 +105,10 @@ public class TestCaseStep implements Executable {
     public void beforeStep() throws InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
         testStepResult.startNow();
         if (runMethod == null) {
-            throw new ApollonBaseException(ApollonErrorKeys.METHOD_NOT_FOUND, TestStep.class.getName(), jsonTestCaseStep.getName());
+            throw new ExceptionBase(ExceptionErrorKeys.METHOD_NOT_FOUND, TestStep.class.getName(), jsonTestCaseStep.getName());
         }
         if (!Modifier.isPublic(runMethod.getModifiers())) {
-            throw new ApollonBaseException(ApollonErrorKeys.METHOD_SHOULD_BE_PUBLIC, getName());
+            throw new ExceptionBase(ExceptionErrorKeys.METHOD_SHOULD_BE_PUBLIC, getName());
         }
         if (testDataContainer.getPageObject(testObjectClass.getName()) == null) {
             pageObject = getInstanceOf(testObjectClass);
@@ -154,55 +153,36 @@ public class TestCaseStep implements Executable {
                         using = jsonTestCaseStep.getUsing();
                     }
                     if (using.isEmpty()) {//parameter required but not found
-                        throw new ApollonBaseException(ApollonErrorKeys.TEST_STEP_REQUIRED_PARAMETER_NOT_FOUND, runMethod.getName());
+                        throw new ExceptionBase(ExceptionErrorKeys.TEST_STEP_REQUIRED_PARAMETER_NOT_FOUND, runMethod.getName());
                     }
                     int parameterRowNum = 0;
-                    if (parameterCount == 1) {
+                    if (parameterCount == 1) {// single param required
                         Object parameter;
-                        if (using.equalsIgnoreCase("CustomizedDataMap")) {
-                            //transfer whole map as parameter
+                        if (using.equalsIgnoreCase("CustomizedDataMap")) {//transfer whole map as parameter
                             parameter = testDataContainer.getDataContent().get(parameterRowNum);
                         } else {
                             parameter = testDataContainer.getParameter(using, parameterRowNum);
                         }
-                        if (parameter instanceof ArrayNode arrayNode) {
+                        //start casing param type
+                        if (parameter instanceof ArrayNode arrayNode) {// Array Node
                             Iterator<JsonNode> elements = arrayNode.elements();
                             JsonNode elementNode = elements.next();
-                            if (elementNode.isValueNode()) {
-                                //in case plain array, wrap to string list
+                            if (elementNode.isValueNode()) {//in case plain array, wrap to string list
                                 List<String> textNodeValues = mapper.convertValue(arrayNode, new TypeReference<>() {
                                 });
                                 invokeMethod(runMethod, pageObject, textNodeValues);
-                            } else {
-                                //in case object node array, wrap to map list
+                            } else {//in case object node array, wrap to map list
                                 List<Map<String, Object>> objectNodesValues = mapper.convertValue(arrayNode, new TypeReference<>() {
                                 });
                                 invokeMethod(runMethod, pageObject, objectNodesValues);
                             }
-                        } else {
+                        } else {//Object Node
                             if (using.contains("@base64")) {
                                 parameter = PropertyResolver.decodeBase64(((TextNode) parameter).asText());
                             }
-                            if (parameter instanceof TextNode textNode) {
-                                invokeMethod(runMethod, pageObject, textNode.asText());
-                            } else if (parameter instanceof IntNode intNode) {
-                                invokeMethod(runMethod, pageObject, intNode.asInt());
-                            } else if (parameter instanceof BooleanNode booleanNode) {
-                                invokeMethod(runMethod, pageObject, booleanNode.asBoolean());
-                            } else if (parameter instanceof DoubleNode doubleNode) {
-                                invokeMethod(runMethod, pageObject, doubleNode.asDouble());
-                            } else if (parameter instanceof LongNode longNode) {
-                                invokeMethod(runMethod, pageObject, longNode.asLong());
-                            } else if (parameter instanceof ObjectNode) {
-                                //wrap object node to map
-                                Map<String, Object> parameterList = mapper.convertValue(parameter, new TypeReference<>() {
-                                });
-                                invokeMethod(runMethod, pageObject, parameterList);
-                            } else {
-                                invokeMethod(runMethod, pageObject, parameter);
-                            }
+                            invokeMethod(runMethod, pageObject, castParameter(parameter));
                         }
-                    } else {
+                    } else {// multi-param required
                         Object[] parameters;
                         //String Array zerlegen
                         if (using.contains("[") || using.contains(",")) {
@@ -211,27 +191,7 @@ public class TestCaseStep implements Executable {
                             for (int index = 0; index < usingKeys.length; index++) {
                                 //Key Werte welche im Array mitgegeben werden nun aus dem TestdataContainer auslesen
                                 Object valueObject = testDataContainer.getParameter(usingKeys[index].trim(), parameterRowNum);
-                                if (valueObject instanceof TextNode textNode) {
-                                    parameters[index] = textNode.asText();
-                                } else if (valueObject instanceof ObjectNode) {
-                                    Map<String, Object> parameterMap = mapper.convertValue(valueObject, new TypeReference<>() {
-                                    });
-                                    parameters[index] = parameterMap;
-                                } else if (valueObject instanceof IntNode intNode) {
-                                    parameters[index] = intNode.asInt();
-                                } else if (valueObject instanceof DoubleNode doubleNode) {
-                                    parameters[index] = doubleNode.asDouble();
-                                } else if (valueObject instanceof BooleanNode booleanNode) {
-                                    parameters[index] = booleanNode.asBoolean();
-                                } else if (valueObject instanceof LongNode longNode) {
-                                    parameters[index] = longNode.asLong();
-                                } else if (valueObject instanceof ArrayNode arrayNode) {
-                                    List<String> textNodeValues = mapper.convertValue(arrayNode, new TypeReference<>() {
-                                    });
-                                    parameters[index] = textNodeValues;
-                                } else {
-                                    parameters[index] = valueObject;
-                                }
+                                parameters[index] = castParameter(valueObject);
                             }
                             invokeMethod(runMethod, pageObject, parameters);
                         } else {
@@ -241,7 +201,7 @@ public class TestCaseStep implements Executable {
                                 });
                                 invokeMethod(runMethod, pageObject, parameters);
                             } else {
-                                throw new ApollonBaseException(ApollonErrorKeys.TEST_DATA_NOT_MATCH);
+                                throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_NOT_MATCH);
                             }
                         }
                     }
@@ -251,18 +211,39 @@ public class TestCaseStep implements Executable {
                 if (issue instanceof InvocationTargetException) {
                     issue = ((InvocationTargetException) issue).getTargetException();
                 }
-                if (issue instanceof KnownIssueException) {
-                    testStepResult.setStatus(TestStatus.BROKEN);
-                } else {
-                    testStepResult.setStatus(TestStatus.FAIL);
-                    testStepResult.setActual("Exception: " + issue.getMessage());
-                }
+                testStepResult.setStatus(TestStatus.FAIL);
+                testStepResult.setActual("Exception: " + issue.getMessage());
                 testStepResult.setTestFailure(new TestFailure(issue));
                 TestStepMonitor.setIsStop(isStopOnError());
             }
         }
         testStepResult.stopNow();
         afterStep();
+    }
+
+
+    private Object castParameter(Object valueObject) {
+        if (valueObject instanceof TextNode textNode) {
+            return textNode.asText();
+        } else if (valueObject instanceof ObjectNode) {
+            return mapper.<Map<String, Object>>convertValue(valueObject, new TypeReference<>() {
+            });
+        } else if (valueObject instanceof IntNode intNode) {
+            return intNode.asInt();
+        } else if (valueObject instanceof DoubleNode doubleNode) {
+            return doubleNode.asDouble();
+        } else if (valueObject instanceof BooleanNode booleanNode) {
+            return booleanNode.asBoolean();
+        } else if (valueObject instanceof LongNode longNode) {
+            return longNode.asLong();
+        } else if (valueObject instanceof ArrayNode arrayNode) {
+            return mapper.<List<String>>convertValue(arrayNode, new TypeReference<>() {
+            });
+        } else if (String.valueOf(valueObject).matches("true|false")) {
+            return Boolean.parseBoolean(valueObject.toString());
+        } else {
+            return valueObject;
+        }
     }
 
     /**
@@ -306,10 +287,10 @@ public class TestCaseStep implements Executable {
             String methodName = runMethod.getDeclaredAnnotation(UndoOnError.class).value();
             try {
                 Method undo = getMethodUndoMethod(methodName);
-                Assertion.assertNotNull(undo, "Undo Method with name: " + methodName + " was not found in class: " + testObjectClass.getName());
+                Assertions.assertNotNull(undo, "Undo Method with name: " + methodName + " was not found in class: " + testObjectClass.getName());
                 undo.invoke(pageObject);
             } catch (Throwable ex) {
-                throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, ex, "Undo Step Unsuccessful!");
+                throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, ex, "Undo Step Unsuccessful!");
             }
         }
         TestStepMonitor.processResult(testStepResult);
@@ -390,7 +371,7 @@ public class TestCaseStep implements Executable {
             }
         }
         if (Objects.isNull(method)) {
-            throw new ApollonBaseException(ApollonErrorKeys.METHOD_NOT_FOUND, name, testObjectClass.getName());
+            throw new ExceptionBase(ExceptionErrorKeys.METHOD_NOT_FOUND, name, testObjectClass.getName());
         } else {
             return method;
         }

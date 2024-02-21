@@ -1,8 +1,8 @@
 package ch.qa.testautomation.tas.core.service;
 
 import ch.qa.testautomation.tas.core.json.container.JSONDriverConfig;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 
 import java.util.Map;
 import java.util.Optional;
@@ -66,7 +66,7 @@ public final class RemoteWebDriverConfigService extends ConfigService{
             try {
                 waitOnEmpty();
             } catch (InterruptedException ex) {
-                throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, ex, "Exception while waiting for driver config!");
+                throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, ex, "Exception while waiting for driver config!");
             }
         }
         return busy();

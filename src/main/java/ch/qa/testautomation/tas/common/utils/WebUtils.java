@@ -1,7 +1,7 @@
 package ch.qa.testautomation.tas.common.utils;
 
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
@@ -228,13 +228,13 @@ public class WebUtils {
      */
     public static List<SelenideElement> getAllShadowElements(String target, String... shadowHosts) {
         if (shadowHosts.length == 1) {
-            return Selenide.$$(shadowCss(target, shadowHosts[0]));
+            return Selenide.$$(shadowCss(target, shadowHosts[0])).asDynamicIterable().stream().toList();
         } else if (shadowHosts.length == 2) {
-            return Selenide.$$(shadowCss(target, shadowHosts[0], shadowHosts[1]));
+            return Selenide.$$(shadowCss(target, shadowHosts[0], shadowHosts[1])).asDynamicIterable().stream().toList();
         } else if (shadowHosts.length > 2) {
-            return Selenide.$$(shadowCss(target, shadowHosts[0], Arrays.copyOfRange(shadowHosts, 1, shadowHosts.length - 1)));
+            return Selenide.$$(shadowCss(target, shadowHosts[0], Arrays.copyOfRange(shadowHosts, 1, shadowHosts.length - 1))).asDynamicIterable().stream().toList();
         } else {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Shadow Host Selector Array is empty!");
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Shadow Host Selector Array is empty!");
         }
     }
 
@@ -254,7 +254,7 @@ public class WebUtils {
             }
             return result.get(0);
         } else {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Element with text: " + text + " was not found!");
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Element with text: " + text + " was not found!");
         }
     }
 

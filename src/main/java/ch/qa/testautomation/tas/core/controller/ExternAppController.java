@@ -6,8 +6,8 @@ import ch.qa.testautomation.tas.common.enumerations.DownloadStrategy;
 import ch.qa.testautomation.tas.common.utils.ZipUtils;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.*;
 import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
-import static ch.qa.testautomation.tas.exception.ApollonErrorKeys.CUSTOM_MESSAGE;
+import static ch.qa.testautomation.tas.exception.ExceptionErrorKeys.CUSTOM_MESSAGE;
 import static java.util.Objects.nonNull;
 
 public class ExternAppController {
@@ -132,7 +132,7 @@ public class ExternAppController {
         } else if (keys.length == 3) {
             UserRobot.pressKeys(keys[0], keys[1], keys[2]);
         } else {
-            throw new ApollonBaseException(CUSTOM_MESSAGE, "Empty Keys or Key Combination more than 3 keys is not provided yet!");
+            throw new ExceptionBase(CUSTOM_MESSAGE, "Empty Keys or Key Combination more than 3 keys is not provided yet!");
         }
         sleep(1);
     }
@@ -175,7 +175,7 @@ public class ExternAppController {
             output = createOutput(process);
             debug("Output: " + output);
         } catch (IOException | InterruptedException ex) {
-            throw new ApollonBaseException(CUSTOM_MESSAGE, ex, "Exception while execute command line: " + command);
+            throw new ExceptionBase(CUSTOM_MESSAGE, ex, "Exception while execute command line: " + command);
         }
         return new String[]{String.valueOf(exitCode), output.toString()};
     }
@@ -245,7 +245,7 @@ public class ExternAppController {
             }
             if (paths.isEmpty() || driverPath == null) {//in case existing not match or nothing found, try to download
                 info("No local driver matched to current browser! Try to download driver!");
-                if (tryToDownloadDriver(driverFileName, browserVersion)) {
+                if (tryToDownloadDriver()) {
                     paths = FileLocator.listRegularFilesRecursiveMatchedToName(driverDir, 3, driverFileName);
                     driverPath = checkDriverVersionWithBrowser(paths, browserVersion);
                 }
@@ -254,7 +254,7 @@ public class ExternAppController {
                 info("Find Driver: " + driverPath.toFile().getName() + " with Version: " + browserVersion);
                 return driverPath;
             } else {
-                throw new ApollonBaseException(CUSTOM_MESSAGE, "No matched driver for current test browser was found or downloaded!");
+                throw new ExceptionBase(CUSTOM_MESSAGE, "No matched driver for current test browser was found or downloaded!");
             }
         }
     }
@@ -325,7 +325,7 @@ public class ExternAppController {
         } else if (PropertyResolver.isMac()) {
             response = executeCommand("/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --version");
         } else {
-            throw new ApollonBaseException(CUSTOM_MESSAGE, "Unsupported Operation System: " + PropertyResolver.getProperty("os.name"));
+            throw new ExceptionBase(CUSTOM_MESSAGE, "Unsupported Operation System: " + PropertyResolver.getProperty("os.name"));
         }
         return processResponse(response);
     }
@@ -344,7 +344,7 @@ public class ExternAppController {
         } else if (PropertyResolver.isMac()) {
             response = executeCommand("/Applications/Microsoft\\ Edge.app/Contents/MacOS/Microsoft\\ Edge --version");
         } else {
-            throw new ApollonBaseException(CUSTOM_MESSAGE, "Unsupported Operation System: " + PropertyResolver.getProperty("os.name"));
+            throw new ExceptionBase(CUSTOM_MESSAGE, "Unsupported Operation System: " + PropertyResolver.getProperty("os.name"));
         }
         return processResponse(response);
     }
@@ -352,11 +352,11 @@ public class ExternAppController {
     public static String processResponse(String[] response) {
         if (Integer.parseInt(response[0]) != 0) {
             if (response[1].contains("not found")) {
-                warn("No browser was found locally. Need be downloaded!");
+                warn("No Browser found locally. Need be downloaded!");
                 response[0] = "0";
                 response[1] = getChromeLatestStableVersion();
             } else {
-                throw new ApollonBaseException(CUSTOM_MESSAGE, "Check Version went Wrong!\n" + response[1]);
+                throw new ExceptionBase(CUSTOM_MESSAGE, "Check Version went Wrong!\n" + response[1]);
             }
         }
         Matcher matcher = pattern.matcher(response[1]);
@@ -373,7 +373,7 @@ public class ExternAppController {
      *
      * @return folder of drivers
      */
-    public static boolean tryToDownloadDriver(String driverFileName, String browserVersion) {
+    public static boolean tryToDownloadDriver() {
         DownloadStrategy strategy = DownloadStrategy.valueOf(PropertyResolver.getDownloadStrategy().toUpperCase());
         JsonNode config = getDownloadConfig();
         switch (strategy) {
@@ -395,9 +395,9 @@ public class ExternAppController {
         return false;
     }
 
-    private static JsonNode getDownloadConfig() {
+    public static JsonNode getDownloadConfig() {
         if (!FileOperation.isFileExists(PropertyResolver.getDriverDownloadConfigFile())) {
-            throw new ApollonBaseException(CUSTOM_MESSAGE, "Failed on downloading driver! Config File not exist! -> " + PropertyResolver.getDriverDownloadConfigFile());
+            throw new ExceptionBase(CUSTOM_MESSAGE, "Download Config File not exist! -> " + PropertyResolver.getDriverDownloadConfigFile());
         }
         return JSONContainerFactory.getConfig(PropertyResolver.getDriverDownloadConfigFile());
     }
@@ -410,17 +410,14 @@ public class ExternAppController {
             String browser = config.get("browser").asText();
             String version = getChromeLatestStableVersion();
             info("Current Stable Version: " + version);
-            if (config.get("installChrome").asBoolean()) {
+            if (config.get("installBrowser").asBoolean()) {
                 String BROWSER_FILE_URL = downloadLink + version + "/" + platform + "/" + browser + "-" + platform + ".zip";
-                String location = FileLocator.getProjectBaseDir() + "/src/main/resources/" + config.get("location").asText();
+                String location = FileLocator.getProjectBaseDir() + "/src/main/resources/" + PropertyResolver.getWebDriverBinLocation();
                 new File(location).mkdirs();
                 String filePath = location + "/" + browser + "-" + platform + ".zip";
                 downloadFromURL(BROWSER_FILE_URL, filePath);
                 unzipAndDelete(new File(filePath));
-                Path browserBinPath = FileLocator.findExactFile(location, 5, PropertyResolver.isWindows() ? browser + ".exe" : browser);
-                //set chrome bin file path - chromeOption
-                PropertyResolver.setBrowserBinPath(browserBinPath.toFile().getAbsolutePath());
-                grantPermission(browserBinPath, 755);
+                setCurrentBrowser(location, browser);
             } else {
                 String currentChromeVersion = getCurrentChromeVersion();
                 if (!version.startsWith(currentChromeVersion)) {
@@ -439,7 +436,7 @@ public class ExternAppController {
         }
     }
 
-    public static void setCurrentBrowser(String location, String browser) {
+    private static void setCurrentBrowser(String location, String browser) {
         Path browserBinPath = FileLocator.findExactFile(location, 5, PropertyResolver.isWindows() ? browser + ".exe" : browser);
         //set chrome bin file path - chromeOption
         PropertyResolver.setBrowserBinPath(browserBinPath.toFile().getAbsolutePath());
@@ -455,7 +452,7 @@ public class ExternAppController {
             try {
                 jsonNode = mapper.readTree(new URL(url));
             } catch (IOException ex) {
-                throw new ApollonBaseException(CUSTOM_MESSAGE, ex, "Exception by get json from google! -> " + url);
+                throw new ExceptionBase(CUSTOM_MESSAGE, ex, "Exception by get json from google! -> " + url);
             }
             return jsonNode.get("channels").get("Stable").get("version").asText();
         } else return config.get("version").asText();
@@ -466,7 +463,7 @@ public class ExternAppController {
         info("Try to download with shared file link for driver.");
         String sharedFileLink = config.get("sharedFileLink").asText();
         if (!isValid(sharedFileLink)) {
-            debug("Shared File Link was invalid in Config! -> " + sharedFileLink);
+            debug("Shared File Link of Driver was not found in Config!");
             return false;
         }
         String filePath = FileLocator.getProjectBaseDir() + "/src/main/resources/" + PropertyResolver.getWebDriverBinLocation() + "/drivers.zip";
@@ -508,7 +505,7 @@ public class ExternAppController {
             }
         } catch (IOException ex) {
             // handle exception
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_WRITING, ex, "Exception by downloading file.");
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_WRITING, ex, "Exception by downloading file.");
         }
     }
 

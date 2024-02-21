@@ -8,16 +8,6 @@ import java.util.Objects;
  * Parent Class for all test objects
  */
 public abstract class SingleTestObject {
-    private String name = "";
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public static void logStepInfo(String text) {
         SystemLogger.logStepInfo(text);
     }
@@ -45,10 +35,6 @@ public abstract class SingleTestObject {
 
     public static boolean nonNull(Object obj) {
         return Objects.nonNull(obj);
-    }
-
-    public void initialize(String...args) {
-        SystemLogger.info("Test Object " + name + " is created.");
     }
 
     public static boolean isValid(Object value) {

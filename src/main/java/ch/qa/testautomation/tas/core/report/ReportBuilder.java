@@ -8,12 +8,11 @@ import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.component.*;
 import ch.qa.testautomation.tas.core.controller.ExternAppController;
 import ch.qa.testautomation.tas.core.json.container.JSONDriverConfig;
-import ch.qa.testautomation.tas.core.json.container.JSONRunnerConfig;
 import ch.qa.testautomation.tas.core.json.container.JSONStepResult;
 import ch.qa.testautomation.tas.core.json.container.JSONTestResult;
 import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -83,9 +82,11 @@ public class ReportBuilder {
      * generate maven xml report for tfs
      */
     public void generateMavenTestXMLReport() {
-        if (Objects.nonNull(TestRunManager.getPerformer())) {
-            MavenReportWriter.generateMavenTestXML(TestRunManager.getPerformer().getTestCaseObjects());
-            MavenReportWriter.generateSurefireXMLReport(TestRunManager.getPerformer().getTestCaseObjects());
+        if (TestRunManager.getPerformer().getTestCaseObjects() != null) {
+            String folder = PropertyResolver.getTestCaseReportLocation();
+            String fileName = folder + "/" + "MavenXMLReport-" + DateTimeUtils.getFormattedLocalTimestamp() + ".xml";
+            String backupFile = folder + "/" + "MavenXMLReport-latest.xml";
+            MavenReportWriter.generateMavenTestXML(TestRunManager.getPerformer().getTestCaseObjects(), fileName, backupFile);
         }
     }
 
@@ -183,7 +184,7 @@ public class ReportBuilder {
             try {
                 existingExecutor = getObjectMapper().readTree(content);
             } catch (JsonProcessingException ex) {
-                throw new ApollonBaseException(ApollonErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, content);
+                throw new ExceptionBase(ExceptionErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, content);
             }
         }
         if (existingExecutor != null) {
@@ -223,7 +224,7 @@ public class ReportBuilder {
         try {
             propertiesSorted.store(new FileWriter(environment), "Save to environment properties file.");
         } catch (IOException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, ex, "IO Exception while generate environment file!");
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, ex, "IO Exception while generate environment file!");
         }
     }
 
@@ -304,13 +305,9 @@ public class ReportBuilder {
 
         //mobile driver
         String folder = PropertyResolver.getMobileDriverConfigLocation();
-        if (isValid(PropertyResolver.getMobileAppDriverConfig())) {
-            JsonNode config = JSONContainerFactory.getConfig(folder + PropertyResolver.getMobileAppDriverConfig());
-            frameworkConfig.set("Mobile Driver Config", config);
-        } else {
-            //load used driver configs
-            getUsedDriverConfigs().forEach(path -> frameworkConfig.set(FileOperation.getFileName(path), JSONContainerFactory.getConfig(path)));
-        }
+        //load used driver configs
+        getUsedDriverConfigs().forEach(path -> frameworkConfig.set(FileOperation.getFileName(path), JSONContainerFactory.getConfig(path)));
+
         //write file
         FileOperation.writeStringToFile(frameworkConfig.toString(), PropertyResolver.getAllureResultsDirectory() + FRAMEWORK_CONFIG_FILE_NAME);
     }
@@ -355,7 +352,7 @@ public class ReportBuilder {
                 FileOperation.writeStringToFile(result.toString(), PropertyResolver.getAllureResultsDirectory() + result.get("uuid").asText() + "-result.json");
             }
         } catch (IOException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_READING, ex, tempPath);
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_READING, ex, tempPath);
         }
     }
 

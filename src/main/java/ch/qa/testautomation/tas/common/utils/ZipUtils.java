@@ -1,7 +1,7 @@
 package ch.qa.testautomation.tas.common.utils;
 
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -79,7 +79,7 @@ public class ZipUtils {
             zos.closeEntry();
             zos.close();
         } catch (IOException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_GENERAL, ex, "zip " + file.getName());
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_GENERAL, ex, "zip " + file.getName());
         }
         return zipFile;
     }
@@ -127,7 +127,7 @@ public class ZipUtils {
             }
             zipFile.close();
         } catch (IOException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_GENERAL, ex, "unzip " + fileToUZ.getName());
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_GENERAL, ex, "unzip " + fileToUZ.getName());
         }
     }
 

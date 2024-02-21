@@ -27,6 +27,7 @@ public enum PropertyKey {
     GENERATE_VIDEO("generate.video"),
     RESOURCE_PROJECT("resource.project"),
     RUN_STOP_ON_ERROR("run.stop.on.error"),
+    RUN_START_URL("run.start.url"),
     WEBDRIVER_CHROME_DRIVER("webdriver.chrome.driver"),
     WEBDRIVER_EDGE_DRIVER("webdriver.edge.driver"),
     WEBDRIVER_EDGE_FILENAME("webdriver.edge.filename"),

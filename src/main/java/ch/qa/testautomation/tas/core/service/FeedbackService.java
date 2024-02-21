@@ -7,10 +7,10 @@ import ch.qa.testautomation.tas.core.component.TestCaseObject;
 import ch.qa.testautomation.tas.core.component.TestRunResult;
 import ch.qa.testautomation.tas.core.json.container.JSONRunnerConfig;
 import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
-import ch.qa.testautomation.tas.rest.hpqc.connection.QCRestClient;
-import ch.qa.testautomation.tas.rest.jira.connection.JIRARestClient;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
+import ch.qa.testautomation.tas.rest.hpqc.QCRestClient;
+import ch.qa.testautomation.tas.rest.jira.JIRARestClient;
 
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +30,7 @@ public class FeedbackService {
             Map<String, String> testCaseIdMap = testCaseObject.getTestCase().getTestCaseIdMap();
             if (testCaseId.isEmpty() && !testCaseObject.getTestType().equals(TestType.MOBILE_APP)
                     || testCaseObject.getTestType().equals(TestType.MOBILE_APP) && testCaseIdMap.isEmpty()) {
-                throw new ApollonBaseException(ApollonErrorKeys.TEST_CASE_ID_IS_REQUIRED, testCaseObject.getName());
+                throw new ExceptionBase(ExceptionErrorKeys.TEST_CASE_ID_IS_REQUIRED, testCaseObject.getName());
             }
             if (!testCaseObject.getTestType().equals(TestType.MOBILE_APP)) {
                 testRunResultMap.put(testCaseId, testCaseObject.getTestRunResult());

@@ -4,8 +4,8 @@ import ch.qa.testautomation.tas.common.IOUtils.FileOperation;
 import ch.qa.testautomation.tas.common.enumerations.ImageFormat;
 import ch.qa.testautomation.tas.common.utils.DateTimeUtils;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -92,7 +92,7 @@ public class Screenshot {
         try {
             ImageIO.write(image, format.value(), target);
         } catch (IOException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, ex, "Exception while taking screenshot with driver!");
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, ex, "Exception while taking screenshot with driver!");
         }
         return target;
     }

@@ -17,8 +17,8 @@ import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.tas.core.report.ReportBuilder;
 import ch.qa.testautomation.tas.core.report.allure.ReportBuilderAllureService;
 import ch.qa.testautomation.tas.core.service.FeedbackService;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import org.junit.jupiter.api.DynamicTest;
 
 import java.lang.annotation.Annotation;
@@ -105,18 +105,18 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
      * init all test object with annotated name
      *
      * @param pageObjectNames annotation name
-     * @throws ApollonBaseException case no test objects found
+     * @throws ExceptionBase case no test objects found
      */
     public void initTestObjects(List<String> pageObjectNames) {
         String taPackageName = PropertyResolver.getTestautomationPackage();
         Set<Class<?>> annotateClazz = AnnotationReflector.getAnnotatedClass(taPackageName, TestObject.class);
         if (annotateClazz.isEmpty()) {
-            throw new ApollonBaseException(ApollonErrorKeys.IMPLEMENTATION_NOT_FOUND, pageObjectNames, taPackageName);
+            throw new ExceptionBase(ExceptionErrorKeys.IMPLEMENTATION_NOT_FOUND, pageObjectNames, taPackageName);
         }
         for (Class<?> clazz : annotateClazz) {
             TestObject annotation = clazz.getAnnotation(TestObject.class);
             if (annotation.name().isEmpty()) {//to avoid class inherit with annotation but not specified in own class
-                throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE,
+                throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE,
                         clazz + " has inherited Annotation but not specified with own name. And this class will not be initialized!!");
             }
             String pageObjectName = annotation.name();
@@ -126,13 +126,13 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
                 try {
                     updatePageObjectClass(clazz, config, testType);
                 } catch (NoSuchFieldException | IllegalAccessException ex) {
-                    throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, ex, "Test Case Object initialization failed by update Annotation: " + pageObjectName);
+                    throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, ex, "Test Case Object initialization failed by update Annotation: " + pageObjectName);
                 }
                 pageObjects.put(pageObjectName, clazz);
             }
         }
         if (pageObjects.isEmpty()) {
-            throw new ApollonBaseException(ApollonErrorKeys.IMPLEMENTATION_NOT_FOUND, pageObjectNames, taPackageName);
+            throw new ExceptionBase(ExceptionErrorKeys.IMPLEMENTATION_NOT_FOUND, pageObjectNames, taPackageName);
         }
     }
 
@@ -145,7 +145,7 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
         for (int i = 0, jStepsSize = jSteps.size(); i < jStepsSize; i++) {
             JSONTestCaseStep jStep = jSteps.get(i);
             if (pageObjects.get(jStep.getTestObject()) == null) {
-                throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, jStep.getTestObject() + "was not found!");
+                throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, jStep.getTestObject() + "was not found!");
             }
             TestCaseStep testCaseStep = new TestCaseStep(i + 1, jsonTestCaseMetaData,
                     jStep, pageObjects.get(jStep.getTestObject()), testDataContainer);
@@ -324,10 +324,10 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
         getReportBuilder().startRecordingTest(testRunResult);
         if (testCase.getType().contains("web_app")) {
             String url = testCase.getStartURL();
-            if (!url.isEmpty()) {
+            if (isValid(url)) {
                 DriverManager.openUrl(url);
-            } else if (System.getProperty("startURL") != null) {
-                DriverManager.openUrl(System.getProperty("startURL"));
+            } else if (isValid(PropertyResolver.getStartUrl())) {
+                DriverManager.openUrl(PropertyResolver.getStartUrl());
             }
         }
         if (PropertyResolver.isGenerateVideoEnabled() && !PropertyResolver.isExecutionRemoteParallelEnabled()) {
@@ -369,12 +369,12 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
         List<Method> methods = AnnotationReflector.getAnnotatedMethods(TestRunManager.getPerformer().getClass(), annotation);
         if (!methods.isEmpty()) {
             if (methods.size() > 1) {
-                throw new ApollonBaseException(ApollonErrorKeys.METHOD_WITH_ANNOTATION_SHOULD_ONLY_BE_DEFINED_ONCE, annotation);
+                throw new ExceptionBase(ExceptionErrorKeys.METHOD_WITH_ANNOTATION_SHOULD_ONLY_BE_DEFINED_ONCE, annotation);
             } else {
                 try {
                     methods.get(0).invoke(TestRunManager.getPerformer());
                 } catch (IllegalAccessException | InvocationTargetException ex) {
-                    throw new ApollonBaseException(ApollonErrorKeys.EXCEPTION_BY_INVOKE_ANNOTATION, ex, annotation);
+                    throw new ExceptionBase(ExceptionErrorKeys.EXCEPTION_BY_INVOKE_ANNOTATION, ex, annotation);
                 }
             }
         }

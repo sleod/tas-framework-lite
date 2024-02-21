@@ -1,7 +1,7 @@
 package ch.qa.testautomation.tas.common.utils;
 
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 
 import java.io.*;
 
@@ -25,7 +25,7 @@ public class ObjectWriterReader {
             objectOutputStream.close();
             fileOutputStream.close();
         } catch (IOException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_WRITING, ex, fileName);
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_WRITING, ex, fileName);
         }
     }
 
@@ -43,9 +43,9 @@ public class ObjectWriterReader {
             // Read objects
             object = objectInputStream.readObject();
         } catch (IOException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.IOEXCEPTION_BY_READING, ex, fileName);
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_READING, ex, fileName);
         } catch (ClassNotFoundException ex) {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, ex, "Read Object failed! Object class can not be found!" + targetClass);
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, ex, "Read Object failed! Object class can not be found!" + targetClass);
         }
         return (T) object;
     }

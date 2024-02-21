@@ -3,8 +3,8 @@ package ch.qa.testautomation.tas.core.service;
 import ch.qa.testautomation.tas.common.enumerations.ConfigType;
 import ch.qa.testautomation.tas.core.json.container.JSONDriverConfig;
 import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
-import ch.qa.testautomation.tas.exception.ApollonBaseException;
-import ch.qa.testautomation.tas.exception.ApollonErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -20,14 +20,14 @@ public class ConfigService {
                 .stream().filter(config -> isMobile ? isValidMobileConfig(config.getValue()) : isValidRemoteConfig(config.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         if (configs.isEmpty()) {
-            throw new ApollonBaseException(ApollonErrorKeys.OBJECT_NOT_FOUND, "Valid Mobile Driver Config files");
+            throw new ExceptionBase(ExceptionErrorKeys.OBJECT_NOT_FOUND, "Valid Mobile Driver Config files");
         }
         return configs;
     }
 
     private static boolean hasConfigType(JSONDriverConfig config) {
         if (!isValid(config.getConfigType())) {
-            throw new ApollonBaseException(ApollonErrorKeys.CUSTOM_MESSAGE, "Mobile Driver Config has no ConfigType definition!");
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Mobile Driver Config has no ConfigType definition!");
         } else {
             return true;
         }
