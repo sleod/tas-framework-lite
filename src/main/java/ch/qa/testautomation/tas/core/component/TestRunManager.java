@@ -119,6 +119,9 @@ public class TestRunManager {
      * @param metaFilters meta filters
      */
     public static List<TestCaseObject> initTestCases(List<String> filePaths, List<String> metaFilters) {
+        if (filePaths.isEmpty()) {
+            throw new ExceptionBase(ExceptionErrorKeys.TEST_CASE_NOT_FOUND, PropertyResolver.getTestCaseLocation());
+        }
         List<String> selectedIds;
         if (PropertyResolver.isJIRASyncEnabled()) {
             Map<String, String> executionKeys = jiraExecutionConfig.getTestExecutionIdMap();
@@ -137,9 +140,7 @@ public class TestRunManager {
         } else {
             selectedIds = null;
         }
-        if (filePaths.isEmpty()) {
-            throw new ExceptionBase(ExceptionErrorKeys.TEST_CASE_NOT_FOUND, PropertyResolver.getTestCaseLocation());
-        }
+
         if (!metaFilters.isEmpty()) {
             info("Filters: " + Arrays.toString(metaFilters.toArray()));
         } else {
@@ -148,15 +149,22 @@ public class TestRunManager {
         if (metaFilters.contains("")) {
             info("meta filters contains empty value!");
         }
+        return getTestCaseObjectList(filePaths, metaFilters, selectedIds);
+    }
+
+    /**
+     * generate, consolidate test cases with filter and conditions
+     */
+    private static List<TestCaseObject> getTestCaseObjectList(List<String> filePaths, List<String> metaFilters, List<String> selectedIds) {
         List<TestCaseObject> testCaseObjects = new LinkedList<>();
-        for (String filePath : filePaths) {
+        for (String filePath : filePaths) {//build test cases with tas files
             JSONTestCase jsonTestCase = JSONContainerFactory.buildJSONTestCaseObject(filePath);
             //filter with meta tags
             if (filterTestCase(metaFilters, jsonTestCase)) {
                 TestCaseObject testCaseObject = new TestCaseObject(jsonTestCase);
                 testCaseObject.setFilePath(filePath);
-                List<TestCaseObject> normalizedTestCases = normalizeRepeatTestCases(testCaseObject);
-                for (TestCaseObject n_testCaseObject : normalizedTestCases) {
+                //normalize test case in case test data has multi lines (csv, sql)
+                for (TestCaseObject n_testCaseObject : normalizeRepeatTestCases(testCaseObject)) {
                     if (isSelected(n_testCaseObject, selectedIds)) {
                         testCaseObjects.add(n_testCaseObject);
                     } else {
@@ -171,6 +179,7 @@ public class TestRunManager {
         checkDuplicateNaming(testCaseObjects);
         return testCaseObjects;
     }
+
 
     /**
      * Checks if multiple testcases have the same name or id.
@@ -262,8 +271,13 @@ public class TestRunManager {
     private static List<TestCaseObject> normalizeRepeatTestCases(TestCaseObject testCaseObject) {
         if (testCaseObject.getTestDataContainer().isRepeat()) {
             ArrayList<TestCaseObject> normCases = new ArrayList<>(testCaseObject.getTestDataContainer().getDataContentSize());
+            List<Integer> tcIndex = Collections.emptyList();
             //for each row of test data, create new test case object
+            //in condition section exists in test case object, filter with it.
             List<Map<String, Object>> dataContent = testCaseObject.getTestDataContainer().getDataContent();
+            if (testCaseObject.hasCondition()) {
+                tcIndex = getDefinedIndex(testCaseObject, dataContent.size());
+            }
             for (int index = 0; index < dataContent.size(); index++) {
                 Map<String, Object> testData = dataContent.get(index);
                 String vNr = index + 1 < 10 ? "0" + (index + 1) : String.valueOf(index + 1);
@@ -352,6 +366,23 @@ public class TestRunManager {
         return false;
     }
 
+    private static List<Integer> getDefinedIndex(TestCaseObject testCaseObject, int size) {
+        boolean useRandom = testCaseObject.isUseRandomLine();
+        int limit = testCaseObject.getVariantLimit();
+        List<Integer> varIndex = testCaseObject.getVariantIndex();
+        if (Objects.nonNull(varIndex) && !varIndex.isEmpty()) {//pre-defined index usages
+            return varIndex;
+        } else {//random lines
+            HashSet<Integer> indexSet = new LinkedHashSet<>();
+            int next = 0;
+            while (limit < size && limit > 0 || indexSet.size() == size) {//pickup lines randomly with limit
+                if (indexSet.add(useRandom ? new Random().nextInt(size) : next++)) {
+                    limit -= 1;
+                }
+            }
+            return indexSet.stream().toList();
+        }
+    }
 
     /**
      * copy resources files in defined locations to current local folder.
@@ -384,18 +415,22 @@ public class TestRunManager {
 
     private static void retrieveRestConfig() {
         if (FileOperation.isFileExists(PropertyResolver.getRestConfigFile())) {
-            try {
-                JsonNode restConfig = JSONContainerFactory.getConfig(PropertyResolver.getRestConfigFile());
-                PropertyResolver.setProperty(PropertyKey.REST_USER.key(), restConfig.get("user").asText());
-                PropertyResolver.setProperty(PropertyKey.REST_PASSWORD.key(), restConfig.get("password").asText());
-                PropertyResolver.setProperty(PropertyKey.REST_HOST.key(), restConfig.get("host").asText());
-                PropertyResolver.setProperty(PropertyKey.REST_PAT.key(), restConfig.get("pat").asText());
-            } catch (NullPointerException exception) {
-                throw new ExceptionBase(ExceptionErrorKeys.CONFIG_ERROR, exception, PropertyResolver.getRestConfigFile());
-            }
+            JsonNode restConfig = JSONContainerFactory.getConfig(PropertyResolver.getRestConfigFile());
+            PropertyResolver.setProperty(PropertyKey.REST_USER.key(), fetchConfigKey(restConfig, "user"));
+            PropertyResolver.setProperty(PropertyKey.REST_PASSWORD.key(), fetchConfigKey(restConfig, "password"));
+            PropertyResolver.setProperty(PropertyKey.REST_HOST.key(), fetchConfigKey(restConfig, "host"));
+            PropertyResolver.setProperty(PropertyKey.REST_PAT.key(), fetchConfigKey(restConfig, "pat"));
+            PropertyResolver.setProperty(PropertyKey.REST_PROXY_URL.key(), fetchConfigKey(restConfig, "proxyUrl"));
+            PropertyResolver.setProperty(PropertyKey.REST_PROXY_PORT.key(), fetchConfigKey(restConfig, "proxyPort"));
+            PropertyResolver.setProperty(PropertyKey.REST_PROXY_USER.key(), fetchConfigKey(restConfig, "proxyUser"));
+            PropertyResolver.setProperty(PropertyKey.REST_PROXY_PASS.key(), fetchConfigKey(restConfig, "proxyPass"));
         } else {
             info("REST Connection Config was not found in resource.");
         }
+    }
+
+    private static String fetchConfigKey(JsonNode config, String key) {
+        return config.has(key) ? config.get(key).asText() : "";
     }
 
     private static void retrieveJiraConfig() {

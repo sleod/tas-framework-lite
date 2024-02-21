@@ -141,6 +141,7 @@ public class DriverManager {
     public static void cleanUp() {
         info("Clean Up Driver and browser session in Windows System!");
         OperationSystemUtils.cleanUpDriverProcess();
+        OperationSystemUtils.cleanBrowserProcess();
     }
 
     public static WebDriverProvider getWebDriverProvider() {

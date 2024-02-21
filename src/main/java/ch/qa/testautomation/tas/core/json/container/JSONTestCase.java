@@ -2,6 +2,7 @@ package ch.qa.testautomation.tas.core.json.container;
 
 import ch.qa.testautomation.tas.core.json.customDeserializer.CustomStepListDeserializer;
 import ch.qa.testautomation.tas.core.json.customDeserializer.CustomStringListDeserializer;
+import ch.qa.testautomation.tas.core.json.customDeserializer.CustomTestCaseConditionDeserializer;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -37,6 +38,7 @@ public class JSONTestCase extends JSONContainer {
     private String story;
     private String epic;
     private String feature;
+    private JSONTestCaseConditions conditions;
 
     public String getAdditionalTestDataFile() {
         return additionalTestDataFile;
@@ -230,6 +232,14 @@ public class JSONTestCase extends JSONContainer {
 
     public void setFeature(String feature) {
         this.feature = feature;
+    }
+    public JSONTestCaseConditions getConditions() {
+        return conditions;
+    }
+
+    @JsonDeserialize(using = CustomTestCaseConditionDeserializer.class)
+    public void setConditions(JSONTestCaseConditions conditions) {
+        this.conditions = conditions;
     }
 
     @Override

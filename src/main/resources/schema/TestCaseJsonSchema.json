@@ -41,8 +41,7 @@
       "enum": [
         "TFS",
         "AzureDevOps",
-        "JIRA",
-        "HPQC"
+        "JIRA"
       ]
     },
     "testCaseId": {
@@ -148,6 +147,35 @@
         "Invalid Login Features."
       ]
     },
+    "conditions": {
+      "type": "object",
+      "properties": {
+        "limit": {
+          "type": "integer",
+          "description": "Limit set up for max usage of multi test case variants, e.g. max rows of table rows in csv or sql result, 0 means unlimited",
+          "default": 0
+        },
+        "index": {
+          "type": "array",
+          "description": "Index of multi test case variants, begins '0', e.g. index of table rows in csv or sql result",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "useRandomLine": {
+          "type": "boolean",
+          "description": "Flag to set up if using random case in multi test case variants",
+          "enum": [
+            true,
+            false
+          ],
+          "default": false
+        }
+      },
+      "required": [
+        "useRandomLine"
+      ]
+    },
     "startURL": {
       "type": "string",
       "description": "Start url for the test object.",
@@ -183,6 +211,7 @@
               true,
               false
             ],
+            "default": false,
             "description": "To specify the screen shot taken strategy only for the step."
           },
           "stopOnError": {
@@ -191,6 +220,7 @@
               true,
               false
             ],
+            "default": false,
             "description": "To specify the stop on error strategy only for the step."
           }
         },

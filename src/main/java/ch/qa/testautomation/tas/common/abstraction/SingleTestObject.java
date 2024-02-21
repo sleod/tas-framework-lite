@@ -8,6 +8,17 @@ import java.util.Objects;
  * Parent Class for all test objects
  */
 public abstract class SingleTestObject {
+
+    private String name = "";
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public static void logStepInfo(String text) {
         SystemLogger.logStepInfo(text);
     }

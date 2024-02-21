@@ -353,6 +353,22 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
         return originalName;
     }
 
+    public boolean hasCondition() {
+        return Objects.nonNull(getTestCase().getConditions());
+    }
+
+    public boolean isUseRandomLine() {
+        return getTestCase().getConditions().isUseRandomLine();
+    }
+
+    public List<Integer> getVariantIndex() {
+        return getTestCase().getConditions().getIndex();
+    }
+
+    public int getVariantLimit() {
+        return getTestCase().getConditions().getLimit();
+    }
+
     private ReportBuilder getReportBuilder() {
         if (Objects.isNull(reportBuilder)) {
             reportBuilder = new ReportBuilder();

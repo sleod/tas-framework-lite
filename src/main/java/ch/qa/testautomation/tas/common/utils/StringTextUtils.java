@@ -1,7 +1,6 @@
 package ch.qa.testautomation.tas.common.utils;
 
 import org.apache.commons.text.StringEscapeUtils;
-import org.jsoup.Jsoup;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -37,7 +36,7 @@ public class StringTextUtils {
      * @return clean html text
      */
     public static String cleanHTMLTags(String text) {
-        return Jsoup.parseBodyFragment(text).text();
+        return text.replaceAll("<[^>]*>", "");
     }
 
     public static boolean isValid(Object value) {

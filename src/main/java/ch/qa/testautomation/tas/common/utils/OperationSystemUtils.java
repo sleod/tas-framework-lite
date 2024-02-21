@@ -24,7 +24,7 @@ public class OperationSystemUtils {
 
     public static void cleanBrowserProcess() {
         if (PropertyResolver.isWindows()) {
-            executeCommand("taskkill /f /fi \"pid gt 0\" /im " + PropertyResolver.getWebDriverName() + "*.exe");
+            executeCommand("taskkill /f /fi \"pid gt 0\" /im " + PropertyResolver.getWebDriverName() + ".exe");
         } else {
             executeCommand("pkill '" + PropertyResolver.getWebDriverName() + "*'");
             executeCommand("pkill 'Google Chrome*'");
