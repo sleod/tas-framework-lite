@@ -2,7 +2,6 @@ package ch.qa.testautomation.tas.rest.base;
 
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.intefaces.DriverProvider;
-import ch.qa.testautomation.tas.rest.base.TASRestDriver;
 
 public class RestDriverProvider implements DriverProvider {
 
