@@ -159,9 +159,9 @@ public class TestCaseStep implements Executable {
                     if (parameterCount == 1) {// single param required
                         Object parameter;
                         if (using.equalsIgnoreCase("CustomizedDataMap")) {//transfer whole map as parameter
-                            parameter = testDataContainer.getDataContent().get(parameterRowNum);
+                            parameter = secureParameter(testDataContainer.getDataContent().get(parameterRowNum));
                         } else {
-                            parameter = testDataContainer.getParameter(using, parameterRowNum);
+                            parameter = secureParameter(testDataContainer.getParameter(using, parameterRowNum));
                         }
                         //start casing param type
                         if (parameter instanceof ArrayNode arrayNode) {// Array Node
@@ -190,12 +190,12 @@ public class TestCaseStep implements Executable {
                             parameters = new Object[usingKeys.length];
                             for (int index = 0; index < usingKeys.length; index++) {
                                 //Key Werte welche im Array mitgegeben werden nun aus dem TestdataContainer auslesen
-                                Object valueObject = testDataContainer.getParameter(usingKeys[index].trim(), parameterRowNum);
+                                Object valueObject = secureParameter(testDataContainer.getParameter(usingKeys[index].trim(), parameterRowNum));
                                 parameters[index] = castParameter(valueObject);
                             }
                             invokeMethod(runMethod, pageObject, parameters);
                         } else {
-                            Object parameter = testDataContainer.getParameter(using, parameterRowNum);
+                            Object parameter = secureParameter(testDataContainer.getParameter(using, parameterRowNum));
                             if (parameter instanceof ArrayNode) {
                                 parameters = mapper.convertValue(parameter, new TypeReference<>() {
                                 });
@@ -221,6 +221,12 @@ public class TestCaseStep implements Executable {
         afterStep();
     }
 
+    private Object secureParameter(Object parameter){
+        if (Objects.isNull(parameter)) {
+            throw new ExceptionBase(ExceptionErrorKeys.NULL_EXCEPTION, "Parameter for test step: " + getName());
+        }
+        return parameter;
+    }
 
     private Object castParameter(Object valueObject) {
         if (valueObject instanceof TextNode textNode) {

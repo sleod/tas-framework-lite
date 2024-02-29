@@ -2,6 +2,7 @@ package ch.qa.testautomation.tas.core.component;
 
 import ch.qa.testautomation.tas.common.utils.OperationSystemUtils;
 import ch.qa.testautomation.tas.common.utils.WaitUtils;
+import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.controller.ExternAppController;
 import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.tas.core.media.ImageHandler;
@@ -141,7 +142,9 @@ public class DriverManager {
     public static void cleanUp() {
         info("Clean Up remain driver session in Operation System.");
         OperationSystemUtils.cleanUpWebDriverProcess();
-        OperationSystemUtils.cleanBrowserProcess();
+        if(PropertyResolver.isHeadlessModeEnabled() || !PropertyResolver.isKeepBrowserOnErrorEnabled()) {
+            OperationSystemUtils.cleanBrowserProcess();
+        }
     }
 
     public static WebDriverProvider getWebDriverProvider() {
