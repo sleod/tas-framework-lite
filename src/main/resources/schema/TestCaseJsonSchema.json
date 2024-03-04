@@ -86,6 +86,7 @@
     "additionalTestDataFile": {
       "type": "string",
       "description": "Test Data Reference, json file only.",
+      "pattern": "^File:.*?\\.json$",
       "examples": [
         "File:testData/MyData.json"
       ]
