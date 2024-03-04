@@ -93,7 +93,7 @@ public class TestDataContainer {
     private void loadAdditionalTestData(String fileRef) {
         if (StringTextUtils.isValid(fileRef)) {
             String addTestDataRef = fileRef.toLowerCase();
-            if (!addTestDataRef.startsWith("file:") && !addTestDataRef.endsWith(".json")) {
+            if (!addTestDataRef.startsWith("file:") || !addTestDataRef.endsWith(".json")) {
                 throw new ExceptionBase(ExceptionErrorKeys.ADDITIONAL_TEST_DATA_FILE_CAN_ONLY_BE_JSON);
             } else {
                 additionalData = true;
