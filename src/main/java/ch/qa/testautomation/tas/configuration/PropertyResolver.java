@@ -278,8 +278,8 @@ public class PropertyResolver {
         return getProperty(DRIVER_DOWNLOAD_STRATEGY.key(), DownloadStrategy.AUTO.name());
     }
 
-    public static String getLogLevelApollon() {
-        return getProperty(LOG_LEVEL_APOLLON.key(), Level.INFO.name());
+    public static String getTASLogLevel() {
+        return getProperty(LOG_LEVEL_TAS.key(), Level.INFO.name());
     }
 
     public static String getTFSRunnerConfigFile() {

@@ -6,6 +6,7 @@ import ch.qa.testautomation.tas.core.component.DriverManager;
 import com.codeborne.selenide.WebDriverRunner;
 import com.codeborne.selenide.impl.SelenidePageFactory;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.events.EventFiringDecorator;
 
 /**
@@ -13,14 +14,14 @@ import org.openqa.selenium.support.events.EventFiringDecorator;
  */
 public abstract class WebPageObject extends SingleTestObject {
 
-    protected final WebDriver driver;
+    protected final RemoteWebDriver driver;
 
     public WebPageObject() {
-        WebDriver tempDriver = DriverManager.getWebDriver();
+        RemoteWebDriver webDriver = DriverManager.getWebDriver();
         if (PropertyResolver.isDemoModeEnabled() || PropertyResolver.isGenerateVideoEnabled()) {
-            driver = new EventFiringDecorator<>(new WebDriverEventCapture()).decorate(tempDriver);
+            driver = (RemoteWebDriver) new EventFiringDecorator<>(new WebDriverEventCapture()).decorate(webDriver);
         } else {
-            driver = tempDriver;
+            driver = webDriver;
         }
         WebDriverRunner.setWebDriver(driver);
         new SelenidePageFactory().page(WebDriverRunner.driver(), this);

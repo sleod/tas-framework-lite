@@ -20,7 +20,7 @@ public enum PropertyKey {
     DRIVER_CONFIG_LOCATION("driver.config.location"),
     PAGE_CONFIG_LOCATION("page.config.location"),
     OCR_TESSDATA_LOCATION("ocr.tessdata.location"),
-    LOG_LEVEL_APOLLON("log.level.apollon"),
+    LOG_LEVEL_TAS("log.level.tas"),
     RUN_TFS_SYNC("run.tfs.sync"),
     RUN_JIRA_SYNC("run.jira.sync"),
     RUN_QC_SYNC("run.hpqc.sync"),

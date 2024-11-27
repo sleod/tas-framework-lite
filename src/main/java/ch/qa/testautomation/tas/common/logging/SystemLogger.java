@@ -71,37 +71,37 @@ public class SystemLogger {
     }
 
     public static void error(String msg) {
-        if (Level.getLevel(PropertyResolver.getLogLevelApollon()).intLevel() >= Level.ERROR.intLevel()) {
+        if (Level.getLevel(PropertyResolver.getTASLogLevel()).intLevel() >= Level.ERROR.intLevel()) {
             LOGGER.error(msg);
         }
     }
 
     public static void warn(String msg) {
-        if (Level.getLevel(PropertyResolver.getLogLevelApollon()).intLevel() >= Level.WARN.intLevel()) {
+        if (Level.getLevel(PropertyResolver.getTASLogLevel()).intLevel() >= Level.WARN.intLevel()) {
             LOGGER.warn(msg);
         }
     }
 
     public static void info(String msg) {
-        if (Level.getLevel(PropertyResolver.getLogLevelApollon()).intLevel() >= Level.INFO.intLevel()) {
+        if (Level.getLevel(PropertyResolver.getTASLogLevel()).intLevel() >= Level.INFO.intLevel()) {
             LOGGER.info(msg);
         }
     }
 
     public static void stepInfo(String msg) {
-        if (Level.getLevel(PropertyResolver.getLogLevelApollon()).intLevel() >= STEP_INFO.intLevel()) {
+        if (Level.getLevel(PropertyResolver.getTASLogLevel()).intLevel() >= STEP_INFO.intLevel()) {
             LOGGER.log(STEP_INFO, msg);
         }
     }
 
     public static void debug(String msg) {
-        if (Level.getLevel(PropertyResolver.getLogLevelApollon()).intLevel() >= Level.DEBUG.intLevel()) {
+        if (Level.getLevel(PropertyResolver.getTASLogLevel()).intLevel() >= Level.DEBUG.intLevel()) {
             LOGGER.debug(msg);
         }
     }
 
     public static void trace(String msg) {
-        if (Level.getLevel(PropertyResolver.getLogLevelApollon()).intLevel() >= Level.TRACE.intLevel()) {
+        if (Level.getLevel(PropertyResolver.getTASLogLevel()).intLevel() >= Level.TRACE.intLevel()) {
             LOGGER.trace(msg);
         }
     }

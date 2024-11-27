@@ -2,15 +2,15 @@ package ch.qa.testautomation.tas.web;
 
 import ch.qa.testautomation.tas.common.logging.Screenshot;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
+import ch.qa.testautomation.tas.core.component.DriverManager;
 import ch.qa.testautomation.tas.intefaces.DriverProvider;
 import ch.qa.testautomation.tas.intefaces.ScreenshotTaker;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.awt.*;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 import static ch.qa.testautomation.tas.common.logging.ScreenCapture.getScreenshot;
@@ -20,37 +20,38 @@ import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
  * Web Driver Provider which can be extended for
  */
 public abstract class WebDriverProvider implements ScreenshotTaker, DriverProvider {
-    private static final Map<String, WebDriver> drivers = new HashMap<>();
+    protected static final ThreadLocal<RemoteWebDriver> drivers = new ThreadLocal<>();
 
-    public void setDriver(WebDriver driver) {
-        drivers.put(Thread.currentThread().getName(), driver);
+    public void setDriver(RemoteWebDriver driver) {
+        drivers.set(driver);
         info("Save web driver for: " + Thread.currentThread().getName());
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public WebDriver getDriver() {
+    public RemoteWebDriver getDriver() {
         String tid = Thread.currentThread().getName();
-        if (drivers.get(tid) == null) {
+        if (drivers.get() == null) {
             info("Init web driver for: " + tid);
             initialize();
         } else {
             info("Get web driver for: " + tid);
         }
-        return drivers.get(tid);
+        return drivers.get();
     }
 
     @Override
     public void close() {
         String tid = Thread.currentThread().getName();
-        if (Objects.nonNull(drivers.get(tid))) {
+        if (Objects.nonNull(drivers.get())) {
             if (PropertyResolver.isKeepBrowserOnErrorEnabled()) {
                 info("Keep browser session for: " + tid);
             } else {
                 info("Close web driver for: " + tid);
-                drivers.get(tid).quit();
+                drivers.get().quit();
+                DriverManager.cleanUp();
             }
-            drivers.remove(tid);
+            drivers.remove();
         }
     }
 

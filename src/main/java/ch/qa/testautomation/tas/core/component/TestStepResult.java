@@ -61,6 +61,8 @@ public class TestStepResult {
 
     public void setTestFailure(TestFailure testFailure) {
         this.testFailure = testFailure;
+        logInfo(testFailure.getMessage());
+        logInfo(testFailure.getTrace());
     }
 
     public long getStart() {
@@ -108,7 +110,7 @@ public class TestStepResult {
     }
 
     public synchronized void logInfo(String line) {
-        logs.append(line).append("\n");
+        logs.append(line).append(System.lineSeparator());
     }
 
     public String getStepId() {

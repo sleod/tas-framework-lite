@@ -1,5 +1,6 @@
 package ch.qa.testautomation.tas.core.component;
 
+import ch.qa.testautomation.tas.common.processhandling.CrossPlatformProcessScanner;
 import ch.qa.testautomation.tas.common.utils.OperationSystemUtils;
 import ch.qa.testautomation.tas.common.utils.WaitUtils;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
@@ -102,8 +103,7 @@ public class DriverManager {
     public static void openUrl(String url) {
         boolean displayed = false;
         if (webDriverProvider != null) {
-            WebDriver webDriver = getWebDriver();
-            WebDriverRunner.setWebDriver(webDriver);
+            WebDriverRunner.setWebDriver(getWebDriver());
             open(url);
             displayed = WaitUtils.waitForPageLoad(30).isDisplayed();
         }
@@ -140,10 +140,9 @@ public class DriverManager {
      * clean up driver processes in OS
      */
     public static void cleanUp() {
-        info("Clean Up remain driver session in Operation System.");
-        OperationSystemUtils.cleanUpWebDriverProcess();
+        info("Clean Up remain driver and browser sessions in Operation System.");
         if(PropertyResolver.isHeadlessModeEnabled() || !PropertyResolver.isKeepBrowserOnErrorEnabled()) {
-            OperationSystemUtils.cleanBrowserProcess();
+            new CrossPlatformProcessScanner().run();
         }
     }
 
@@ -164,7 +163,7 @@ public class DriverManager {
      *
      * @return web driver
      */
-    public static WebDriver getWebDriver() {
+    public static RemoteWebDriver getWebDriver() {
         if (webDriverProvider != null) {
             return webDriverProvider.getDriver();
         }

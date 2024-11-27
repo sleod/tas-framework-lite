@@ -153,7 +153,7 @@ public class TestCaseStep implements Executable {
                         using = jsonTestCaseStep.getUsing();
                     }
                     if (using.isEmpty()) {//parameter required but not found
-                        throw new ExceptionBase(ExceptionErrorKeys.TEST_STEP_REQUIRED_PARAMETER_NOT_FOUND, runMethod.getName());
+                        throw new ExceptionBase(ExceptionErrorKeys.TEST_STEP_REQUIRED_PARAMETER_NOT_FOUND, getName());
                     }
                     int parameterRowNum = 0;
                     if (parameterCount == 1) {// single param required
@@ -221,9 +221,9 @@ public class TestCaseStep implements Executable {
         afterStep();
     }
 
-    private Object secureParameter(Object parameter){
+    private Object secureParameter(Object parameter) {
         if (Objects.isNull(parameter)) {
-            throw new ExceptionBase(ExceptionErrorKeys.NULL_EXCEPTION, "Parameter for test step: " + getName());
+            throw new ExceptionBase(ExceptionErrorKeys.NULL_EXCEPTION, "Parameter of Test Step: " + getName());
         }
         return parameter;
     }

@@ -314,7 +314,7 @@ public class JIRARestClient extends TASRestClient {
         if (exeKeyMap.isEmpty()) {//create one execution for test runs
             JsonNode issue = createTestExecution(jiraExecConfig.getProjectKey(),
                     jiraExecConfig.getRunName() + " - " + DateTimeUtils.getFormattedLocalTimestamp(),
-                    "Automated Test Execution with Apollon Framework " + DateTimeUtils.getFormattedLocalTimestamp());
+                    "Automated Test Execution with TAS Framework " + DateTimeUtils.getFormattedLocalTimestamp());
             exeKey = issue.get("key").asText();
             WaitUtils.waitStep(1);
         } else {

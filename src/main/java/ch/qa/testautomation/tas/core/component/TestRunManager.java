@@ -279,6 +279,7 @@ public class TestRunManager {
                 tcIndex = getDefinedIndex(testCaseObject, dataContent.size());
             }
             for (int index = 0; index < dataContent.size(); index++) {
+                if (!tcIndex.isEmpty() && !tcIndex.contains(index)) continue;
                 Map<String, Object> testData = dataContent.get(index);
                 String vNr = index + 1 < 10 ? "0" + (index + 1) : String.valueOf(index + 1);
                 if (!testData.containsKey("seriesNumber") && isValid(testCaseObject.getSeriesNumber())) {
@@ -366,7 +367,7 @@ public class TestRunManager {
         return false;
     }
 
-    private static List<Integer> getDefinedIndex(TestCaseObject testCaseObject, int size) {
+    private static List<Integer> getDefinedIndex(TestCaseObject testCaseObject, int maxSize) {
         boolean useRandom = testCaseObject.isUseRandomLine();
         int limit = testCaseObject.getVariantLimit();
         List<Integer> varIndex = testCaseObject.getVariantIndex();
@@ -375,9 +376,9 @@ public class TestRunManager {
         } else {//random lines
             HashSet<Integer> indexSet = new LinkedHashSet<>();
             int next = 0;
-            while (limit < size && limit > 0 || indexSet.size() == size) {//pickup lines randomly with limit
-                if (indexSet.add(useRandom ? new Random().nextInt(size) : next++)) {
-                    limit -= 1;
+            while (limit < maxSize && limit > 0 || indexSet.size() == maxSize) {//pickup lines randomly with limit
+                if (indexSet.add(useRandom ? new Random().nextInt(maxSize) : next++)) {
+                    limit--;
                 }
             }
             return indexSet.stream().toList();

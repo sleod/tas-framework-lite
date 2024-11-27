@@ -4,15 +4,15 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ch.qa.testautomation</groupId>
     <artifactId>tas-framework</artifactId>
-    <version>4.1.09-RELEASE</version>
+    <version>5.1.00-RELEASE</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>17</java.version>
+        <java.version>21</java.version>
         <maven.compiler.version>3.8.1</maven.compiler.version>
-        <maven.compiler.source>17</maven.compiler.source >
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source >
+        <maven.compiler.target>21</maven.compiler.target>
         <maven.plugin.jar.version>3.3.0</maven.plugin.jar.version>
         <maven.plugin.source.version>3.3.0</maven.plugin.source.version>
         <maven.surefire.version>3.2.5</maven.surefire.version>
@@ -31,7 +31,7 @@
         <oracle.jdbc.version>21.7.0.0</oracle.jdbc.version>
         <poi.version>5.2.2</poi.version>
         <reflection.version>0.10.2</reflection.version>
-        <selenide.version>7.0.6</selenide.version>
+        <selenide.version>7.5.0</selenide.version>
         <slf4j.version>2.0.11</slf4j.version>
         <tess4j.version>5.10.0</tess4j.version>
         <zxing.version>3.5.3</zxing.version>
@@ -95,6 +95,10 @@
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-compress</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
