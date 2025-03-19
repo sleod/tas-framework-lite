@@ -28,6 +28,7 @@ public enum PropertyKey {
     RESOURCE_PROJECT("resource.project"),
     RUN_STOP_ON_ERROR("run.stop.on.error"),
     RUN_START_URL("run.start.url"),
+    GENERATE_SINGLE_FILE_REPORT("generate.single.file.report"),
     WEBDRIVER_CHROME_DRIVER("webdriver.chrome.driver"),
     WEBDRIVER_EDGE_DRIVER("webdriver.edge.driver"),
     WEBDRIVER_EDGE_FILENAME("webdriver.edge.filename"),

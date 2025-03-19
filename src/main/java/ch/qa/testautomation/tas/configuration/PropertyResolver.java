@@ -343,6 +343,10 @@ public class PropertyResolver {
         return getDriverConfigLocation() + filename;
     }
 
+    public static boolean isGenerateSingleFileReport() {
+        return getProperty(GENERATE_SINGLE_FILE_REPORT.key(), "false").equalsIgnoreCase("true");
+    }
+
     public static String getRestConfigFile() {
         String filename = getProperty(REST_CONFIG.key(), "restConfig.json");
         return getDriverConfigLocation() + filename;

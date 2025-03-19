@@ -17,6 +17,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.Getter;
 import org.apache.commons.collections4.properties.SortedProperties;
 
 import java.io.File;
@@ -38,6 +39,7 @@ public class ReportBuilder {
     private static final String EXECUTOR_FILE_NAME = "executor.json";
     private static final String FRAMEWORK_CONFIG_FILE_NAME = "frameworkConfig.json";
     private static List<String> usedDriverConfigs = null;
+    @Getter
     private static int currentOrder;
 
     /**
@@ -113,6 +115,7 @@ public class ReportBuilder {
         jsonTestResult.setFullName(testCaseObject.getPackageName() + "." + testCaseObject.getName());//fill full name as required
         addLabels(jsonTestResult, testCaseObject);//add labels
         addLinks(jsonTestResult, testCaseObject);//add links
+        addParameters(jsonTestResult, testCaseObject);
         jsonTestResult.setHistoryId(buildHistoryId(testCaseObject.getPackageName() + "." + jsonTestResult.getName()));
         for (TestCaseStep testCaseStep : testCaseObject.getSteps()) {
             //Attachment will be done by construction
@@ -200,10 +203,6 @@ public class ReportBuilder {
                 .put(REPORT_NAME, "Allure Report of Test Run" + buildOrder);
         FileOperation.writeStringToFile(executor.toString(), PropertyResolver.getAllureResultsDirectory() + EXECUTOR_FILE_NAME);
         currentOrder = buildOrder;
-    }
-
-    public static int getCurrentOrder() {
-        return currentOrder;
     }
 
     public void generateReports() {
@@ -403,6 +402,12 @@ public class ReportBuilder {
         addLabelToResult("epic", testCaseObject.getTestCase().getEpic(), jsonTestResult);
         addLabelToResult("feature", testCaseObject.getTestCase().getFeature(), jsonTestResult);
         addLabelToResult("thread", testCaseObject.getTestRunResult().getThreadName(), jsonTestResult);
+    }
+
+    private void addParameters(JSONTestResult jsonTestResult, TestCaseObject testCaseObject) {
+        if (!testCaseObject.getTestRunResult().getParameters().isEmpty()) {
+            testCaseObject.getTestRunResult().getParameters().forEach((key, value) -> jsonTestResult.addParameter(key, value.toString()));
+        }
     }
 
     private void addLinks(JSONTestResult jsonTestResult, TestCaseObject testCaseObject) {

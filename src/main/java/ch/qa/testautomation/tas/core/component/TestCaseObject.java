@@ -92,6 +92,7 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
         this.description = testCase.getDescription();
         initTestObjects(testCase.getTestObjectNames());
         testDataContainer = new TestDataContainer(testDataContent, testCase.getAdditionalTestDataFile());
+        testRunResult.setParameters(testDataContent.getFirst());
         initTestSteps(testCase.getSteps());
         testRunResult.setDescription(description);
         setTestCaseId(testCase.getTestCaseId());

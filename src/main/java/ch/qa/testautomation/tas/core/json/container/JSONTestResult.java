@@ -9,21 +9,35 @@ import ch.qa.testautomation.tas.core.json.customDeserializer.CustomStepResultLis
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.File;
 import java.util.*;
 
+@Getter
 public class JSONTestResult extends JSONContainer {
+
+    @Setter
     private String name;
+    @Setter
     private String fullName;
+    @Setter
     private String description;
+    @Setter
     private String status;
+    @Setter
     private String uuid;
+    @Setter
     private long start;
+    @Setter
     private long stop;
+    @Setter
     private String stage;
+    @Setter
     private String historyId;
     private List<JSONResultLabel> labels = new LinkedList<>();
+    private List<JSONResultLabel> parameters = new LinkedList<>();
     private List<JSONStepResult> steps = new LinkedList<>();
     private List<JSONResultLink> links = new LinkedList<>();
     private Map<String, Object> statusDetails = new LinkedHashMap<>();
@@ -44,78 +58,6 @@ public class JSONTestResult extends JSONContainer {
         this.stage = "finished";
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getUuid() {
-        return uuid;
-    }
-
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
-
-    public long getStart() {
-        return start;
-    }
-
-    public void setStart(long start) {
-        this.start = start;
-    }
-
-    public long getStop() {
-        return stop;
-    }
-
-    public void setStop(long stop) {
-        this.stop = stop;
-    }
-
-    public String getHistoryId() {
-        return historyId;
-    }
-
-    public void setHistoryId(String historyId) {
-        this.historyId = historyId;
-    }
-
-    public String getStage() {
-        return stage;
-    }
-
-    public void setStage(String stage) {
-        this.stage = stage;
-    }
-
     @JsonDeserialize(using = CustomResultLabelDeserializer.class)
     public void setLabels(List<JSONResultLabel> labels) {
         this.labels = labels;
@@ -134,12 +76,8 @@ public class JSONTestResult extends JSONContainer {
         labels.add(new JSONResultLabel(name, value));
     }
 
-    public List<JSONStepResult> getSteps() {
-        return steps;
-    }
-
-    public List<JSONResultLabel> getLabels() {
-        return labels;
+    public void addParameter(String name, String value) {
+        parameters.add(new JSONResultLabel(name, value));
     }
 
     @JsonDeserialize(using = CustomStepResultListDeserializer.class)
@@ -147,8 +85,9 @@ public class JSONTestResult extends JSONContainer {
         this.steps = steps;
     }
 
-    public List<JSONResultLink> getLinks() {
-        return links;
+    @JsonDeserialize(using = CustomResultLabelDeserializer.class)
+    public void setParameters(List<JSONResultLabel> parameters) {
+        this.parameters = parameters;
     }
 
     @JsonDeserialize(using = CustomResultLinkDeserializer.class)
@@ -156,17 +95,9 @@ public class JSONTestResult extends JSONContainer {
         this.links = links;
     }
 
-    public Map<String, Object> getStatusDetails() {
-        return statusDetails;
-    }
-
     @JsonAnySetter
     public void setStatusDetails(String key, Object value) {
         this.statusDetails.put(key, value);
-    }
-
-    public List<JSONAttachment> getAttachments() {
-        return attachments;
     }
 
     @JsonDeserialize(using = CustomAttachmentListDeserializer.class)

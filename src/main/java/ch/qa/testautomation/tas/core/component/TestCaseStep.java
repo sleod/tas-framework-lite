@@ -16,6 +16,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.function.Executable;
 
@@ -29,6 +31,12 @@ import static ch.qa.testautomation.tas.common.logging.SystemLogger.logStepInfo;
 import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
 
 public class TestCaseStep implements Executable {
+    /**
+     * -- GETTER --
+     *
+     * @return order number of step
+     */
+    @Getter
     private final int orderNumber;
     private final Class<?> testObjectClass;
     private final TestDataContainer testDataContainer;
@@ -36,10 +44,18 @@ public class TestCaseStep implements Executable {
     private final JsonTestCaseMetaData jsonTestCaseMetaData;
     private Object pageObject = null;
     private final JSONTestCaseStep jsonTestCaseStep;
+    @Getter
     private final TestStepResult testStepResult;
+    @Setter
     private boolean takeScreenshot = false;
+    @Setter
+    @Getter
     private boolean stopOnError = false;
+    @Getter
+    @Setter
+    private boolean skipOnError = false;
     private final ObjectMapper mapper = new ObjectMapper();
+    @Getter
     private final String name;
     private TestRunResult testRunResult;
     private final Method runMethod;
@@ -59,33 +75,10 @@ public class TestCaseStep implements Executable {
         this.jsonTestCaseMetaData = jsonTestCaseMetaData;
     }
 
-    /**
-     * @return order number of step
-     */
-    public int getOrderNumber() {
-        return orderNumber;
-    }
-
-    public String getName() {
-        return name;
-    }
-
     public String prepareAndGetDisplayName(boolean retry, int retryOrder) {
         noRun = PropertyResolver.isRetryOnErrorEnabled() && retry
                 && retryOrder >= 0 && retryOrder >= getOrderNumber() + PropertyResolver.getRetryOverSteps();
         return getName();
-    }
-
-    public TestStepResult getTestStepResult() {
-        return testStepResult;
-    }
-
-    public boolean isStopOnError() {
-        return stopOnError;
-    }
-
-    public void setStopOnError(boolean stopOnError) {
-        this.stopOnError = stopOnError;
     }
 
     public boolean isTakeScreenshotDefinedOnTestcaseStep() {
@@ -93,10 +86,6 @@ public class TestCaseStep implements Executable {
             setTakeScreenshot(jsonTestCaseStep.getTakeScreenshot().equalsIgnoreCase("true"));
         }
         return takeScreenshot;
-    }
-
-    public void setTakeScreenshot(boolean takeScreenshot) {
-        this.takeScreenshot = takeScreenshot;
     }
 
     /**
@@ -125,6 +114,7 @@ public class TestCaseStep implements Executable {
         } else {
             setStopOnError(PropertyResolver.isStopOnErrorEnabled());
         }
+        setSkipOnError(runMethod.isAnnotationPresent(SkipOnError.class));
     }
 
     /**
@@ -211,10 +201,15 @@ public class TestCaseStep implements Executable {
                 if (issue instanceof InvocationTargetException) {
                     issue = ((InvocationTargetException) issue).getTargetException();
                 }
-                testStepResult.setStatus(TestStatus.FAIL);
+                if (isSkipOnError()) {
+                    testStepResult.setStatus(TestStatus.SKIPPED);
+                } else {
+                    testStepResult.setStatus(TestStatus.FAIL);
+                }
                 testStepResult.setActual("Exception: " + issue.getMessage());
                 testStepResult.setTestFailure(new TestFailure(issue));
-                TestStepMonitor.setIsStop(isStopOnError());
+                noRun = isStopOnError() || isSkipOnError();
+                TestStepMonitor.setIsStop(noRun);
             }
         }
         testStepResult.stopNow();
