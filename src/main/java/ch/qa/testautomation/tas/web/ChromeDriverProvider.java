@@ -8,6 +8,7 @@ import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.devtools.DevTools;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.File;
@@ -41,6 +42,10 @@ public class ChromeDriverProvider extends WebDriverProvider {
         chromeDriver.manage().window().setPosition(new Point(0, 0));
         configureWindowSize(chromeDriver, isChromeMaximised());
         setDriver(chromeDriver);
+    }
+
+    public DevTools getDevTools() {
+        return ((ChromeDriver) getDriver()).getDevTools();
     }
 
     private static ChromeOptions getChromeOptions() {

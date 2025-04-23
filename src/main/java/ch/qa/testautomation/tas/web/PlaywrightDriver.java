@@ -37,7 +37,7 @@ public class PlaywrightDriver {
                 .setAcceptDownloads(true)
                 .setViewportSize(PropertyResolver.getBrowserScreenWidth(), PropertyResolver.getBrowserScreenHigh())
                 .setArgs(getArguments());
-        String chromePath = PropertyResolver.getChromeExecutablePath();
+        String chromePath = PropertyResolver.getBrowserBinPath();
         if (!chromePath.isEmpty()) {
             launchOptions.setExecutablePath(Paths.get(chromePath));
         }

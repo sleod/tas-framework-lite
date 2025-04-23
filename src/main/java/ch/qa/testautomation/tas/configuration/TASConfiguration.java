@@ -1,6 +1,7 @@
 package ch.qa.testautomation.tas.configuration;
 
 import ch.qa.testautomation.tas.common.enumerations.DownloadStrategy;
+import ch.qa.testautomation.tas.common.enumerations.WebDriverName;
 import org.apache.logging.log4j.Level;
 
 import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.*;
@@ -345,10 +346,39 @@ public class TASConfiguration {
     /**
      * set browser name for web driver to start
      *
-     * @param value like default: "chrome"
+     * @param webDriverName Enum {@link WebDriverName}
      */
-    public TASConfiguration setWebDriverName(String value) {
-        PropertyResolver.setWebDriverName(value);
+    public TASConfiguration setWebDriverName(WebDriverName webDriverName) {
+        PropertyResolver.setWebDriverName(webDriverName.getName());
+        return this;
+    }
+
+    /**
+     * set browser executable path manually if the browser path was not in system registered
+     *
+     * @param value full path to browser binary file
+     */
+    public TASConfiguration setBrowserBinPath(String value) {
+        PropertyResolver.setBrowserBinPath(value);
+        return this;
+    }
+
+    /**
+     * toggle if allow CDP connection
+     *
+     * @param value boolean, default false
+     */
+    public TASConfiguration setCDPEnabled(boolean value) {
+        PropertyResolver.setProperty(CDP_ALLOWED.key(), String.valueOf(value));
+        return this;
+    }
+    /**
+     * set test id attribute for Playwright specially
+     *
+     * @param value like: "test-id", "my-id" ...
+     */
+    public TASConfiguration setTestIdAttribute(String value) {
+        PropertyResolver.setProperty(TEST_ID_ATTRIBUTE.key(), value);
         return this;
     }
 

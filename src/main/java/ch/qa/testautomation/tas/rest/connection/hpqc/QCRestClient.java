@@ -540,20 +540,16 @@ public class QCRestClient {
             TestStepResult stepResult = stepResults.get(stepOrder - 1);
             String stepId = runStep.getEntityID();
             String stepStatus = stepResult.getStatus().text();
-            String actual = stepResult.getInfo();
-            List<Screenshot> evidence = stepResult.getScreenshots();
+            String actual = stepResult.getStepLogs();
             runStep.setAttribute(QCConstants.PARAM_STATUS, stepStatus);
             runStep.setAttribute(QCConstants.PARAM_ACTUAL, convertTextToHTML(actual));
             Response resp = updateEntityInQC(runStep);
             String pattern = "Update Run-Step: " + runStep.getEntityName() + " with status: " + stepStatus;
             results.add(new QCResponseMessage(resp, pattern));
-            for (Screenshot screenshot : evidence) {
-                resp = appendAttachment(QCConstants.ENTITY_TYPE_RUN_STEP, stepId, screenshot.getScreenshotFile());
+            File screenshot = stepResult.getFullScreen();
+            if (screenshot != null) {
+                resp = appendAttachment(QCConstants.ENTITY_TYPE_RUN_STEP, stepId, screenshot);
                 results.add(new QCResponseMessage(resp, "Upload screenshot"));
-                if (screenshot.hasPageFile()) {
-                    resp = appendAttachment(QCConstants.ENTITY_TYPE_RUN_STEP, stepId, screenshot.getPageFile());
-                    results.add(new QCResponseMessage(resp, "Upload page source"));
-                }
             }
         }
         //update Test Instance

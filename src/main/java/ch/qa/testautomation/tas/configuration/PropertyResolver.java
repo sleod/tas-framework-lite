@@ -8,15 +8,18 @@ import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.logging.log4j.Level;
 
+import java.awt.*;
 import java.io.File;
 import java.util.*;
+import java.util.List;
+import java.util.stream.Stream;
 
 import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.*;
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.*;
 import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
 
 public class PropertyResolver {
-    private final static Map<String, Properties> propertyThreadsMap = new HashMap<>();
+    private final static ThreadLocal<Properties> propertyThreadsMap = new ThreadLocal<>();
 
     public static List<String> getAllPropertiesWith(String subKey) {
         List<String> settings = new LinkedList<>();
@@ -38,7 +41,7 @@ public class PropertyResolver {
 
     public static void setProperty(String key, String value) {
         if (isValid(value)) {
-            getProperties().setProperty(key, value.trim());
+            geCurrentProperties().setProperty(key, value.trim());
             if (!key.toLowerCase()
                     .contains("pat") && !key.toLowerCase()
                     .contains("password")) {
@@ -52,11 +55,11 @@ public class PropertyResolver {
 
     }
 
-    public static Properties getProperties() {
-        String tid = Thread.currentThread()
-                .getName();
-        propertyThreadsMap.putIfAbsent(tid, new Properties());
-        return propertyThreadsMap.get(tid);
+    public static Properties geCurrentProperties() {
+        if (propertyThreadsMap.get() == null) {
+            propertyThreadsMap.set(new Properties());
+        }
+        return propertyThreadsMap.get();
     }
 
     public static String decodeBase64(String encoded) {
@@ -92,6 +95,7 @@ public class PropertyResolver {
         return getProperty(TESTDATA_LOCATION.key(), "testData/");
     }
 
+
     public static String getTestCaseReportLocation() {
         return getProperty(TESTCASE_REPORT_DIR.key(), "target/Reports/");
     }
@@ -108,7 +112,7 @@ public class PropertyResolver {
     }
 
     public static String getScreenshotFormat() {
-        return getProperty(SCREENSHOT_FORMAT.key(), "PNG");
+        return getProperty(SCREENSHOT_FORMAT.key(), "png");
     }
 
     public static String getTestautomationPackage() {
@@ -240,16 +244,30 @@ public class PropertyResolver {
         return getProperty(DEMO_MODE_ENABLED.key(), "false").equalsIgnoreCase("true");
     }
 
-    public static boolean isGenerateSingleFileReport() {
-        return getProperty(GENERATE_SINGLE_FILE_REPORT.key(), "false").equalsIgnoreCase("true");
-    }
-
     public static boolean getBrowserFullscreenEnabled() {
         return getProperty(DRIVER_BROWSER_FULLSCREEN.key(), "false").equalsIgnoreCase("true");
     }
 
     public static String getBrowserScreenSize() {
         return getProperty(BROWSER_SCREEN_SIZE.key(), "1920,1080");
+    }
+
+    public static int getBrowserScreenWidth() {
+        return getBrowserScreen(0);
+    }
+
+    public static int getBrowserScreenHigh() {
+        return getBrowserScreen(1);
+    }
+
+    private static int getBrowserScreen(int i) {
+        String screen = getBrowserScreenSize();
+        if (getBrowserFullscreenEnabled()) {
+            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+            return List.of(screenSize.getWidth(), screenSize.getHeight()).get(i).intValue();
+        }
+        String[] screens = screen.split(",");
+        return Integer.parseInt(screens[i].trim());
     }
 
     public static String getDriverConfigLocation() {
@@ -322,7 +340,7 @@ public class PropertyResolver {
 
     public static String getProperty(String key) {
         return System.getProperties()
-                .containsKey(key) ? System.getProperty(key) : getProperties().getProperty(key);
+                .containsKey(key) ? System.getProperty(key) : geCurrentProperties().getProperty(key);
     }
 
     private static String getProperty(String key, String defValue) {
@@ -361,8 +379,16 @@ public class PropertyResolver {
         return getProperty(VIDEO_FORMAT.key(), "mp4");
     }
 
+    public static String getTestIdAttribute() {
+        return getProperty(TEST_ID_ATTRIBUTE.key(), "");
+    }
+
     public static void setProperties(Map<String, String> properties) {
         properties.forEach(PropertyResolver::setProperty);
+    }
+
+    public static boolean isCDPEnabled() {
+        return getProperty(CDP_ALLOWED.key(), "false").equalsIgnoreCase("true");
     }
 
     public static boolean isLinux() {
@@ -388,7 +414,7 @@ public class PropertyResolver {
     }
 
     public static String getTestEnvironment() {
-        return getProperty(TEST_ENVIRONMENT.key(), "");
+        return getProperty(TEST_ENVIRONMENT.key(), "id");
     }
 
     public static String getTestDataFolder() {
@@ -404,20 +430,8 @@ public class PropertyResolver {
         return getProperty(DOWNLOAD_LOCATION.key(), dir);
     }
 
-    public static String getPdfComponentPath() {
-        String dir = getProperty(PDF_COMPONENT_PATH.key(), "");
-        if (dir.isEmpty()) {
-            dir = getDownloadDir();
-        }
-        return dir;
-    }
-
     public static String getBrowserBinPath() {
         return getProperty(BROWSER_BIN_PATH.key(), "");
-    }
-
-    public static void setPdfComponentPath(String pdfPath) {
-        setProperty(PDF_COMPONENT_PATH.key(), pdfPath);
     }
 
     public static void setBrowserBinPath(String binPath) {
@@ -425,7 +439,7 @@ public class PropertyResolver {
     }
 
     public static int getDriverWaitTimeout() {
-        String timeout = getProperty(DRIVER_WAIT_TIMEOUT.key(), "5");
+        String timeout = getProperty(DRIVER_WAIT_TIMEOUT.key(), "10");
         return Integer.parseInt(timeout) * 1000;
     }
 
@@ -459,6 +473,15 @@ public class PropertyResolver {
 
     public static String getJiraHost() {
         return getProperty(JIRA_HOST.key(), "");
+    }
+
+    public static String getJiraProxyHost() {
+        return getProperty(JIRA_PROXY_HOST.key(), "");
+    }
+
+    public static int getJiraProxyPort() {
+        String port = getProperty(JIRA_PROXY_PORT.key(), "");
+        return port.isEmpty() ? 0 : Integer.parseInt(port);
     }
 
     public static String getRestUser() {
@@ -515,7 +538,7 @@ public class PropertyResolver {
 
     public static int getRemoteExecutionMaxThreads() {
         String max = getProperty(EXECUTION_REMOTE_THREAD_MAX.key(), "5");
-        return Integer.valueOf(max);
+        return Integer.parseInt(max);
     }
 
     public static boolean hasNonHeadlessMethod() {
@@ -528,6 +551,10 @@ public class PropertyResolver {
 
     public static boolean isSimpleStringParameterAllowed() {
         return getProperty(SIMPLE_STRING_PARAMETER_ALLOWED.key(), "false").equalsIgnoreCase("true");
+    }
+
+    public static boolean isGenerateSingleFileReport() {
+        return getProperty(GENERATE_SINGLE_FILE_REPORT.key(), "false").equalsIgnoreCase("true");
     }
 
     public static void healthCheck() {

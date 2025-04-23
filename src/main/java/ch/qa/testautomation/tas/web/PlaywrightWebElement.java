@@ -1,7 +1,7 @@
 package ch.qa.testautomation.tas.web;
 
-import ch.qa.testautomation.tas.exception.tasBaseException;
-import ch.qa.testautomation.tas.exception.tasErrorKeys;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import lombok.Getter;

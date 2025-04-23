@@ -13,10 +13,12 @@ import ch.qa.testautomation.tas.core.json.container.JSONTestResult;
 import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
+import ch.qa.testautomation.tas.web.RemoteWebDriverProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.Getter;
 import org.apache.commons.collections4.properties.SortedProperties;
 
 import java.io.File;
@@ -38,6 +40,7 @@ public class ReportBuilder {
     private static final String EXECUTOR_FILE_NAME = "executor.json";
     private static final String FRAMEWORK_CONFIG_FILE_NAME = "frameworkConfig.json";
     private static List<String> usedDriverConfigs = null;
+    @Getter
     private static int currentOrder;
 
     /**
@@ -67,7 +70,7 @@ public class ReportBuilder {
         StringBuilder logContent = new StringBuilder();
         logContent.append(testRunResult.getBegin()).append("\n");
         for (TestStepResult testStepResult : testRunResult.getStepResults()) {
-            String info = testStepResult.getInfo();
+            String info = testStepResult.getStepLogs();
             logContent.append(info);
             if (testStepResult.getStatus().equals(TestStatus.FAIL)) {
                 logContent.append(testStepResult.getTestFailure().getMessage())
@@ -204,10 +207,6 @@ public class ReportBuilder {
                 .put(REPORT_NAME, "Allure Report of Test Run" + buildOrder);
         FileOperation.writeStringToFile(executor.toString(), PropertyResolver.getAllureResultsDirectory() + EXECUTOR_FILE_NAME);
         currentOrder = buildOrder;
-    }
-
-    public static int getCurrentOrder() {
-        return currentOrder;
     }
 
     public void generateReports() {
@@ -446,8 +445,8 @@ public class ReportBuilder {
         String typ = testCaseObject.getTestType().type();
         //add suffix to test case name with Platform+Version+devices
         String testCaseName = result.getName();
-        if (typ.startsWith("web") && Objects.nonNull(DriverManager.getRemoteWebDriverProvider())) {
-            JSONDriverConfig config = DriverManager.getRemoteWebDriverProvider().getConfig();
+        if (typ.startsWith("web") && DriverManager.getDriverProvider() instanceof RemoteWebDriverProvider remoteWebDriverProvider) {
+            JSONDriverConfig config = remoteWebDriverProvider.getConfig();
             testCaseName += " (" + DriverManager.getCurrentPlatform() + "-"
                     + config.getPlatformVersion() + "-" + config.getBrowserName() + ")";
         }

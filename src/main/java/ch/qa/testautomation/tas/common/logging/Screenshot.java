@@ -6,6 +6,7 @@ import ch.qa.testautomation.tas.common.utils.DateTimeUtils;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
+import lombok.Getter;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -20,60 +21,39 @@ import java.time.LocalDateTime;
  */
 public class Screenshot {
 
+    @Getter
+    private final String name;
+    @Getter
     private final LocalDateTime timeStamp = DateTimeUtils.getLocalDateTimeNow();
     private final LocalDate today = DateTimeUtils.getLocalDateToday();
+    @Getter
     private final String testCaseName;
+    @Getter
     private final String stepName;
+    @Getter
     private final File screenshotFile;
     private final ImageFormat format = ImageFormat.getFormat(PropertyResolver.getScreenshotFormat());
-    private final String pageSource;
-    private File pageFile = null;
 
-    public LocalDateTime getTimeStamp() {
-        return timeStamp;
-    }
-
-    public String getTestCaseName() {
-        return testCaseName;
-    }
-
-    public File getScreenshotFile() {
-        return screenshotFile;
-    }
-
-    public File getPageFile() {
-        if (pageFile == null) {
-            if (hasPageFile()) {
-                pageFile = writePageFile(pageSource, PropertyResolver.getTestCaseReportLocation());
-            }
-        }
-        return pageFile;
-    }
-
-    public Screenshot(BufferedImage imageData, String testCaseName, String stepName, String pageSource) {
+    public Screenshot(BufferedImage imageData, String testCaseName, String stepName) {
         this.testCaseName = testCaseName;
         this.stepName = stepName;
-        this.pageSource = pageSource;
         this.screenshotFile = writeImageToLocalFile(imageData, PropertyResolver.getTestCaseReportLocation());
+        this.name = testCaseName + "_" + stepName;
     }
 
-    public boolean hasPageFile() {
-        return !pageSource.isEmpty();
+    public Screenshot(BufferedImage imageData, String testCaseName, String stepName, String name, String location) {
+        this.testCaseName = testCaseName;
+        this.stepName = stepName;
+        this.screenshotFile = writeImageToLocalFile(imageData, location, stepName + "_" + name);
+        this.name = testCaseName + "_" + stepName + "_" + name;
     }
 
-    public File writePageFile(String pageSource, String folderPath) {
-        if (pageSource.isEmpty()) {
-            return null;
-        }
-        String location = folderPath + DateTimeUtils.getFormattedDate(today, "yyyy-MM-dd") + "/" + testCaseName + "/";
-        File folder = new File(location);
-        String filePath = location + stepName + "_" + DateTimeUtils.formatLocalDateTime(timeStamp, "yyyy-MM-dd_HH-mm-ss") + ".html";
-        File target = new File(filePath);
-        if (!folder.exists()) {
-            folder.mkdirs();
-        }
-        FileOperation.writeStringToFile(pageSource, target);
-        return target;
+    public Screenshot(File srcFile, String testCaseName, String stepName) {
+        this.testCaseName = testCaseName;
+        this.stepName = stepName;
+        this.name = testCaseName + "_" + stepName;
+        this.screenshotFile = writeImageToLocalFile(FileOperation.readImageFile(srcFile), PropertyResolver.getTestCaseReportLocation());
+        FileOperation.deleteFile(srcFile);
     }
 
     /**
@@ -82,13 +62,26 @@ public class Screenshot {
      * @return image file
      */
     private File writeImageToLocalFile(BufferedImage image, String folderPath) {
-        String location = folderPath + DateTimeUtils.getFormattedDate(today, "yyyy-MM-dd") + "/" + testCaseName + "/";
-        File folder = new File(location);
-        String filePath = location + stepName + "_" + DateTimeUtils.formatLocalDateTime(timeStamp, "yyyy-MM-dd_HH-mm-ss") + "." + format.value();
-        File target = new File(filePath);
-        if (!folder.exists()) {
-            folder.mkdirs();
+        if (!folderPath.endsWith("/") && !folderPath.startsWith("//")) {
+            folderPath += "/";
         }
+        String location = folderPath + DateTimeUtils.getFormattedDate(today, "yyyy-MM-dd") + "/" + testCaseName + "/";
+        String fileName = stepName + "_" + DateTimeUtils.formatLocalDateTime(timeStamp, "yyyy-MM-dd_HH-mm-ss");
+        return writeImageToLocalFile(image, location, fileName);
+    }
+
+    /**
+     * write image file to local
+     *
+     * @return image file
+     */
+    private File writeImageToLocalFile(BufferedImage image, String location, String fileName) {
+        if (!location.endsWith("/") && !location.startsWith("//")) {
+            location += "/";
+        }
+        location += "visualRegressionFiles/" + testCaseName + "/";
+        File target = new File(location + fileName + "." + format.value());
+        FileOperation.makeDirs(new File(location));
         try {
             ImageIO.write(image, format.value(), target);
         } catch (IOException ex) {

@@ -1,7 +1,6 @@
 package ch.qa.testautomation.tas.core.component;
 
 import ch.qa.testautomation.tas.common.enumerations.TestStatus;
-import ch.qa.testautomation.tas.common.logging.Screenshot;
 
 import java.io.File;
 import java.time.Instant;
@@ -55,15 +54,13 @@ public class TestRunResult {
 
     public void addStepResults(TestStepResult stepResult) {
         this.stepResults.add(stepResult);
-        if (status.equals(TestStatus.NO_RUN) || !status.equals(TestStatus.FAIL)) {
+        if (status.equals(TestStatus.NO_RUN) || !status.equals(TestStatus.FAIL)
+                && !status.equals(TestStatus.SKIPPED) && !status.equals(TestStatus.BROKEN)) {
             setStatus(stepResult.getStatus());
         }
-        if (!stepResult.getScreenshots().isEmpty()) {
-            for (Screenshot screenshot : stepResult.getScreenshots()) {
-                attachments.add(screenshot.getScreenshotFile());
-                if (screenshot.hasPageFile())
-                    attachments.add(screenshot.getPageFile());
-            }
+        File screenshot = stepResult.getFullScreen();
+        if (screenshot != null) {
+            attachments.add(screenshot);
         }
         if (stepResult.getStatus().equals(TestStatus.FAIL)) {
             setTestFailure(stepResult.getTestFailure());

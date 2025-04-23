@@ -7,6 +7,8 @@ import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matcher;
 import org.junit.jupiter.api.Assertions;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -14,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.stream.Stream;
 
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.debug;
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
@@ -22,7 +25,7 @@ import static java.util.Arrays.asList;
 
 public class FileOperation {
 
-    private static final List<String> extensions = asList("txt", "csv", "log", "out", "html", "json", "xml", "pdf", "png", "jpg", "jpeg", "mp4");
+    private static final List<String> extensions = asList("txt", "csv", "log", "out", "html", "json", "xml", "pdf", "png", "jpg", "jpeg", "mp4", "zip");
     private static final String UUID_REGEX = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-5][0-9a-fA-F]{3}-[089ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}";
 
     public static boolean isAllowedFileExtension(String fileName) {
@@ -38,12 +41,10 @@ public class FileOperation {
             String ext = getFileNameExtension(fileName);
             String mediaType;
             switch (ext) {
-                case "png" -> mediaType = "image/png";
-                case "jpg", "jpeg" -> mediaType = "image/jpeg";
-                case "pdf" -> mediaType = "application/pdf";
-                case "xml" -> mediaType = "application/xml";
-                case "json" -> mediaType = "application/json";
-                case "mp4" -> mediaType = "video/mp4";
+                case "png", "jpg", "jpeg", "gif", "svg+xml", "tiff" -> mediaType = "image/" + ext;
+                case "json", "xml", "pdf", "zip", "yaml" -> mediaType = "application/" + ext;
+                case "mp4", "ogg", "webm" -> mediaType = "video/" + ext;
+                case "html", "csv" -> mediaType = "text/" + ext;
                 default -> mediaType = "text/plain";
             }
             return mediaType;
@@ -68,10 +69,10 @@ public class FileOperation {
 
     /**
      * @param filePath is absolute path from file to read
-     * @return list of lined string of file content in list in utf-8
+     * @return String list of file content in list in utf-8
      */
     public static List<String> readFileToStringList(String filePath) {
-        List<String> list = Collections.emptyList();
+        List<String> list;
         if (isFileExists(filePath)) {
             try {
                 list = Files.readAllLines(getFile(filePath), StandardCharsets.UTF_8);
@@ -79,14 +80,14 @@ public class FileOperation {
                 throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_READING, ex, filePath);
             }
         } else {
-            debug("File to read does not exist! -> " + filePath);
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_READING, "File to read does not exist! -> " + filePath);
         }
         return list;
     }
 
     /**
      * @param inputStream is input stream of file
-     * @return string of file content with break
+     * @return String of file content with break
      */
     public static String readFileToLinedString(InputStream inputStream) {
         StringBuilder sb = new StringBuilder();
@@ -161,7 +162,11 @@ public class FileOperation {
      */
     public static File renameFile(File old, String newName) {
         File newFile = new File(newName);
-        old.renameTo(newFile);
+        if (old.renameTo(newFile)) {
+            debug("Rename successful!");
+        } else {
+            debug("Rename unsuccessful!");
+        }
         return newFile;
     }
 
@@ -189,11 +194,22 @@ public class FileOperation {
      * delete given file
      *
      * @param file file to be deleted
-     * @throws IOException io exception
      */
-    public static void deleteFile(File file) throws IOException {
-        boolean dq = Files.deleteIfExists(file.toPath());
-        info("try to deleteQCEntityInQC File: " + file + " : " + dq);
+    public static void deleteFile(File file) {
+        try {
+            boolean isOK = Files.deleteIfExists(file.toPath());
+            info("try to delete File: " + file + " : " + isOK);
+        } catch (IOException ex) {
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_GENERAL, ex, "Failed on deleting file: " + file.getPath());
+        }
+    }
+
+    public static void deleteFolder(File folder) {
+        try (Stream<Path> paths = Files.walk(folder.toPath())) {
+            paths.sorted(Comparator.reverseOrder()).forEach(file -> FileOperation.deleteFile(file.toFile()));
+        } catch (IOException ex) {
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_GENERAL, ex, "Failed on deleting folder: " + folder.getPath());
+        }
     }
 
     /**
@@ -206,7 +222,11 @@ public class FileOperation {
     public static File retrieveFileFromResources(String srcFile, File targetFile) {
         File absoluteTargetFile = targetFile.getAbsoluteFile(); // this was needed to ensure both copy and other file operations use same interpretation of the path
         if (!absoluteTargetFile.exists()) {
-            absoluteTargetFile.getParentFile().mkdirs();
+            if (absoluteTargetFile.getParentFile().mkdirs()) {
+                debug("Make dirs successful!");
+            } else {
+                debug("Make dirs unsuccessful!");
+            }
         }
         try {
             Files.deleteIfExists(targetFile.toPath());
@@ -216,7 +236,7 @@ public class FileOperation {
             if (retrieveFileFromResourcesAsStream(srcFile) != null) {
                 Files.copy(retrieveFileFromResourcesAsStream(srcFile), absoluteTargetFile.toPath());
             } else {
-                throw new ExceptionBase(ExceptionErrorKeys.OBJECT_NOT_FOUND, srcFile);
+                throw new ExceptionBase(ExceptionErrorKeys.PATH_NOT_FOUND, srcFile);
             }
         } catch (IOException ex) {
             throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_READING, ex, srcFile);
@@ -264,13 +284,34 @@ public class FileOperation {
     }
 
     /**
+     * stream mediaString base64 encoded content to file
+     *
+     * @param mediaString to be written
+     * @param target      to local file
+     */
+    public static void streamMediaStringToFile(String mediaString, File target) {
+        try (FileOutputStream stream = new FileOutputStream(target)) {
+            stream.write(Base64.getDecoder().decode(mediaString));
+        } catch (Exception ex) {
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_WRITING, ex, target);
+        }
+    }
+
+    /**
      * write byte array of content to file in utf-8
      *
      * @param bytes  to be written
      * @param target to local file
      */
     public static void writeBytesToFile(byte[] bytes, File target) {
-        writeStringToFile(new String(bytes), target);
+        try {
+            if (!target.getParentFile().exists()) {
+                Assertions.assertTrue(target.getParentFile().mkdirs(), "Failed on make Folder for File: " + target.getAbsolutePath());
+            }
+            Files.write(target.toPath(), bytes);
+        } catch (IOException ex) {
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_WRITING, ex, target);
+        }
     }
 
     /**
@@ -380,12 +421,7 @@ public class FileOperation {
      * @return encoded string
      */
     public static String encodeFileToBase64(File file) {
-        try {
-            byte[] fileContent = Files.readAllBytes(file.toPath());
-            return Base64.getEncoder().encodeToString(fileContent);
-        } catch (IOException ex) {
-            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_GENERAL, ex, "encoding file " + file.getName());
-        }
+        return Base64.getEncoder().encodeToString(readFileToByteArray(file));
     }
 
     /**
@@ -445,11 +481,16 @@ public class FileOperation {
     public static void copyFileTo(Path srcFile, Path tarFile) {
         try {
             if (!tarFile.toFile().getParentFile().exists()) {
-                tarFile.toFile().mkdirs();
+                if (tarFile.toFile().mkdirs()) {
+                    debug("Make dirs successful!");
+                } else {
+                    debug("Make dirs unsuccessful!");
+                }
             }
+            debug("Copy file: " + srcFile + " -> " + tarFile);
             Files.copy(srcFile, tarFile, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {
-            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_GENERAL, ex, "moving file: " + srcFile + " to file: " + tarFile, ex);
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_GENERAL, ex, "Copy file: " + srcFile + " to file: " + tarFile);
         }
     }
 
@@ -477,4 +518,21 @@ public class FileOperation {
         }
     }
 
+    public static void makeDirs(File folder) {
+        if (!folder.exists()) {
+            if (folder.mkdirs()) {
+                debug("Make dirs successful!");
+            } else {
+                debug("Make dirs unsuccessful!");
+            }
+        }
+    }
+
+    public static BufferedImage readImageFile(File srcFile) {
+        try {
+            return ImageIO.read(srcFile);
+        } catch (IOException ex) {
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_GENERAL, ex, "Failed on reading image file: " + srcFile.getPath());
+        }
+    }
 }

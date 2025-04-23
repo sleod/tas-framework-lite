@@ -53,6 +53,8 @@ public enum PropertyKey {
     DB_CONFIG("db.config"), QC_CONFIG("qc.config"), REST_CONFIG("rest.config"), JIRA_CONFIG("jira.config"),
     DRIVER_DOWNLOAD_CONFIG("download.driver.config"),
     DRIVER_DOWNLOAD_STRATEGY("download.driver.strategy"),
+    CDP_ALLOWED("cdp.allowed"),
+    TEST_ID_ATTRIBUTE("test.id.attribute"),
     JIRA_EXEC_CONFIG("jira.execution.config"), VIDEO_FORMAT("video.format"),
     RUN_DRIVER_RESTART("run.driver.restart"),
     TEST_ENVIRONMENT("test.environment"),
@@ -61,7 +63,6 @@ public enum PropertyKey {
     OPEN_PDF_IN_SYSTEM_READER("open.pdf.in.system.reader"),
     SIMPLE_STRING_PARAMETER_ALLOWED("simple.string.parameter.allowed"),
     DOWNLOAD_LOCATION("download.location"),
-    PDF_COMPONENT_PATH("pdf.component.path"),
     BROWSER_BIN_PATH("browser.bin.path"),
     EXECUTION_REMOTE_PARALLEL("execution.remote.parallel"),
     EXECUTION_REMOTE_DEVICE_ENABLED("execution.remote.device.enabled"),
@@ -84,6 +85,8 @@ public enum PropertyKey {
     JIRA_USER("jira.user"),
     JIRA_PASSWORD("jira.password"),
     JIRA_PAT("jira.pat"),
+    JIRA_PROXY_HOST("jira.proxy.host"),
+    JIRA_PROXY_PORT("jira.proxy.port"),
     QC_PASSWORD("qc.password"),
     QC_USER("qc.user");
 
