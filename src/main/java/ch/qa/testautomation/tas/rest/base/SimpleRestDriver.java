@@ -23,7 +23,7 @@ import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
 public class SimpleRestDriver implements RestDriver {
 
     private final Client client;
-    protected MediaType mediaType;
+    protected MediaType mediaType = MediaType.APPLICATION_JSON_TYPE;
     private final Map<String, String> headers = new HashMap<>();
     private final Map<String, String> params = new HashMap<>();
 
@@ -32,7 +32,6 @@ public class SimpleRestDriver implements RestDriver {
      */
     public SimpleRestDriver() {
         client = ClientBuilder.newClient();
-        mediaType = MediaType.APPLICATION_JSON_TYPE;
     }
 
     /**
@@ -52,13 +51,17 @@ public class SimpleRestDriver implements RestDriver {
      * @param pass     proxy pass, empty string for no pass required
      */
     public SimpleRestDriver(String proxyURL, int port, String user, String pass) {
-        HttpUrlConnectorProvider connectorProvider = new HttpUrlConnectorProvider()
-                .connectionFactory(new ProxyConnectionFactory(Proxy.Type.HTTP, proxyURL, port));
-        ClientConfig config = new ClientConfig().connectorProvider(connectorProvider);
-        if (isValid(user) && isValid(pass)) {
-            config.property(ClientProperties.PROXY_USERNAME, user).property(ClientProperties.PROXY_PASSWORD, pass);
+        if(isValid(proxyURL) && isValid(port)) {
+            HttpUrlConnectorProvider connectorProvider = new HttpUrlConnectorProvider()
+                    .connectionFactory(new ProxyConnectionFactory(Proxy.Type.HTTP, proxyURL, port));
+            ClientConfig config = new ClientConfig().connectorProvider(connectorProvider);
+            if (isValid(user) && isValid(pass)) {
+                config.property(ClientProperties.PROXY_USERNAME, user).property(ClientProperties.PROXY_PASSWORD, pass);
+            }
+            client = ClientBuilder.newClient(config);
+        }else {
+            client = ClientBuilder.newClient();
         }
-        client = ClientBuilder.newClient(config);
     }
 
     /**

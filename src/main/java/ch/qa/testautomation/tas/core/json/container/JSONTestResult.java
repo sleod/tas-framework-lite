@@ -24,6 +24,7 @@ public class JSONTestResult extends JSONContainer {
     private String stage;
     private String historyId;
     private List<JSONResultLabel> labels = new LinkedList<>();
+    private List<JSONResultLabel> parameters = new LinkedList<>();
     private List<JSONStepResult> steps = new LinkedList<>();
     private List<JSONResultLink> links = new LinkedList<>();
     private Map<String, Object> statusDetails = new LinkedHashMap<>();
@@ -121,6 +122,11 @@ public class JSONTestResult extends JSONContainer {
         this.labels = labels;
     }
 
+    @JsonDeserialize(using = CustomResultLabelDeserializer.class)
+    public void setParameters(List<JSONResultLabel> parameters) {
+        this.parameters = parameters;
+    }
+
     public void updateLabel(String name, String value) {
         for (JSONResultLabel jsonResultLabel : labels) {
             if (jsonResultLabel.getName().equalsIgnoreCase(name)) {
@@ -134,12 +140,20 @@ public class JSONTestResult extends JSONContainer {
         labels.add(new JSONResultLabel(name, value));
     }
 
+    public void addParameter(String name, String value) {
+        parameters.add(new JSONResultLabel(name, value));
+    }
+
     public List<JSONStepResult> getSteps() {
         return steps;
     }
 
     public List<JSONResultLabel> getLabels() {
         return labels;
+    }
+
+    public List<JSONResultLabel> getParameters() {
+        return parameters;
     }
 
     @JsonDeserialize(using = CustomStepResultListDeserializer.class)

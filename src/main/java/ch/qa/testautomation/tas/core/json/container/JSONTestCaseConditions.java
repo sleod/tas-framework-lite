@@ -10,7 +10,7 @@ public class JSONTestCaseConditions extends JSONContainer {
 
     private int limit;
     private List<Integer> index;
-    private boolean useRandomLine = false;
+    private boolean useRandomLine;
 
     public int getLimit() {
         return limit;

@@ -1,6 +1,6 @@
 package ch.qa.testautomation.tas.core.component;
 
-import ch.qa.testautomation.tas.configuration.ApollonConfiguration;
+import ch.qa.testautomation.tas.configuration.TASConfiguration;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.report.ReportBuilder;
 import ch.qa.testautomation.tas.core.report.allure.ReportBuilderAllureService;
@@ -25,7 +25,7 @@ public abstract class PerformableTestCases {
 
     private List<TestCaseObject> testCaseObjects = Collections.emptyList();
 
-    private final ApollonConfiguration configuration = new ApollonConfiguration();
+    private final TASConfiguration configuration = new TASConfiguration();
 
     public PerformableTestCases() {
         try {
@@ -116,7 +116,7 @@ public abstract class PerformableTestCases {
         info("Test Run is finished.");
     }
 
-    public ApollonConfiguration getApollonConfiguration() {
+    public TASConfiguration getTASConfiguration() {
         return configuration;
     }
 
@@ -161,9 +161,9 @@ public abstract class PerformableTestCases {
      */
     protected void setUpSelenide() {
         Configuration.reportsFolder = StringUtils.chop(PropertyResolver.getTestCaseReportLocation());
-        Configuration.screenshots = false;
         Configuration.timeout = PropertyResolver.getDriverWaitTimeout();
         Configuration.savePageSource = false;
+        Configuration.screenshots = false;
     }
 
     /**
@@ -188,7 +188,7 @@ public abstract class PerformableTestCases {
      * Set up Framework using FrameworkConfiguration
      */
     protected void setUpFramework() {
-        getApollonConfiguration().setTestCaseFileExtension(".tas");
+        getTASConfiguration().setTestCaseFileExtension(".tas");
     }
 
     private void cleanResultsByPresentOnServer() {

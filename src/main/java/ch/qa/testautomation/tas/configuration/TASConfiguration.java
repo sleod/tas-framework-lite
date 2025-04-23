@@ -5,14 +5,14 @@ import org.apache.logging.log4j.Level;
 
 import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.*;
 
-public class ApollonConfiguration {
+public class TASConfiguration {
 
     /**
      * set output location for allure report
      *
      * @param value location like default: "target/Reports/"
      */
-    public ApollonConfiguration setTestCaseReportLocation(String value) {
+    public TASConfiguration setTestCaseReportLocation(String value) {
         PropertyResolver.setProperty(TESTCASE_REPORT_DIR.key(), value);
         return this;
     }
@@ -22,7 +22,7 @@ public class ApollonConfiguration {
      *
      * @param value location like default "testCases/"
      */
-    public ApollonConfiguration setTestCaseLocation(String value) {
+    public TASConfiguration setTestCaseLocation(String value) {
         PropertyResolver.setProperty(TESTCASE_LOCATION.key(), value);
         return this;
     }
@@ -32,7 +32,7 @@ public class ApollonConfiguration {
      *
      * @param value location like default: "testData/"
      */
-    public ApollonConfiguration setTestDataLocation(String value) {
+    public TASConfiguration setTestDataLocation(String value) {
         PropertyResolver.setProperty(TESTDATA_LOCATION.key(), value);
         return this;
     }
@@ -42,7 +42,7 @@ public class ApollonConfiguration {
      *
      * @param value location like default: "webDrivers/"
      */
-    public ApollonConfiguration setWebDriverBinLocation(String value) {
+    public TASConfiguration setWebDriverBinLocation(String value) {
         PropertyResolver.setProperty(WEBDRIVER_BIN_LOCATION.key(), value);
         return this;
     }
@@ -52,7 +52,7 @@ public class ApollonConfiguration {
      *
      * @param value location like default: "driverConfig/"
      */
-    public ApollonConfiguration setDriverConfigLocation(String value) {
+    public TASConfiguration setDriverConfigLocation(String value) {
         PropertyResolver.setProperty(DRIVER_CONFIG_LOCATION.key(), value);
         return this;
     }
@@ -62,7 +62,7 @@ public class ApollonConfiguration {
      *
      * @param value location like default: "pageDefinitions/"
      */
-    public ApollonConfiguration setPageConfigLocation(String value) {
+    public TASConfiguration setPageConfigLocation(String value) {
         PropertyResolver.setProperty(PAGE_CONFIG_LOCATION.key(), value);
         return this;
     }
@@ -72,7 +72,7 @@ public class ApollonConfiguration {
      *
      * @param value location like default: "tessdata/"
      */
-    public ApollonConfiguration setOCRTessDataLocation(String value) {
+    public TASConfiguration setOCRTessDataLocation(String value) {
         PropertyResolver.setProperty(OCR_TESSDATA_LOCATION.key(), value);
         return this;
     }
@@ -82,7 +82,7 @@ public class ApollonConfiguration {
      *
      * @param value location can be set like: "D:/TEMP/downloads/"
      */
-    public ApollonConfiguration setDownloadLocation(String value) {
+    public TASConfiguration setDownloadLocation(String value) {
         if (!value.isEmpty()) {
             PropertyResolver.setProperty(DOWNLOAD_LOCATION.key(), value);
         }
@@ -94,7 +94,7 @@ public class ApollonConfiguration {
      *
      * @param value like png jpeg
      */
-    public ApollonConfiguration setScreenshotFormat(String value) {
+    public TASConfiguration setScreenshotFormat(String value) {
         PropertyResolver.setProperty(SCREENSHOT_FORMAT.key(), value);
         return this;
     }
@@ -104,7 +104,7 @@ public class ApollonConfiguration {
      *
      * @param value like "com.test.automation"
      */
-    public ApollonConfiguration setTestautomationPackage(String value) {
+    public TASConfiguration setTestautomationPackage(String value) {
         PropertyResolver.setProperty(TEST_AUTOMATION_PACKAGE.key(), value);
         return this;
     }
@@ -114,7 +114,7 @@ public class ApollonConfiguration {
      *
      * @param value like "yyyy-MM-dd"
      */
-    public ApollonConfiguration setDateFormat(String value) {
+    public TASConfiguration setDateFormat(String value) {
         PropertyResolver.setProperty(DATE_FORMAT.key(), value);
         return this;
     }
@@ -124,7 +124,7 @@ public class ApollonConfiguration {
      *
      * @param value boolean
      */
-    public ApollonConfiguration setGenerateVideoEnabled(boolean value) {
+    public TASConfiguration setGenerateVideoEnabled(boolean value) {
         PropertyResolver.setProperty(GENERATE_VIDEO.key(), String.valueOf(value));
         return this;
     }
@@ -134,7 +134,7 @@ public class ApollonConfiguration {
      *
      * @param driverDownloadStrategy {@link DownloadStrategy}
      */
-    public ApollonConfiguration setDriverDownloadStrategy(DownloadStrategy driverDownloadStrategy) {
+    public TASConfiguration setDriverDownloadStrategy(DownloadStrategy driverDownloadStrategy) {
         PropertyResolver.setProperty(DRIVER_DOWNLOAD_STRATEGY.key(), driverDownloadStrategy.name());
         return this;
     }
@@ -144,7 +144,7 @@ public class ApollonConfiguration {
      *
      * @param value file name
      */
-    public ApollonConfiguration setDriverDownloadConfig(String value) {
+    public TASConfiguration setDriverDownloadConfig(String value) {
         PropertyResolver.setProperty(DRIVER_DOWNLOAD_CONFIG.key(), value);
         return this;
     }
@@ -154,7 +154,7 @@ public class ApollonConfiguration {
      *
      * @param value like avi mpeg
      */
-    public ApollonConfiguration setVideoFormat(String value) {
+    public TASConfiguration setVideoFormat(String value) {
         PropertyResolver.setProperty(VIDEO_FORMAT.key(), value);
         return this;
     }
@@ -164,7 +164,7 @@ public class ApollonConfiguration {
      *
      * @param value boolean, default true
      */
-    public ApollonConfiguration setRestartDriverAfterExecutionEnabled(boolean value) {
+    public TASConfiguration setRestartDriverAfterExecutionEnabled(boolean value) {
         PropertyResolver.setProperty(RUN_DRIVER_RESTART.key(), String.valueOf(value));
         return this;
     }
@@ -174,7 +174,7 @@ public class ApollonConfiguration {
      *
      * @param value boolean, default true
      */
-    public ApollonConfiguration setStopOnErrorEnabled(boolean value) {
+    public TASConfiguration setStopOnErrorEnabled(boolean value) {
         PropertyResolver.setProperty(RUN_STOP_ON_ERROR.key(), String.valueOf(value));
         return this;
     }
@@ -184,7 +184,7 @@ public class ApollonConfiguration {
      *
      * @param value like "+CI, +Demo" in one string separated with ','
      */
-    public ApollonConfiguration setMetaFilter(String value) {
+    public TASConfiguration setMetaFilter(String value) {
         PropertyResolver.setProperty(RUN_META_FILTER.key(), value);
         return this;
     }
@@ -194,7 +194,7 @@ public class ApollonConfiguration {
      *
      * @param value default ".tas"
      */
-    public ApollonConfiguration setTestCaseFileExtension(String value) {
+    public TASConfiguration setTestCaseFileExtension(String value) {
         PropertyResolver.setProperty(TESTCASE_FILE_EXTENSION.key(), value);
         return this;
     }
@@ -204,7 +204,7 @@ public class ApollonConfiguration {
      *
      * @param value boolean, default false
      */
-    public ApollonConfiguration setKeepBrowserOnErrorEnabled(boolean value) {
+    public TASConfiguration setKeepBrowserOnErrorEnabled(boolean value) {
         PropertyResolver.setProperty(DEBUG_KEEP_BROWSER.key(), String.valueOf(value));
         return this;
     }
@@ -215,28 +215,38 @@ public class ApollonConfiguration {
      *
      * @param value boolean, default true
      */
-    public ApollonConfiguration setCleanUpResultsEnabled(boolean value) {
+    public TASConfiguration setCleanUpResultsEnabled(boolean value) {
         PropertyResolver.setProperty(ALLURE_REPORT_CLEANUP.key(), String.valueOf(value));
         return this;
     }
 
     /**
-     * Set level for the Apollon log level
+     * Set level for the log level
      *
      * @param logLevel logLevel
      */
-    public ApollonConfiguration setLogLevelApollon(Level logLevel) {
-        PropertyResolver.setProperty(LOG_LEVEL_APOLLON.key(), logLevel.name());
+    public TASConfiguration setTASLogLevel(Level logLevel) {
+        PropertyResolver.setProperty(LOG_LEVEL_TAS.key(), logLevel.name());
         return this;
     }
 
     /**
-     * Set level for the Apollon log level
+     * toggle if single file report by generation enabled locally
+     *
+     * @param value boolean, default false
+     */
+    public TASConfiguration setGenerateSingleFileReportEnabled(boolean value) {
+        PropertyResolver.setProperty(GENERATE_SINGLE_FILE_REPORT.key(), String.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Set level for the log level
      *
      * @param levelName levelName
      */
-    public ApollonConfiguration setLogLevelApollon(String levelName) {
-        return setLogLevelApollon(Level.getLevel(levelName));
+    public TASConfiguration setTASLogLevel(String levelName) {
+        return setTASLogLevel(Level.getLevel(levelName));
     }
 
     /**
@@ -245,7 +255,7 @@ public class ApollonConfiguration {
      *
      * @param value boolean, default false
      */
-    public ApollonConfiguration setJIRASyncEnabled(boolean value) {
+    public TASConfiguration setJIRASyncEnabled(boolean value) {
         PropertyResolver.setProperty(RUN_JIRA_SYNC.key(), String.valueOf(value));
         return this;
     }
@@ -256,7 +266,7 @@ public class ApollonConfiguration {
      *
      * @param value boolean, default false
      */
-    public ApollonConfiguration setSyncToQCEnabled(boolean value) {
+    public TASConfiguration setSyncToQCEnabled(boolean value) {
         PropertyResolver.setProperty(RUN_QC_SYNC.key(), String.valueOf(value));
         return this;
     }
@@ -267,7 +277,7 @@ public class ApollonConfiguration {
      *
      * @param value boolean, default false
      */
-    public ApollonConfiguration setAllureReportServiceEnabled(boolean value) {
+    public TASConfiguration setAllureReportServiceEnabled(boolean value) {
         PropertyResolver.setProperty(ALLURE_REPORT_SERVICE.key(), String.valueOf(value));
         return this;
     }
@@ -277,7 +287,7 @@ public class ApollonConfiguration {
      *
      * @param value like default: "target/allure-report/"
      */
-    public ApollonConfiguration setAllureReportDirectory(String value) {
+    public TASConfiguration setAllureReportDirectory(String value) {
         PropertyResolver.setProperty(ALLURE_REPORT_LOCATION.key(), value);
         return this;
     }
@@ -287,7 +297,7 @@ public class ApollonConfiguration {
      *
      * @param value like default: "target/allure-results/"
      */
-    public ApollonConfiguration setAllureResultsDirectory(String value) {
+    public TASConfiguration setAllureResultsDirectory(String value) {
         PropertyResolver.setProperty(ALLURE_RESULTS_LOCATION.key(), value);
         return this;
     }
@@ -297,7 +307,7 @@ public class ApollonConfiguration {
      *
      * @param value boolean, default false
      */
-    public ApollonConfiguration setRebaseAllureReportEnabled(boolean value) {
+    public TASConfiguration setRebaseAllureReportEnabled(boolean value) {
         PropertyResolver.setProperty(ALLURE_REPORT_REBASE.key(), String.valueOf(value));
         return this;
     }
@@ -307,7 +317,7 @@ public class ApollonConfiguration {
      *
      * @param value like default: "reportServiceRunnerConfig.json"
      */
-    public ApollonConfiguration setReportServiceRunnerConfigFile(String value) {
+    public TASConfiguration setReportServiceRunnerConfigFile(String value) {
         PropertyResolver.setProperty(REPORT_SERVICE_RUNNER_CONFIG.key(), value);
         return this;
     }
@@ -317,7 +327,7 @@ public class ApollonConfiguration {
      *
      * @param value boolean, default true
      */
-    public ApollonConfiguration setHeadLessModeEnabled(boolean value) {
+    public TASConfiguration setHeadLessModeEnabled(boolean value) {
         PropertyResolver.setProperty(DRIVER_BROWSER_HEADLESS.key(), String.valueOf(value));
         return this;
     }
@@ -327,7 +337,7 @@ public class ApollonConfiguration {
      *
      * @param value boolean, default false
      */
-    public ApollonConfiguration setBrowserFullscreenEnabled(boolean value) {
+    public TASConfiguration setBrowserFullscreenEnabled(boolean value) {
         PropertyResolver.setProperty(DRIVER_BROWSER_FULLSCREEN.key(), String.valueOf(value));
         return this;
     }
@@ -337,7 +347,7 @@ public class ApollonConfiguration {
      *
      * @param value like default: "chrome"
      */
-    public ApollonConfiguration setWebDriverName(String value) {
+    public TASConfiguration setWebDriverName(String value) {
         PropertyResolver.setWebDriverName(value);
         return this;
     }
@@ -347,7 +357,7 @@ public class ApollonConfiguration {
      *
      * @param value like default: "1920,1080" in one string separated with ','
      */
-    public ApollonConfiguration setBrowserScreenSize(String value) {
+    public TASConfiguration setBrowserScreenSize(String value) {
         PropertyResolver.setProperty(BROWSER_SCREEN_SIZE.key(), value);
         return this;
     }
@@ -357,7 +367,7 @@ public class ApollonConfiguration {
      *
      * @param sec int in seconds like default: 6
      */
-    public ApollonConfiguration setDriverWaitTimeout(int sec) {
+    public TASConfiguration setDriverWaitTimeout(int sec) {
         PropertyResolver.setProperty(DRIVER_WAIT_TIMEOUT.key(), String.valueOf(sec));
         return this;
     }
@@ -367,7 +377,7 @@ public class ApollonConfiguration {
      *
      * @param value boolean, default false
      */
-    public ApollonConfiguration setDemoModeEnabled(boolean value) {
+    public TASConfiguration setDemoModeEnabled(boolean value) {
         PropertyResolver.setProperty(DEMO_MODE_ENABLED.key(), String.valueOf(value));
         return this;
     }
@@ -377,7 +387,7 @@ public class ApollonConfiguration {
      *
      * @param value boolean, default false
      */
-    public ApollonConfiguration setRetryOnErrorEnabled(boolean value) {
+    public TASConfiguration setRetryOnErrorEnabled(boolean value) {
         PropertyResolver.setProperty(RETRY_MODE_ENABLED.key(), String.valueOf(value));
         return this;
     }
@@ -387,7 +397,7 @@ public class ApollonConfiguration {
      *
      * @param value int default 1
      */
-    public ApollonConfiguration setRetryOverSteps(int value) {
+    public TASConfiguration setRetryOverSteps(int value) {
         PropertyResolver.setProperty(RETRY_OVER_STEPS.key(), String.valueOf(value));
         return this;
     }
@@ -398,7 +408,7 @@ public class ApollonConfiguration {
      *
      * @param value like: "DEV", "SYT" ...
      */
-    public ApollonConfiguration setTestEnvironment(String value) {
+    public TASConfiguration setTestEnvironment(String value) {
         PropertyResolver.setProperty(TEST_ENVIRONMENT.key(), value);
         return this;
     }
@@ -408,7 +418,7 @@ public class ApollonConfiguration {
      *
      * @param value url
      */
-    public ApollonConfiguration setStartUrl(String value) {
+    public TASConfiguration setStartUrl(String value) {
         PropertyResolver.setProperty(RUN_START_URL.key(), value);
         return this;
     }
@@ -418,7 +428,7 @@ public class ApollonConfiguration {
      *
      * @param value like default: "dbConfig.json"
      */
-    public ApollonConfiguration setDBConfigFile(String value) {
+    public TASConfiguration setDBConfigFile(String value) {
         PropertyResolver.setProperty(DB_CONFIG.key(), value);
         return this;
     }
@@ -428,7 +438,7 @@ public class ApollonConfiguration {
      *
      * @param value like default: "restConfig.json"
      */
-    public ApollonConfiguration setRestConfigFile(String value) {
+    public TASConfiguration setRestConfigFile(String value) {
         PropertyResolver.setProperty(REST_CONFIG.key(), value);
         return this;
     }
@@ -438,7 +448,7 @@ public class ApollonConfiguration {
      *
      * @param value like default: "tfsRunnerConfig.json"
      */
-    public ApollonConfiguration setTFSRunnerConfigFile(String value) {
+    public TASConfiguration setTFSRunnerConfigFile(String value) {
         PropertyResolver.setProperty(TFS_RUNNER_CONFIG.key(), value);
         return this;
     }
@@ -448,7 +458,7 @@ public class ApollonConfiguration {
      *
      * @param value string like "45635"
      */
-    public ApollonConfiguration setTFSConfigurationId(String value) {
+    public TASConfiguration setTFSConfigurationId(String value) {
         PropertyResolver.setProperty(TFS_CONFIGURATION_ID.key(), value);
         return this;
     }
@@ -458,7 +468,7 @@ public class ApollonConfiguration {
      *
      * @param value like default: "jiraConfig.json"
      */
-    public ApollonConfiguration setJiraConfigFile(String value) {
+    public TASConfiguration setJiraConfigFile(String value) {
         PropertyResolver.setProperty(JIRA_CONFIG.key(), value);
         return this;
     }
@@ -468,7 +478,7 @@ public class ApollonConfiguration {
      *
      * @param value like default: "qcConfig.json"
      */
-    public ApollonConfiguration setQCConfigFile(String value) {
+    public TASConfiguration setQCConfigFile(String value) {
         PropertyResolver.setProperty(QC_CONFIG.key(), value);
         return this;
     }
@@ -478,7 +488,7 @@ public class ApollonConfiguration {
      *
      * @param value like default: "jiraExecutionConfig.json"
      */
-    public ApollonConfiguration setJiraExecutionConfig(String value) {
+    public TASConfiguration setJiraExecutionConfig(String value) {
         PropertyResolver.setProperty(JIRA_EXEC_CONFIG.key(), value);
         return this;
     }
@@ -488,7 +498,7 @@ public class ApollonConfiguration {
      *
      * @param value int number
      */
-    public ApollonConfiguration setRemoteExecutionMaxThreads(int value) {
+    public TASConfiguration setRemoteExecutionMaxThreads(int value) {
         PropertyResolver.setProperty(EXECUTION_REMOTE_THREAD_MAX.key(), String.valueOf(value));
         return this;
     }
@@ -498,7 +508,7 @@ public class ApollonConfiguration {
      *
      * @param value like: "notepad", "notepad++"
      */
-    public ApollonConfiguration setTextEditor(String value) {
+    public TASConfiguration setTextEditor(String value) {
         PropertyResolver.setProperty(TEXT_EDITOR.key(), value);
         return this;
     }
@@ -508,7 +518,7 @@ public class ApollonConfiguration {
      *
      * @param value boolean, default false
      */
-    public ApollonConfiguration setOpenPDFInSystemReaderEnabled(boolean value) {
+    public TASConfiguration setOpenPDFInSystemReaderEnabled(boolean value) {
         PropertyResolver.setProperty(OPEN_PDF_IN_SYSTEM_READER.key(), String.valueOf(value));
         return this;
     }
@@ -518,7 +528,7 @@ public class ApollonConfiguration {
      *
      * @param value boolean, default false
      */
-    public ApollonConfiguration setSimpleStringParameterEnabled(boolean value) {
+    public TASConfiguration setSimpleStringParameterEnabled(boolean value) {
         PropertyResolver.setProperty(SIMPLE_STRING_PARAMETER_ALLOWED.key(), String.valueOf(value));
         return this;
     }

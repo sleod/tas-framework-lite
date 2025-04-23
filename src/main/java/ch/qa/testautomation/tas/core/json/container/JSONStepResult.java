@@ -1,6 +1,7 @@
 package ch.qa.testautomation.tas.core.json.container;
 
 import ch.qa.testautomation.tas.common.IOUtils.FileOperation;
+import ch.qa.testautomation.tas.common.enumerations.TestStatus;
 import ch.qa.testautomation.tas.common.logging.Screenshot;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.component.TestCaseStep;
@@ -108,9 +109,15 @@ public class JSONStepResult extends JSONContainer {
     private void addLogs(TestCaseStep testCaseStep) {
         TestStepResult stepResult = testCaseStep.getTestStepResult();
         String location = new File(logFilePath).getParentFile().getAbsolutePath();
-        String filePath = location + "/" + stepResult.getName().replace("/", "-") + ".txt";
+        String filePath = location + "/" + stepResult.getName().replace("/", "-") + "_stepInfo.txt";
         FileOperation.writeStringToFile(stepResult.getInfo(), new File(filePath));
         attachments.add(new JSONAttachment("Step Log", "text/plain", filePath));
+        //add trace to extra block as attachment
+        if (stepResult.getStatus().equals(TestStatus.FAIL)) {
+            filePath = location + "/" + stepResult.getName().replace("/", "-") + "_stepFailure.txt";
+            FileOperation.writeStringToFile(stepResult.getTestFailure().getTrace(), new File(filePath));
+            attachments.add(new JSONAttachment("Exception", "text/plain", filePath));
+        }
     }
 
     private void addScreenshots(TestCaseStep testCaseStep) {

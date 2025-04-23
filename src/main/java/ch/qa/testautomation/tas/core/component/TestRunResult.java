@@ -5,8 +5,7 @@ import ch.qa.testautomation.tas.common.logging.Screenshot;
 
 import java.io.File;
 import java.time.Instant;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.getSimpleCustomInfo;
 
@@ -24,10 +23,7 @@ public class TestRunResult {
     private String end;
     private String description;
     private String threadName;
-    private String platformVersion;
-    private String deviceName;
-    private String platformName;
-    private String browserName;
+    private Map<String, Object> parameters = Collections.emptyMap();
 
     public String getBegin() {
         return begin;
@@ -139,8 +135,16 @@ public class TestRunResult {
     public String getThreadName() {
         return threadName;
     }
+
     public void setThreadName(String threadName) {
         this.threadName = threadName;
     }
 
+    public void setParameters(Map<String, Object> first) {
+        this.parameters = first;
+    }
+
+    public Map<String, Object> getParameters() {
+        return parameters;
+    }
 }

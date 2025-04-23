@@ -7,24 +7,27 @@
         <CustomLevel name="STEP_INFO" intLevel="350"/>
     </CustomLevels>
     <Appenders>
-        <RollingFile name="RollingFile" fileName="${basePath}/${date:yyyy-MM-dd}/all.trace.log" filePattern="${basePath}/$${date:yyyy-MM-dd}/all.trace-%d{yyyy-MM-dd}-%i.log" ignoreExceptions="false">
-            <PatternLayout pattern="%highlight{%d{ISO8601} [%t] %-6level: %msg%n%throwable}{FATAL=Magenta, ERROR=Bright red, WARN=Yellow, INFO=Green, STEP_INFO=Blue, DEBUG=Cyan, TRACE=Normal}"/>
+        <RollingFile name="RollingFile" fileName="${basePath}/${date:yyyy-MM-dd}/all.trace.log"
+                     filePattern="${basePath}/$${date:yyyy-MM-dd}/all.trace-%d{yyyy-MM-dd}-%i.log"
+                     ignoreExceptions="false">
+            <PatternLayout
+                    pattern="%highlight{%d{ISO8601} [%t] %-6level: %msg%n%throwable}{FATAL=Magenta, ERROR=Bright red, WARN=Yellow, INFO=Green, STEP_INFO=Blue, DEBUG=Cyan, TRACE=Normal}"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="10MB"/>
             </Policies>
             <DefaultRolloverStrategy max="20"/>
         </RollingFile>
-        <Console name="Console" target="SYSTEM_OUT" ignoreExceptions="false">
-            <PatternLayout pattern="%highlight{%d{ISO8601} [%t] %-6level: %msg%n%throwable}{FATAL=Magenta, ERROR=Bright red, WARN=Yellow, INFO=Green, STEP_INFO=Blue, DEBUG=Cyan, TRACE=Normal}" disableAnsi="false"/>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout
+                    pattern="%highlight{%d{ISO8601} [%t] %-6level: %msg%n%throwable}{FATAL=Magenta, ERROR=Bright red, WARN=Yellow, INFO=Green, STEP_INFO=Blue, DEBUG=Cyan, TRACE=Normal}"
+                    disableAnsi="false"/>
         </Console>
     </Appenders>
 
     <Loggers>
-        <Logger name="SystemLogger"  level="all">
-            <AppenderRef ref="RollingFile"  level="all"/>
-        </Logger>
-        <Root level="trace">
+        <Root level="all">
             <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
         </Root>
     </Loggers>
 </Configuration>

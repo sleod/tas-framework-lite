@@ -113,6 +113,7 @@ public class ReportBuilder {
         jsonTestResult.setFullName(testCaseObject.getPackageName() + "." + testCaseObject.getName());//fill full name as required
         addLabels(jsonTestResult, testCaseObject);//add labels
         addLinks(jsonTestResult, testCaseObject);//add links
+        addParameters(jsonTestResult, testCaseObject);//add parameters
         jsonTestResult.setHistoryId(buildHistoryId(testCaseObject.getPackageName() + "." + jsonTestResult.getName()));
         for (TestCaseStep testCaseStep : testCaseObject.getSteps()) {
             //Attachment will be done by construction
@@ -157,6 +158,9 @@ public class ReportBuilder {
         String command = "allure generate ";
         if (FileOperation.isFileExists(currReportDir)) {
             command += "--clean ";
+        }
+        if(PropertyResolver.isGenerateSingleFileReport()){
+            command += "--single-file ";
         }
         command += PropertyResolver.getAllureResultsDirectory() + " -o " + currReportDir;
         ExternAppController.executeCommand(command);
@@ -416,6 +420,13 @@ public class ReportBuilder {
                     jsonTestResult.addLink(testCaseId, url + "/browse/" + testCaseId);
                 }
             }
+        }
+    }
+
+    private void addParameters(JSONTestResult jsonTestResult, TestCaseObject testCaseObject) {
+        if (!testCaseObject.getTestRunResult().getParameters().isEmpty()) {
+            testCaseObject.getTestRunResult().getParameters()
+                    .forEach((key, value) -> jsonTestResult.addParameter(key, String.valueOf(value)));
         }
     }
 

@@ -39,6 +39,7 @@ public class TestCaseStep implements Executable {
     private final TestStepResult testStepResult;
     private boolean takeScreenshot = false;
     private boolean stopOnError = false;
+    private boolean skipOnError = false;
     private final ObjectMapper mapper = new ObjectMapper();
     private final String name;
     private TestRunResult testRunResult;
@@ -88,6 +89,14 @@ public class TestCaseStep implements Executable {
         this.stopOnError = stopOnError;
     }
 
+    public boolean isSkipOnError() {
+        return skipOnError;
+    }
+
+    public void setSkipOnError(boolean skipOnError) {
+        this.skipOnError = skipOnError;
+    }
+
     public boolean isTakeScreenshotDefinedOnTestcaseStep() {
         if (!takeScreenshot && jsonTestCaseStep.getTakeScreenshot() != null) {
             setTakeScreenshot(jsonTestCaseStep.getTakeScreenshot().equalsIgnoreCase("true"));
@@ -125,6 +134,7 @@ public class TestCaseStep implements Executable {
         } else {
             setStopOnError(PropertyResolver.isStopOnErrorEnabled());
         }
+        setSkipOnError(runMethod.isAnnotationPresent(SkipOnError.class));
     }
 
     /**
@@ -153,15 +163,15 @@ public class TestCaseStep implements Executable {
                         using = jsonTestCaseStep.getUsing();
                     }
                     if (using.isEmpty()) {//parameter required but not found
-                        throw new ExceptionBase(ExceptionErrorKeys.TEST_STEP_REQUIRED_PARAMETER_NOT_FOUND, runMethod.getName());
+                        throw new ExceptionBase(ExceptionErrorKeys.TEST_STEP_REQUIRED_PARAMETER_NOT_FOUND, getName());
                     }
                     int parameterRowNum = 0;
                     if (parameterCount == 1) {// single param required
                         Object parameter;
                         if (using.equalsIgnoreCase("CustomizedDataMap")) {//transfer whole map as parameter
-                            parameter = testDataContainer.getDataContent().get(parameterRowNum);
+                            parameter = secureParameter(testDataContainer.getDataContent().get(parameterRowNum));
                         } else {
-                            parameter = testDataContainer.getParameter(using, parameterRowNum);
+                            parameter = secureParameter(testDataContainer.getParameter(using, parameterRowNum));
                         }
                         //start casing param type
                         if (parameter instanceof ArrayNode arrayNode) {// Array Node
@@ -190,12 +200,12 @@ public class TestCaseStep implements Executable {
                             parameters = new Object[usingKeys.length];
                             for (int index = 0; index < usingKeys.length; index++) {
                                 //Key Werte welche im Array mitgegeben werden nun aus dem TestdataContainer auslesen
-                                Object valueObject = testDataContainer.getParameter(usingKeys[index].trim(), parameterRowNum);
+                                Object valueObject = secureParameter(testDataContainer.getParameter(usingKeys[index].trim(), parameterRowNum));
                                 parameters[index] = castParameter(valueObject);
                             }
                             invokeMethod(runMethod, pageObject, parameters);
                         } else {
-                            Object parameter = testDataContainer.getParameter(using, parameterRowNum);
+                            Object parameter = secureParameter(testDataContainer.getParameter(using, parameterRowNum));
                             if (parameter instanceof ArrayNode) {
                                 parameters = mapper.convertValue(parameter, new TypeReference<>() {
                                 });
@@ -211,16 +221,27 @@ public class TestCaseStep implements Executable {
                 if (issue instanceof InvocationTargetException) {
                     issue = ((InvocationTargetException) issue).getTargetException();
                 }
-                testStepResult.setStatus(TestStatus.FAIL);
+                if(isSkipOnError()){
+                    testStepResult.setStatus(TestStatus.SKIPPED);
+                }else {
+                    testStepResult.setStatus(TestStatus.FAIL);
+                }
                 testStepResult.setActual("Exception: " + issue.getMessage());
                 testStepResult.setTestFailure(new TestFailure(issue));
-                TestStepMonitor.setIsStop(isStopOnError());
+                noRun = isStopOnError() || isSkipOnError();
+                TestStepMonitor.setIsStop(noRun);
             }
         }
         testStepResult.stopNow();
         afterStep();
     }
 
+    private Object secureParameter(Object parameter) {
+        if (Objects.isNull(parameter)) {
+            throw new ExceptionBase(ExceptionErrorKeys.NULL_EXCEPTION, "Parameter of Test Step: " + getName());
+        }
+        return parameter;
+    }
 
     private Object castParameter(Object valueObject) {
         if (valueObject instanceof TextNode textNode) {

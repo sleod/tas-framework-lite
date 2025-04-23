@@ -92,12 +92,14 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
         this.description = testCase.getDescription();
         initTestObjects(testCase.getTestObjectNames());
         testDataContainer = new TestDataContainer(testDataContent, testCase.getAdditionalTestDataFile());
+        //parameterized Tests
+        testRunResult.setParameters(testDataContent.getFirst());
         initTestSteps(testCase.getSteps());
         testRunResult.setDescription(description);
         setTestCaseId(testCase.getTestCaseId());
         setTestCaseIdMap(testCase.getTestCaseIdMap());
-        if (isValid(testDataContent.get(0).get("seriesNumber"))) {
-            seriesNumber = testDataContent.get(0).get("seriesNumber").toString();
+        if (isValid(testDataContent.getFirst().get("seriesNumber"))) {
+            seriesNumber = testDataContent.getFirst().get("seriesNumber").toString();
         }
     }
 
