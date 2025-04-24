@@ -219,7 +219,6 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven.compiler.version}</version>
                 <configuration>
-                    <fork>true</fork>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
                     <compilerArgs>
@@ -240,9 +239,6 @@
                 <configuration>
                     <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
                     <testFailureIgnore>true</testFailureIgnore>
-                    <includes>
-                        <include>**/ch/qa/testautomation/apollon/**/*Test.java</include>
-                    </includes>
                 </configuration>
             </plugin>
             <plugin>

@@ -6,7 +6,6 @@ import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import ch.qa.testautomation.tas.intefaces.DriverProvider;
 import ch.qa.testautomation.tas.web.ChromeDriverProvider;
-import ch.qa.testautomation.tas.web.EdgeDriverProvider;
 import ch.qa.testautomation.tas.web.PlaywrightDriverProvider;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
@@ -191,8 +190,6 @@ public class ScreenCapture {
         DevTools devTools;
         if (getScreenShotTaker() instanceof ChromeDriverProvider chromeDriverProvider) {
             devTools = chromeDriverProvider.getDevTools();
-        } else if (getScreenShotTaker() instanceof EdgeDriverProvider edgeDriverProvider) {
-            devTools = edgeDriverProvider.getDevTools();
         } else {
             throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Actual WebDriver do not have CDP Usage!");
         }
