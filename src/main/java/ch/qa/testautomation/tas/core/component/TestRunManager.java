@@ -46,24 +46,6 @@ public class TestRunManager {
     }
 
     /**
-     * allow adding extra plain text attachment with limited extensions for single test case
-     * allowed extensions: "txt", "csv", "log", "out", "pdf", "png", "jpg", "mp4"
-     *
-     * @param filePath file path
-     */
-    public static void addExtraAttachment4TestCase(String filePath) {
-        if (isValid(filePath)) {
-            File attachment = new File(filePath);
-            if (attachment.exists() && attachment.isFile() && FileOperation.isAllowedFileExtension(filePath)) {
-                ReportBuilder.addExtraAttachment4TestCase(attachment);
-            } else {
-                debug("Given File can not be attach to Test Case!" + filePath +
-                        "\nFile Path must be correct with allowed extensions: " + FileOperation.getAllowedFileExtension());
-            }
-        }
-    }
-
-    /**
      * filter test case with meta tags
      *
      * @param metaFilters  defined meta tags
@@ -140,7 +122,6 @@ public class TestRunManager {
         } else {
             selectedIds = null;
         }
-
         if (!metaFilters.isEmpty()) {
             info("Filters: " + Arrays.toString(metaFilters.toArray()));
         } else {
@@ -213,7 +194,7 @@ public class TestRunManager {
      * @return list of test case ids
      */
     public static List<String> getJiraTestCaseIdsInExecution(String executionKey, QUERY_OPTION query_option) {
-        return new JIRARestClient(PropertyResolver.getJiraHost(), PropertyResolver.getJiraPAT()).getTestsInExecution(executionKey, query_option);
+        return new JIRARestClient().getTestsInExecution(executionKey, query_option);
     }
 
     /**
@@ -228,8 +209,14 @@ public class TestRunManager {
         TestType type = TestType.valueOf(jsonTestCase.getType().toUpperCase());
         switch (type) {
             case WEB_APP -> {//local
-                DriverManager.setupWebDriver();
-                ScreenCapture.setScreenTaker(DriverManager.getWebDriverProvider());
+                if (!PropertyResolver.isExecutionRemoteParallelEnabled()) {
+                    DriverManager.setCurrentPlatform(System.getProperty("os.name"));
+                    DriverManager.setupWebDriver();
+                    ScreenCapture.setScreenTaker(DriverManager.getDriverProvider());
+                } else {//remote
+                    DriverManager.setupRemoteWebDriver();
+                    ScreenCapture.setScreenTaker(DriverManager.getDriverProvider());
+                }
             }
             case REST -> DriverManager.setupRestDriver();
             case APP -> DriverManager.setupNonDriver();
@@ -443,6 +430,8 @@ public class TestRunManager {
                     PropertyResolver.setProperty(PropertyKey.JIRA_PASSWORD.key(), jiraConfig.get("password").asText());
                     PropertyResolver.setProperty(PropertyKey.JIRA_HOST.key(), jiraConfig.get("host").asText());
                     PropertyResolver.setProperty(PropertyKey.JIRA_PAT.key(), jiraConfig.get("pat").asText());
+                    PropertyResolver.setProperty(PropertyKey.JIRA_PROXY_HOST.key(), fetchConfigKey(jiraConfig, "proxyHost"));
+                    PropertyResolver.setProperty(PropertyKey.JIRA_PROXY_PORT.key(), fetchConfigKey(jiraConfig, "proxyPort"));
                 } catch (NullPointerException exception) {
                     throw new ExceptionBase(ExceptionErrorKeys.CONFIG_ERROR, exception, PropertyResolver.getJiraConfigFile());
                 }

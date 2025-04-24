@@ -6,7 +6,6 @@ import ch.qa.testautomation.tas.core.json.container.JSONDriverConfig;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import ch.qa.testautomation.tas.intefaces.DriverProvider;
-import ch.qa.testautomation.tas.intefaces.ScreenshotTaker;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriverException;
@@ -22,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static ch.qa.testautomation.tas.common.logging.ScreenCapture.getScreenshot;
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
 
-public class RemoteWebDriverProvider implements DriverProvider, ScreenshotTaker {
+public class RemoteWebDriverProvider implements DriverProvider {
 
     //    private RemoteWebDriver driver = null;
 
@@ -88,10 +87,5 @@ public class RemoteWebDriverProvider implements DriverProvider, ScreenshotTaker 
                 }
             }
         }
-    }
-
-    @Override
-    public Screenshot takeScreenShot() {
-        return getScreenshot(((TakesScreenshot) getDriver()).getScreenshotAs(OutputType.BASE64));
     }
 }

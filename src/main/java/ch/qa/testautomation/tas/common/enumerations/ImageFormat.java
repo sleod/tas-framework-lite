@@ -7,7 +7,7 @@ import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
  * image format general, for screenshot is PNG recommended
  */
 public enum ImageFormat {
-    JPEG("jpg"), PNG("PNG");
+    JPEG("jpg"), PNG("png");
 
     private final String format;
 
@@ -16,15 +16,15 @@ public enum ImageFormat {
     }
 
     public static ImageFormat getFormat(String format) {
-        switch (format) {
-            case "jpg" -> {
+        switch (format.toLowerCase()) {
+            case "jpg", "jpeg" -> {
                 return JPEG;
             }
-            case "PNG" -> {
+            case "png" -> {
                 return PNG;
             }
         }
-        throw new ExceptionBase(ExceptionErrorKeys.ENUM_NOT_SUPPORTED,format);
+        throw new ExceptionBase(ExceptionErrorKeys.ENUM_NOT_SUPPORTED, format);
     }
 
     public String value() {

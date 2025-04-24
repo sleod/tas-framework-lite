@@ -14,12 +14,12 @@ import org.openqa.selenium.support.events.EventFiringDecorator;
  */
 public abstract class WebPageObject extends SingleTestObject {
 
-    protected final RemoteWebDriver driver;
+    protected final WebDriver driver;
 
     public WebPageObject() {
-        RemoteWebDriver webDriver = DriverManager.getWebDriver();
+        WebDriver webDriver = DriverManager.getWebDriver();
         if (PropertyResolver.isDemoModeEnabled() || PropertyResolver.isGenerateVideoEnabled()) {
-            driver = (RemoteWebDriver) new EventFiringDecorator<>(new WebDriverEventCapture()).decorate(webDriver);
+            driver = new EventFiringDecorator<>(new WebDriverEventCapture()).decorate(webDriver);
         } else {
             driver = webDriver;
         }

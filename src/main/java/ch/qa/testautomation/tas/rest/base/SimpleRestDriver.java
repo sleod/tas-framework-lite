@@ -51,7 +51,7 @@ public class SimpleRestDriver implements RestDriver {
      * @param pass     proxy pass, empty string for no pass required
      */
     public SimpleRestDriver(String proxyURL, int port, String user, String pass) {
-        if (isValid(proxyURL) && isValid(port)) {
+        if(isValid(proxyURL) && isValid(port)) {
             HttpUrlConnectorProvider connectorProvider = new HttpUrlConnectorProvider()
                     .connectionFactory(new ProxyConnectionFactory(Proxy.Type.HTTP, proxyURL, port));
             ClientConfig config = new ClientConfig().connectorProvider(connectorProvider);
@@ -59,7 +59,7 @@ public class SimpleRestDriver implements RestDriver {
                 config.property(ClientProperties.PROXY_USERNAME, user).property(ClientProperties.PROXY_PASSWORD, pass);
             }
             client = ClientBuilder.newClient(config);
-        } else {
+        }else {
             client = ClientBuilder.newClient();
         }
     }

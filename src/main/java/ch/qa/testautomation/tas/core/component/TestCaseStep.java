@@ -1,10 +1,9 @@
 package ch.qa.testautomation.tas.core.component;
 
+import ch.qa.testautomation.tas.common.enumerations.ScreenshotLevel;
 import ch.qa.testautomation.tas.common.enumerations.TestStatus;
 import ch.qa.testautomation.tas.common.enumerations.TestType;
 import ch.qa.testautomation.tas.common.logging.ScreenCapture;
-import ch.qa.testautomation.tas.common.logging.Screenshot;
-import ch.qa.testautomation.tas.common.logging.SystemLogger;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.annotations.*;
 import ch.qa.testautomation.tas.core.json.container.JSONTestCaseStep;
@@ -24,23 +23,20 @@ import org.junit.jupiter.api.function.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.logStepInfo;
+import static ch.qa.testautomation.tas.common.logging.SystemLogger.warn;
 import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
 
 public class TestCaseStep implements Executable {
-    /**
-     * -- GETTER --
-     *
-     * @return order number of step
-     */
+
+    public static final int PARAMETER_ROW_NUM = 0;
     @Getter
     private final int orderNumber;
     private final Class<?> testObjectClass;
     private final TestDataContainer testDataContainer;
-    private final String screenshotLevel;
     private final JsonTestCaseMetaData jsonTestCaseMetaData;
     private Object pageObject = null;
     private final JSONTestCaseStep jsonTestCaseStep;
@@ -60,6 +56,9 @@ public class TestCaseStep implements Executable {
     private TestRunResult testRunResult;
     private final Method runMethod;
     private boolean noRun = false;
+    @Getter
+    @Setter
+    private Map<String, Object> parameters = new LinkedHashMap<>();
 
     public TestCaseStep(int orderNumber, JsonTestCaseMetaData jsonTestCaseMetaData, JSONTestCaseStep jStep, Class<?> testObjectClass, TestDataContainer testDataContainer) {
         this.name = ("Step " + orderNumber + ". " + testObjectClass.getDeclaredAnnotation(TestObject.class)
@@ -68,7 +67,6 @@ public class TestCaseStep implements Executable {
         this.testDataContainer = testDataContainer;
         this.orderNumber = orderNumber;
         this.testObjectClass = testObjectClass;
-        this.screenshotLevel = jsonTestCaseMetaData.getScreenshotLevel();
         this.testStepResult = new TestStepResult(getName(), getOrderNumber());
         //get method with annotated name
         this.runMethod = getMethodWithAnnoName(jsonTestCaseStep.getName());
@@ -79,13 +77,6 @@ public class TestCaseStep implements Executable {
         noRun = PropertyResolver.isRetryOnErrorEnabled() && retry
                 && retryOrder >= 0 && retryOrder >= getOrderNumber() + PropertyResolver.getRetryOverSteps();
         return getName();
-    }
-
-    public boolean isTakeScreenshotDefinedOnTestcaseStep() {
-        if (!takeScreenshot && jsonTestCaseStep.getTakeScreenshot() != null) {
-            setTakeScreenshot(jsonTestCaseStep.getTakeScreenshot().equalsIgnoreCase("true"));
-        }
-        return takeScreenshot;
     }
 
     /**
@@ -100,14 +91,12 @@ public class TestCaseStep implements Executable {
             throw new ExceptionBase(ExceptionErrorKeys.METHOD_SHOULD_BE_PUBLIC, getName());
         }
         if (testDataContainer.getPageObject(testObjectClass.getName()) == null) {
-            pageObject = getInstanceOf(testObjectClass);
+            pageObject = testObjectClass.getDeclaredConstructor().newInstance();
             testDataContainer.addPageObject(testObjectClass.getName(), pageObject);
         } else {
             pageObject = testDataContainer.getPageObject(testObjectClass.getName());
         }
-        //override take screenshot setting upon method
-        setTakeScreenshot(runMethod.getDeclaredAnnotation(TestStep.class).takeScreenshot());
-        if (jsonTestCaseStep.getStopOnError() != null) {
+        if (Objects.nonNull(jsonTestCaseStep.getStopOnError())) {
             setStopOnError(jsonTestCaseStep.getStopOnError().equalsIgnoreCase("true"));
         } else if (runMethod.isAnnotationPresent(StopOnError.class)) {
             setStopOnError(runMethod.getDeclaredAnnotation(StopOnError.class).value());
@@ -122,7 +111,6 @@ public class TestCaseStep implements Executable {
      */
     public void run() {
         TestStepMonitor.setCurrentStep(this);
-        SystemLogger.setCurrTestStepResult(testStepResult);
         logStepInfo("Step Start: " + testStepResult.getName());
         if (TestStepMonitor.isStop() || noRun) {
             noRun();
@@ -136,60 +124,31 @@ public class TestCaseStep implements Executable {
                 if (parameterCount == 0) {//case no parameter required
                     invokeMethod(runMethod, pageObject); //invoke directly
                 } else {//case parameter required
-                    String using;
-                    if (jsonTestCaseStep.getUsing() == null || jsonTestCaseStep.getUsing().isEmpty()) {
-                        using = runMethod.getDeclaredAnnotation(TestStep.class).using();
-                    } else {
-                        using = jsonTestCaseStep.getUsing();
-                    }
-                    if (using.isEmpty()) {//parameter required but not found
-                        throw new ExceptionBase(ExceptionErrorKeys.TEST_STEP_REQUIRED_PARAMETER_NOT_FOUND, getName());
-                    }
-                    int parameterRowNum = 0;
+                    String using = getUsingFromJsonTestcaseStep();
                     if (parameterCount == 1) {// single param required
-                        Object parameter;
-                        if (using.equalsIgnoreCase("CustomizedDataMap")) {//transfer whole map as parameter
-                            parameter = secureParameter(testDataContainer.getDataContent().get(parameterRowNum));
+                        Object parameter = getParameterFromDataContainer(using);
+                        // When the test step needs a JsonNode parameter, call it and leave this code block section
+                        Type[] genericParameterTypes = runMethod.getParameterTypes();
+                        if (isJsonNodeParameter(genericParameterTypes[0])) {
+                            invokeThis(parameter);
+                            this.parameters.put(using, parameter);
                         } else {
-                            parameter = secureParameter(testDataContainer.getParameter(using, parameterRowNum));
-                        }
-                        //start casing param type
-                        if (parameter instanceof ArrayNode arrayNode) {// Array Node
-                            Iterator<JsonNode> elements = arrayNode.elements();
-                            JsonNode elementNode = elements.next();
-                            if (elementNode.isValueNode()) {//in case plain array, wrap to string list
-                                List<String> textNodeValues = mapper.convertValue(arrayNode, new TypeReference<>() {
-                                });
-                                invokeMethod(runMethod, pageObject, textNodeValues);
-                            } else {//in case object node array, wrap to map list
-                                List<Map<String, Object>> objectNodesValues = mapper.convertValue(arrayNode, new TypeReference<>() {
-                                });
-                                invokeMethod(runMethod, pageObject, objectNodesValues);
-                            }
-                        } else {//Object Node
-                            if (using.contains("@base64")) {
-                                parameter = PropertyResolver.decodeBase64(((TextNode) parameter).asText());
-                            }
-                            invokeMethod(runMethod, pageObject, castParameter(parameter));
+                            //start casing param type
+                            invokeMethodeAfterConvertParameter(parameter, using);
                         }
                     } else {// multi-param required
                         Object[] parameters;
                         //String Array zerlegen
                         if (using.contains("[") || using.contains(",")) {
-                            String[] usingKeys = using.replace("[", "").replace("]", "").split(",");
-                            parameters = new Object[usingKeys.length];
-                            for (int index = 0; index < usingKeys.length; index++) {
-                                //Key Werte welche im Array mitgegeben werden nun aus dem TestdataContainer auslesen
-                                Object valueObject = secureParameter(testDataContainer.getParameter(usingKeys[index].trim(), parameterRowNum));
-                                parameters[index] = castParameter(valueObject);
-                            }
-                            invokeMethod(runMethod, pageObject, parameters);
+                            parameters = extractAndProcessParameters(using);
+                            invokeThis(parameters);
                         } else {
-                            Object parameter = secureParameter(testDataContainer.getParameter(using, parameterRowNum));
+                            Object parameter = getParameterFromDataContainer(using);
                             if (parameter instanceof ArrayNode) {
                                 parameters = mapper.convertValue(parameter, new TypeReference<>() {
                                 });
-                                invokeMethod(runMethod, pageObject, parameters);
+                                this.parameters.put(using, ((ArrayNode) parameter).toPrettyString());
+                                invokeThis(parameters);
                             } else {
                                 throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_NOT_MATCH);
                             }
@@ -211,22 +170,105 @@ public class TestCaseStep implements Executable {
                 noRun = isStopOnError() || isSkipOnError();
                 TestStepMonitor.setIsStop(noRun);
             }
+
         }
         testStepResult.stopNow();
+        logStepInfo("Step End: " + getName());
+        logStepInfo("Start after step Process...");
         afterStep();
     }
 
-    private Object secureParameter(Object parameter) {
-        if (Objects.isNull(parameter)) {
-            throw new ExceptionBase(ExceptionErrorKeys.NULL_EXCEPTION, "Parameter of Test Step: " + getName());
+    private void invokeMethodeAfterConvertParameter(Object parameter, String using) throws InvocationTargetException, IllegalAccessException {
+        if (parameter instanceof ArrayNode arrayNode) {// Array Node
+            Iterator<JsonNode> elements = arrayNode.elements();
+            JsonNode elementNode = elements.next();
+            invokeMethodeBasedOnNodeContent(using, arrayNode, elementNode);
+        } else {//Object Node
+            invokeMethodeWithObjectNode(using, parameter);
+        }
+    }
+
+    private Object[] extractAndProcessParameters(String using) {
+        Object[] parameters;
+        String[] usingKeys = using.replace("[", "").replace("]", "").split(",");
+        parameters = new Object[usingKeys.length];
+        for (int index = 0; index < usingKeys.length; index++) {
+            //Key Werte welche im Array mitgegeben werden nun aus dem TestdataContainer auslesen
+            Object valueObject = getParameterFromDataContainer(usingKeys[index].trim());
+
+            //So kann eine Methode beide Wert haben also einen JSONNode oder eine List Definition
+            Type[] genericParameterTypes = runMethod.getParameterTypes();
+            if (isJsonNodeParameter(genericParameterTypes[index])) {
+                parameters[index] = valueObject;
+            } else {
+                parameters[index] = castParameter(valueObject);
+            }
+            this.parameters.put(usingKeys[index], parameters[index]);
+        }
+        return parameters;
+    }
+
+    private Object getParameterFromDataContainer(String using) {
+        Object parameter;
+        if (using.equalsIgnoreCase("CustomizedDataMap")) {//transfer whole map as parameter
+            parameter = checkIsNotNull(testDataContainer.getDataContent().getFirst());
+        } else {
+            parameter = checkIsNotNull(testDataContainer.getParameter(using, PARAMETER_ROW_NUM));
         }
         return parameter;
+    }
+
+    private boolean isJsonNodeParameter(Type genericParameterType) {
+        return genericParameterType instanceof Class<?> && JsonNode.class.isAssignableFrom((Class<?>) genericParameterType);
+    }
+
+    private String getUsingFromJsonTestcaseStep() {
+        String using;
+        if (jsonTestCaseStep.getUsing() == null || jsonTestCaseStep.getUsing().isEmpty()) {
+            //get using from annotation content
+            using = runMethod.getDeclaredAnnotation(TestStep.class).using();
+        } else {
+            using = jsonTestCaseStep.getUsing();
+        }
+        if (using.isEmpty()) {//parameter required but not found
+            throw new ExceptionBase(ExceptionErrorKeys.TEST_STEP_REQUIRED_PARAMETER_NOT_FOUND, getName());
+        }
+        return using;
+    }
+
+    private void invokeMethodeWithObjectNode(String using, Object parameter) throws InvocationTargetException, IllegalAccessException {
+        if (using.contains("@base64")) {
+            parameter = PropertyResolver.decodeBase64(((TextNode) parameter).asText());
+        }
+        Object parameterObject = castParameter(parameter);
+        parameters.put(using, parameterObject);
+        invokeThis(parameterObject);
+    }
+
+    private void invokeMethodeBasedOnNodeContent(String using, ArrayNode arrayNode, JsonNode elementNode) throws InvocationTargetException, IllegalAccessException {
+        if (elementNode.isValueNode()) {//in case plain array, wrap to string list
+            List<String> textNodeValues = mapper.convertValue(arrayNode, new TypeReference<>() {
+            });
+            invokeThis(textNodeValues);
+            parameters.put(using, textNodeValues);
+        } else {//in case object node array, wrap to map list
+            List<Map<String, Object>> objectNodesValues = mapper.convertValue(arrayNode, new TypeReference<>() {
+            });
+            invokeThis(objectNodesValues);
+            for (int i = 0; i < objectNodesValues.size(); i++) {
+                parameters.put("" + (i + 1), objectNodesValues.get(i));
+            }
+        }
+    }
+
+    private void invokeThis(Object... parameter) throws InvocationTargetException, IllegalAccessException {
+        invokeMethod(runMethod, pageObject, parameter);
     }
 
     private Object castParameter(Object valueObject) {
         if (valueObject instanceof TextNode textNode) {
             return textNode.asText();
-        } else if (valueObject instanceof ObjectNode) {
+        } else if (valueObject instanceof ObjectNode) {//cast to type as expected from method, exp. map
             return mapper.<Map<String, Object>>convertValue(valueObject, new TypeReference<>() {
             });
         } else if (valueObject instanceof IntNode intNode) {
@@ -237,7 +279,7 @@ public class TestCaseStep implements Executable {
             return booleanNode.asBoolean();
         } else if (valueObject instanceof LongNode longNode) {
             return longNode.asLong();
-        } else if (valueObject instanceof ArrayNode arrayNode) {
+        } else if (valueObject instanceof ArrayNode arrayNode) {//cast to type as expected from method, exp. list
             return mapper.<List<String>>convertValue(arrayNode, new TypeReference<>() {
             });
         } else if (String.valueOf(valueObject).matches("true|false")) {
@@ -245,6 +287,13 @@ public class TestCaseStep implements Executable {
         } else {
             return valueObject;
         }
+    }
+
+    private Object checkIsNotNull(Object parameter) {
+        if (Objects.isNull(parameter)) {
+            throw new ExceptionBase(ExceptionErrorKeys.NULL_EXCEPTION, "Parameter for test step: " + getName());
+        }
+        return parameter;
     }
 
     /**
@@ -256,23 +305,10 @@ public class TestCaseStep implements Executable {
      */
     private void invokeMethod(Method method, Object instance, Object... args) throws InvocationTargetException, IllegalAccessException {
         if (args.length > 0) {
-            SystemLogger.logStepInfo("Parameters: " + Strings.join(" | ", Arrays.stream(args).map(Object::toString)
-                    .collect(Collectors.toList())));
+            logStepInfo("Parameters: " + Strings.join(" | ", Arrays.stream(args).map(Object::toString).toList()));
         }
         method.invoke(instance, args);
         testStepResult.setStatus(TestStatus.PASS);
-    }
-
-    /**
-     * instance test object
-     *
-     * @param testObjectClass test object class
-     * @return instance of test object
-     * @throws IllegalAccessException exception
-     * @throws InstantiationException exception
-     */
-    private Object getInstanceOf(Class<?> testObjectClass) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-        return testObjectClass.getDeclaredConstructor().newInstance();
     }
 
     /**
@@ -280,21 +316,24 @@ public class TestCaseStep implements Executable {
      */
     public void afterStep() {
         testRunResult.addStepResults(testStepResult);
-        logStepInfo("Step End: " + testStepResult.getName());
         handlingScreenshots();
-        //handle Annotation @UndoOnError
-        if (runMethod != null && runMethod.isAnnotationPresent(UndoOnError.class) && testStepResult.getStatus()
-                .equals(TestStatus.FAIL)) {
-            String methodName = runMethod.getDeclaredAnnotation(UndoOnError.class).value();
-            try {
-                Method undo = getMethodUndoMethod(methodName);
-                Assertions.assertNotNull(undo, "Undo Method with name: " + methodName + " was not found in class: " + testObjectClass.getName());
-                undo.invoke(pageObject);
-            } catch (Throwable ex) {
-                throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, ex, "Undo Step Unsuccessful!");
+        if (runMethod != null) {
+            //handle Annotation @UndoOnError
+            if (runMethod.isAnnotationPresent(UndoOnError.class) && testStepResult.getStatus().equals(TestStatus.FAIL)) {
+                safeCallMethod(runMethod.getDeclaredAnnotation(UndoOnError.class).value());
             }
         }
         TestStepMonitor.processResult(testStepResult);
+    }
+
+    private void safeCallMethod(String methodName) {
+        try {
+            Method method = getMethodByName(methodName);
+            Assertions.assertNotNull(method, "Method with name: " + methodName + " was not found in class: " + testObjectClass.getName());
+            method.invoke(pageObject);
+        } catch (Throwable ex) {
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, ex, "Call Method: " + methodName + " Unsuccessful!");
+        }
     }
 
     public void noRun() {
@@ -331,30 +370,37 @@ public class TestCaseStep implements Executable {
     /**
      * take screenshot after step via level definition in test case
      */
-    private void handlingScreenshots() {
-
-        if (jsonTestCaseMetaData.getTestType().equals(TestType.REST)) {
-            this.takeScreenshot = false;
-        } else {
-            Screenshot screenshot = null;
-            if (screenshotLevel.equalsIgnoreCase("SUCCESS") || isTakeScreenshotDefinedOnTestcaseStep()) {
-                this.takeScreenshot = true;
-            } else {
-                if (screenshotLevel.equalsIgnoreCase("ERROR")) {
-                    this.takeScreenshot = testStepResult.getStatus().equals(TestStatus.FAIL);
-                }
-            }
-            if (this.takeScreenshot) {
-                screenshot = ScreenCapture.takeScreenShot();
-            }
-            if (screenshot != null) {
-                testStepResult.addScreenshot(screenshot);
-            }
+    public void handlingScreenshots() {
+        if (jsonTestCaseMetaData.getTestType().equals(TestType.REST) || jsonTestCaseMetaData.getTestType().equals(TestType.APP)) {
+            setTakeScreenshot(false);
+            return;
         }
+        if (testStepResult.getStatus().equals(TestStatus.SKIPPED)) {
+            setTakeScreenshot(false);
+            return;
+        }
+        //Prüfen, ob es auf TestStep Ebene definiert wurde
+        if (isTakeScreenshotSetOnTestCaseStep()) {
+            setTakeScreenshot(jsonTestCaseStep.getTakeScreenshot().equalsIgnoreCase("true")
+                    || runMethod.getDeclaredAnnotation(TestStep.class).takeScreenshot());
+        } else {
+            //Mit dieser Kombination werden auch die FAIL und ERROR Situationen abgedeckt
+            setTakeScreenshot(testStepResult.getStatus().equals(TestStatus.PASS)
+                    == jsonTestCaseMetaData.getScreenshotLevel().equals(ScreenshotLevel.SUCCESS));
+        }
+        //Screenshot erstellen
+        if (takeScreenshot) {
+            testStepResult.setFullScreen(ScreenCapture.takeScreenShot().getScreenshotFile());
+        }
+    }
+
+    private boolean isTakeScreenshotSetOnTestCaseStep() {
+        return Objects.nonNull(jsonTestCaseStep.getTakeScreenshot());
     }
 
     /**
      * fetch method name for passing to junit Testcase constructor that
+     * <p>
      * can be executed by runTest()
      *
      * @param name annotation name text
@@ -378,7 +424,7 @@ public class TestCaseStep implements Executable {
         }
     }
 
-    private Method getMethodUndoMethod(String name) {
+    private Method getMethodByName(String name) {
         Method method = null;
         Method[] methods = testObjectClass.getMethods();
         for (Method md : methods) {

@@ -1,10 +1,15 @@
 package ch.qa.testautomation.tas.core.json.container;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.Objects;
 
 /**
  * Object Container Class of JSON Test Case
  */
+@Setter
+@Getter
 public class JSONTestCaseStep extends JSONContainer {
 
     private String name;
@@ -13,61 +18,14 @@ public class JSONTestCaseStep extends JSONContainer {
     private String takeScreenshot;
     private String stopOnError;
     private String comment;
-
-    public String getTestObject() {
-        return testObject;
-    }
-
-    public void setTestObject(String testObject) {
-        this.testObject = testObject;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setUsing(String using) {
-        this.using = using;
-    }
-
-    public String getUsing() {
-        return using;
-    }
-
-    public String getTakeScreenshot() {
-        return takeScreenshot;
-    }
-
-    public void setTakeScreenshot(String takeScreenshot) {
-        this.takeScreenshot = takeScreenshot;
-    }
-
-    public String getStopOnError() {
-        return stopOnError;
-    }
-
-    public void setStopOnError(String stopOnError) {
-        this.stopOnError = stopOnError;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
+    private int retry = 0;
 
     @Override
     public boolean equals(Object target) {
         // self check
         if (this == target) return true;
         // null check
-        if (Objects.isNull(target)) return false;
+        if (target == null) return false;
         // type check and cast
         if (getClass() != target.getClass()) return false;
         JSONTestCaseStep other = (JSONTestCaseStep) target;
@@ -83,5 +41,4 @@ public class JSONTestCaseStep extends JSONContainer {
     public int hashCode() {
         return Objects.hash(name, testObject, using, comment);
     }
-
 }

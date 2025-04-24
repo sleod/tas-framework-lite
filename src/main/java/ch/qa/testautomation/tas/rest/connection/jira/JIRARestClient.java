@@ -1,6 +1,7 @@
 package ch.qa.testautomation.tas.rest.connection.jira;
 
 import ch.qa.testautomation.tas.common.IOUtils.FileOperation;
+import ch.qa.testautomation.tas.common.enumerations.TestStatus;
 import ch.qa.testautomation.tas.common.utils.DateTimeUtils;
 import ch.qa.testautomation.tas.common.utils.StringTextUtils;
 import ch.qa.testautomation.tas.common.utils.WaitUtils;
@@ -20,16 +21,35 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import jakarta.ws.rs.core.Response;
+import org.junit.jupiter.api.Assertions;
 
 import java.io.File;
 import java.util.*;
 
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
+import static ch.qa.testautomation.tas.common.logging.SystemLogger.warn;
+import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
 
 public class JIRARestClient extends TASRestClient {
     private String user = "";
     private static final String GENERAL_PATH = "rest/api/latest/";
     private static final String XRAY_PATH = "rest/raven/latest/api/";
+
+    public JIRARestClient() {
+        super(new TASRestDriver(PropertyResolver.getJiraProxyHost(), PropertyResolver.getJiraProxyPort(), "", ""));
+
+        if (isValid(PropertyResolver.getJiraHost())) {
+            getRestDriver().setHost(PropertyResolver.getJiraHost());
+        } else throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "JIRA Host was not set!");
+
+        if (isValid(PropertyResolver.getJiraPAT())) {
+            getRestDriver().setBearerToken(PropertyResolver.getJiraPAT());
+        } else {
+            if (isValid(PropertyResolver.getJiraUser()) && isValid(PropertyResolver.getJiraPassword())) {
+                getRestDriver().setBasicAuth(PropertyResolver.getJiraUser(), PropertyResolver.getJiraPassword());
+            } else warn("JIRA PAT Token or User not well set!");
+        }
+    }
 
     /**
      * Constructor with basic authentication
@@ -310,7 +330,7 @@ public class JIRARestClient extends TASRestClient {
      */
     public boolean updateRunStatusInExecution(JSONRunnerConfig jiraExecConfig, Map<String, TestRunResult> testCaseIdAndResults) {
         Map<String, String> exeKeyMap = jiraExecConfig.getTestExecutionIdMap();
-        String exeKey;
+        String exeKey = "";
         if (exeKeyMap.isEmpty()) {//create one execution for test runs
             JsonNode issue = createTestExecution(jiraExecConfig.getProjectKey(),
                     jiraExecConfig.getRunName() + " - " + DateTimeUtils.getFormattedLocalTimestamp(),
@@ -318,16 +338,25 @@ public class JIRARestClient extends TASRestClient {
             exeKey = issue.get("key").asText();
             WaitUtils.waitStep(1);
         } else {
-            exeKey = exeKeyMap.get(DriverManager.getCurrentPlatform());
+            if (isValid(exeKeyMap.get("Default"))) {
+                exeKey = exeKeyMap.get("Default");
+            } else {
+                String plattform = DriverManager.getCurrentPlatform();
+                if (isValid(exeKeyMap.get(plattform))) {
+                    exeKey = exeKeyMap.get(plattform);
+                }
+            }
         }
+        Assertions.assertTrue(isValid(exeKey), "Execution Key: " + exeKey + " is not valid!\n" +
+                "Please use 'Default' key in testExecutionIdMap for non Mobile Platform!");
+        //add test case instance to execution
         addTestsToExecution(new ArrayList<>(testCaseIdAndResults.keySet()), exeKey);
         //get runs in execution
-        JsonNode runs = getTestRunsInExecution(exeKey);
-        if (runs.isArray()) {
-            runs.forEach(run -> {
+        JsonNode testCaseRun = getTestRunsInExecution(exeKey);
+        if (testCaseRun.isArray()) {
+            testCaseRun.forEach(run -> {
                 String testKey = run.get("testKey").asText();
                 if (testCaseIdAndResults.containsKey(testKey)) {
-//                    resetRunStatus(run);
                     updateRunStatus(run, testCaseIdAndResults.get(testKey));
                     WaitUtils.waitStep(1);
                 }
@@ -335,7 +364,6 @@ public class JIRARestClient extends TASRestClient {
         }
         return true;
     }
-
     public void resetRunStatus(JsonNode run) {
         info("Reset Run Status to 'TODO'.");
         if (run != null) {
@@ -345,7 +373,13 @@ public class JIRARestClient extends TASRestClient {
             getResponseNode(getRestDriver().put(path, payload.toString()), "Fail with reset status to run: " + runId);
         }
     }
-
+    
+    /**
+     * Update run status with run Result
+     *
+     * @param run           Test Run json Node
+     * @param testRunResult TestRunResult
+     */
     public void updateRunStatus(JsonNode run, TestRunResult testRunResult) {
         if (run != null) {
             updateRunStatus(run.get("id").asText(), testRunResult);
@@ -354,25 +388,48 @@ public class JIRARestClient extends TASRestClient {
         }
     }
 
+    /**
+     * Update run status with run id and Result
+     *
+     * @param runId         Test Run ID
+     * @param testRunResult TestRunResult
+     */
     public JsonNode updateRunStatus(String runId, TestRunResult testRunResult) {
-        info("Update Run Status.");
-        String path = XRAY_PATH + "testrun/" + runId;
         List<File> dataFiles = testRunResult.getAttachments();
         dataFiles.add(new File(testRunResult.getLogFilePath()));
+        String comment = testRunResult.getDescription() + System.lineSeparator() + "Last Run: "
+                + DateTimeUtils.getISOTimestamp(testRunResult.getStart()) + " - " + DriverManager.getCurrentPlatform();
+        return updateRunStatus(runId, dataFiles, comment, testRunResult.getStatus());
+    }
+
+    /**
+     * api for update jira run status with evidences and comments
+     *
+     * @param runId     jira run id
+     * @param logFiles  list of log files for evidences
+     * @param comment   comment for run
+     * @param runStatus run status
+     * @return response in json node
+     */
+    public JsonNode updateRunStatus(String runId, List<File> logFiles, String comment, TestStatus runStatus) {
+        info("Update Run Status.");
+        String path = XRAY_PATH + "testrun/" + runId;
         ObjectMapper objectMapper = new ObjectMapper();
         ArrayNode evidence = objectMapper.createArrayNode();
-        dataFiles.forEach(file ->
+        logFiles.forEach(file ->
                 evidence.add(objectMapper.createObjectNode()
                         .put("filename", file.getName())
                         .put("contentType", "plain/text")
                         .put("data", FileOperation.encodeFileToBase64(file))));
         JsonNode evidences = objectMapper.createObjectNode().set("add", evidence);
-        String comment = testRunResult.getDescription() + System.lineSeparator() + "Last Run: "
-                + DateTimeUtils.getISOTimestamp(testRunResult.getStart()) + " - " + DriverManager.getCurrentPlatform();
         ObjectNode payload = objectMapper.createObjectNode()
-                .put("status", JiraRunStatus.getText(testRunResult.getStatus().intValue()))
-                .put("comment", comment)
-                .set("evidences", evidences);
+                .put("status", JiraRunStatus.getText(runStatus.intValue()));
+        if (isValid(comment)) {
+            payload.put("comment", comment);
+        }
+        if (!evidences.isEmpty()) {
+            payload.set("evidences", evidences);
+        }
         return getResponseNode(getRestDriver().put(path, payload.toString()), "Fail with update status to run: " + runId);
     }
 

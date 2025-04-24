@@ -17,9 +17,7 @@ import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
  * TestStep Monitor for each testcase
  */
 public class TestStepMonitor {
-    private static final Map<String, String> currentISOBundleIds = new HashMap<>(); //ios only, must
-    private static final Map<String, String> currentAppPackages = new HashMap<>(); //android only, must
-    private static final Map<String, String> currentAppActivities = new HashMap<>(); //android only, must
+
     private static final Map<String, TestCaseObject> currentTests = new HashMap<>();
     private static final Map<String, TestCaseStep> currentSteps = new HashMap<>();
     private static final Map<String, Boolean> isStopMap = new HashMap<>();
@@ -56,30 +54,6 @@ public class TestStepMonitor {
 
     public static String getCurrentTestCaseName() {
         return getCurrentTest().getName();
-    }
-
-    public static String getCurrentAppPackage() {
-        return currentAppPackages.get(Thread.currentThread().getName());
-    }
-
-    public static String getCurrentAppActivity() {
-        return currentAppActivities.get(Thread.currentThread().getName());
-    }
-
-    public static void setCurrentAppPackage(String currentAppPackage) {
-        currentAppPackages.put(Thread.currentThread().getName(), currentAppPackage);
-    }
-
-    public static void setCurrentAppActivity(String currentAppActivity) {
-        currentAppActivities.put(Thread.currentThread().getName(), currentAppActivity);
-    }
-
-    public static String getCurrentISOBundleId() {
-        return currentISOBundleIds.get(Thread.currentThread().getName());
-    }
-
-    public static void setCurrentISOBundleId(String currentISOBundleId) {
-        currentISOBundleIds.put(Thread.currentThread().getName(), currentISOBundleId);
     }
 
     public static void beforeAllSteps() {

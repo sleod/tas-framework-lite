@@ -56,7 +56,7 @@ public class MavenReportWriter {
     private static Element buildTestStep2Testcase(TestStepResult testStepResult) {
         Element testCase = new Element("testcase");
         Element sysout = new Element("system-out");
-        sysout.addContent(new CDATA(testStepResult.getInfo()));
+        sysout.addContent(new CDATA(testStepResult.getStepLogs()));
         testCase.addContent(sysout);
         if (testStepResult.getStatus().equals(TestStatus.FAIL)) {
             Element failure = new Element("failure")

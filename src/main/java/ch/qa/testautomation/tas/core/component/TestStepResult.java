@@ -3,23 +3,46 @@ package ch.qa.testautomation.tas.core.component;
 import ch.qa.testautomation.tas.common.enumerations.TestStatus;
 import ch.qa.testautomation.tas.common.logging.Screenshot;
 import ch.qa.testautomation.tas.common.utils.DateTimeUtils;
+import ch.qa.testautomation.tas.core.media.IgnoredScreen;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.LinkedList;
+import java.io.File;
 import java.util.List;
+import java.util.Objects;
 
 public class TestStepResult {
 
-    private TestStatus testStatus = TestStatus.NO_RUN;
+    private TestStatus testStatus;
     private TestFailure testFailure;
     private long startTime;
     private long stopTime;
-    private final List<Screenshot> screenshots = new LinkedList<>();
+    @Getter
+    @Setter
+    private File fullScreen;
+    @Getter
+    @Setter
+    private File expectedScreen;
+    @Getter
+    @Setter
+    private File actualScreen;
+    @Getter
+    @Setter
+    private IgnoredScreen ignoredScreen;
+    @Setter
+    @Getter
     private String actual = "As expected";
+    @Setter
+    @Getter
     private String name;
+    @Getter
     private final int stepOrder;
+    @Setter
+    @Getter
     private String testMethod;
+    @Getter
     private final StringBuilder logs = new StringBuilder();
 
     public TestStepResult(String name, int stepOrder) {
@@ -27,42 +50,26 @@ public class TestStepResult {
         this.stepOrder = stepOrder;
     }
 
-    public StringBuilder getLogs() {
-        return logs;
-    }
-
-    public String getTestMethod() {
-        return testMethod;
-    }
-
-    public void setTestMethod(String testMethod) {
-        this.testMethod = testMethod;
-    }
-
     public void setStatus(TestStatus testStatus) {
         this.testStatus = testStatus;
     }
 
     public TestStatus getStatus() {
-        return testStatus;
-    }
-
-    public List<Screenshot> getScreenshots() {
-        return screenshots;
+        return Objects.requireNonNullElse(testStatus, TestStatus.NO_RUN);
     }
 
     public TestFailure getTestFailure() {
-        if (testFailure != null) {
-            return testFailure;
-        } else {
-            return new TestFailure(new ExceptionBase(ExceptionErrorKeys.TEST_FAILURE_UNKNOWN));
+        if (testStatus.equals(TestStatus.NO_RUN) || testStatus.equals(TestStatus.PASS)) {
+            return null;
+        }else {
+            return Objects.requireNonNullElseGet(testFailure, () -> new TestFailure(new ExceptionBase(ExceptionErrorKeys.TEST_FAILURE_UNKNOWN)));
         }
     }
 
     public void setTestFailure(TestFailure testFailure) {
         this.testFailure = testFailure;
+        //in failure case , log trace to step info.
         logInfo(testFailure.getMessage());
-        logInfo(testFailure.getTrace());
     }
 
     public long getStart() {
@@ -81,31 +88,7 @@ public class TestStepResult {
         stopTime = DateTimeUtils.getNowMilli();
     }
 
-    public String getActual() {
-        return actual;
-    }
-
-    public void setActual(String actual) {
-        this.actual = actual;
-    }
-
-    public void addScreenshot(Screenshot screenshot) {
-        screenshots.add(screenshot);
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getStepOrder() {
-        return stepOrder;
-    }
-
-    public String getInfo() {
+    public String getStepLogs() {
         return logs.toString();
     }
 

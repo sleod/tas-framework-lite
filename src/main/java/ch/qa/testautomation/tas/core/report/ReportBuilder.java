@@ -13,6 +13,7 @@ import ch.qa.testautomation.tas.core.json.container.JSONTestResult;
 import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
+import ch.qa.testautomation.tas.web.RemoteWebDriverProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -69,7 +70,7 @@ public class ReportBuilder {
         StringBuilder logContent = new StringBuilder();
         logContent.append(testRunResult.getBegin()).append("\n");
         for (TestStepResult testStepResult : testRunResult.getStepResults()) {
-            String info = testStepResult.getInfo();
+            String info = testStepResult.getStepLogs();
             logContent.append(info);
             if (testStepResult.getStatus().equals(TestStatus.FAIL)) {
                 logContent.append(testStepResult.getTestFailure().getMessage())
@@ -115,7 +116,7 @@ public class ReportBuilder {
         jsonTestResult.setFullName(testCaseObject.getPackageName() + "." + testCaseObject.getName());//fill full name as required
         addLabels(jsonTestResult, testCaseObject);//add labels
         addLinks(jsonTestResult, testCaseObject);//add links
-        addParameters(jsonTestResult, testCaseObject);
+        addParameters(jsonTestResult, testCaseObject);//add parameters
         jsonTestResult.setHistoryId(buildHistoryId(testCaseObject.getPackageName() + "." + jsonTestResult.getName()));
         for (TestCaseStep testCaseStep : testCaseObject.getSteps()) {
             //Attachment will be done by construction
@@ -160,6 +161,9 @@ public class ReportBuilder {
         String command = "allure generate ";
         if (FileOperation.isFileExists(currReportDir)) {
             command += "--clean ";
+        }
+        if(PropertyResolver.isGenerateSingleFileReport()){
+            command += "--single-file ";
         }
         command += PropertyResolver.getAllureResultsDirectory() + " -o " + currReportDir;
         ExternAppController.executeCommand(command);
@@ -404,12 +408,6 @@ public class ReportBuilder {
         addLabelToResult("thread", testCaseObject.getTestRunResult().getThreadName(), jsonTestResult);
     }
 
-    private void addParameters(JSONTestResult jsonTestResult, TestCaseObject testCaseObject) {
-        if (!testCaseObject.getTestRunResult().getParameters().isEmpty()) {
-            testCaseObject.getTestRunResult().getParameters().forEach((key, value) -> jsonTestResult.addParameter(key, value.toString()));
-        }
-    }
-
     private void addLinks(JSONTestResult jsonTestResult, TestCaseObject testCaseObject) {
         String testCaseId = testCaseObject.getTestCaseId();
         String source = testCaseObject.getTestCase().getSource();
@@ -421,6 +419,13 @@ public class ReportBuilder {
                     jsonTestResult.addLink(testCaseId, url + "/browse/" + testCaseId);
                 }
             }
+        }
+    }
+
+    private void addParameters(JSONTestResult jsonTestResult, TestCaseObject testCaseObject) {
+        if (!testCaseObject.getTestRunResult().getParameters().isEmpty()) {
+            testCaseObject.getTestRunResult().getParameters()
+                    .forEach((key, value) -> jsonTestResult.addParameter(key, String.valueOf(value)));
         }
     }
 
@@ -440,8 +445,8 @@ public class ReportBuilder {
         String typ = testCaseObject.getTestType().type();
         //add suffix to test case name with Platform+Version+devices
         String testCaseName = result.getName();
-        if (typ.startsWith("web") && Objects.nonNull(DriverManager.getRemoteWebDriverProvider())) {
-            JSONDriverConfig config = DriverManager.getRemoteWebDriverProvider().getConfig();
+        if (typ.startsWith("web") && DriverManager.getDriverProvider() instanceof RemoteWebDriverProvider remoteWebDriverProvider) {
+            JSONDriverConfig config = remoteWebDriverProvider.getConfig();
             testCaseName += " (" + DriverManager.getCurrentPlatform() + "-"
                     + config.getPlatformVersion() + "-" + config.getBrowserName() + ")";
         }

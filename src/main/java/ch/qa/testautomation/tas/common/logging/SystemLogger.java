@@ -2,6 +2,7 @@ package ch.qa.testautomation.tas.common.logging;
 
 import ch.qa.testautomation.tas.common.utils.DateTimeUtils;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
+import ch.qa.testautomation.tas.core.component.TestStepMonitor;
 import ch.qa.testautomation.tas.core.component.TestStepResult;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -30,24 +31,11 @@ public class SystemLogger {
     //name for default system logger. Main key for operating appender and loggers.
     private static final Logger LOGGER = LogManager.getLogger("SystemLogger");
     public static final Level STEP_INFO = Level.forName("STEP_INFO", 350);
-    private static Map<String, TestStepResult> stepResults = null;
-
-    public synchronized static void setCurrTestStepResult(TestStepResult stepResult) {
-        if (Objects.isNull(stepResults)) {
-            stepResults = new HashMap<>(PropertyResolver.getRemoteExecutionMaxThreads());
-        }
-        debug("Set Current TestStepResult: " + stepResult.getName());
-        stepResults.put(Thread.currentThread().getName(), stepResult);
-    }
-
-    public synchronized static TestStepResult getCurrTestStepResult() {
-        return stepResults.get(Thread.currentThread().getName());
-    }
 
     public synchronized static void logStepInfo(String text) {
         String info = getSimpleCustomInfo("STEP_INFO", text);
         stepInfo(text);
-        getCurrTestStepResult().logInfo(info);
+        TestStepMonitor.getCurrentStep().getTestStepResult().logInfo(info);
     }
 
     /**
