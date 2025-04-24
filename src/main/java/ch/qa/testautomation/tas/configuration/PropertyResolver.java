@@ -381,7 +381,7 @@ public class PropertyResolver {
     }
 
     public static String getTestIdAttribute() {
-        return getProperty(TEST_ID_ATTRIBUTE.key(), "");
+        return getProperty(TEST_ID_ATTRIBUTE.key(), "id");
     }
 
     public static void setProperties(Map<String, String> properties) {
@@ -415,7 +415,7 @@ public class PropertyResolver {
     }
 
     public static String getTestEnvironment() {
-        return getProperty(TEST_ENVIRONMENT.key(), "id");
+        return getProperty(TEST_ENVIRONMENT.key(), "");
     }
 
     public static String getTestDataFolder() {
