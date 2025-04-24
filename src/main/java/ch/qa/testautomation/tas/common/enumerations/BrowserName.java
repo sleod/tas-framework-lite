@@ -5,7 +5,7 @@ package ch.qa.testautomation.tas.common.enumerations;
  */
 @Deprecated
 public enum BrowserName {
-    CHROME("chrome"), EDGE("edge");
+    CHROME("chrome"), EDGE("msedge"), FIREFOX("firefox"), CHROMIUM("chromium");
 
     private final String browserName;
 
