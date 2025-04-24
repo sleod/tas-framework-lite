@@ -12,7 +12,7 @@ import java.nio.file.Paths;
 public class ChromeUserPreference {
 
     public static Path getUserDataDir() {
-        Path userDataDir = Paths.get("target/generated-user-data/chrome-profile");
+        Path userDataDir = Paths.get(PropertyResolver.getBrowserProfileDir());
         // Create preferences file
         Path profileFile = userDataDir.resolve("Default").resolve("Preferences");
         profileFile.getParent().toFile().mkdirs();

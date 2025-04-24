@@ -21,6 +21,7 @@ import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import org.junit.jupiter.api.DynamicTest;
 
+import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -302,6 +303,8 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
             DriverManager.closeDriver();
             PropertyResolver.setKeepBrowserOnErrorEnabled(previewSetting);//reset to preview
         }
+        //remove chrome profile
+        FileOperation.deleteFolder(new File(PropertyResolver.getBrowserProfileDir()));
     }
 
     /**

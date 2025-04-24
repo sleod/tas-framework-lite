@@ -44,6 +44,10 @@ public class PlaywrightPage extends SingleTestObject {
         getPage().navigate(url);
     }
 
+    public String url(){
+        return getPage().url();
+    }
+    
     public PlaywrightWebElement getByPlaceholder(String placeholder) {
         return new PlaywrightWebElement(getPage(), getPage().getByPlaceholder(placeholder));
     }

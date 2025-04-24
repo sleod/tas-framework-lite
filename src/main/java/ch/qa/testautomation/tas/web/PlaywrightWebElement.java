@@ -130,6 +130,30 @@ public class PlaywrightWebElement {
         return getElement().all();
     }
 
+    public boolean isEnabled() {
+        return getElement().isEnabled();
+    }
+
+    public boolean isChecked() {
+        return getElement().isChecked();
+    }
+
+    public boolean isHidden() {
+        return getElement().isHidden();
+    }
+
+    public boolean isDisabled() {
+        return getElement().isDisabled();
+    }
+
+    public boolean isEditable() {
+        return getElement().isEditable();
+    }
+
+    public void executeJs(String js) {
+        getElement().evaluate(js);
+    }
+    
     private void flash(Locator locator) {
         Object originalBorder = locator.evaluate("el => el.style.border");
         locator.evaluate("el => el.style.border = '2px solid red'");

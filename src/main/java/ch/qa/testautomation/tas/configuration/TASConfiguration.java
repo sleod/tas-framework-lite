@@ -1,5 +1,6 @@
 package ch.qa.testautomation.tas.configuration;
 
+import ch.qa.testautomation.tas.common.enumerations.BrowserName;
 import ch.qa.testautomation.tas.common.enumerations.DownloadStrategy;
 import ch.qa.testautomation.tas.common.enumerations.WebDriverName;
 import org.apache.logging.log4j.Level;
@@ -349,7 +350,17 @@ public class TASConfiguration {
      * @param webDriverName Enum {@link WebDriverName}
      */
     public TASConfiguration setWebDriverName(WebDriverName webDriverName) {
-        PropertyResolver.setWebDriverName(webDriverName.getName());
+        PropertyResolver.setProperty(WEB_DRIVER_NAME.key(), webDriverName.getName());
+        return this;
+    }
+
+    /**
+     * set browser name to use
+     *
+     * @param value full path to browser binary file
+     */
+    public TASConfiguration useBrowser(BrowserName value) {
+        PropertyResolver.setProperty(USE_BROWSER_NAME.key(), value.getName());
         return this;
     }
 
@@ -364,6 +375,16 @@ public class TASConfiguration {
     }
 
     /**
+     * set browser profile save dir
+     *
+     * @param value full path to browser profile dir
+     */
+    public TASConfiguration setBrowserProfileDir(String value) {
+        PropertyResolver.setProperty(BROWSER_PROFILE_DIR.key(), value);
+        return this;
+    }
+
+    /**
      * toggle if allow CDP connection
      *
      * @param value boolean, default false
@@ -372,6 +393,7 @@ public class TASConfiguration {
         PropertyResolver.setProperty(CDP_ALLOWED.key(), String.valueOf(value));
         return this;
     }
+    
     /**
      * set test id attribute for Playwright specially
      *

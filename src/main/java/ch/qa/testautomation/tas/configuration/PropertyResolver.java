@@ -3,6 +3,7 @@ package ch.qa.testautomation.tas.configuration;
 import ch.qa.testautomation.tas.common.IOUtils.FileLocator;
 import ch.qa.testautomation.tas.common.enumerations.DownloadStrategy;
 import ch.qa.testautomation.tas.common.enumerations.PropertyKey;
+import ch.qa.testautomation.tas.common.enumerations.WebDriverName;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import org.apache.commons.lang3.EnumUtils;
@@ -160,11 +161,11 @@ public class PropertyResolver {
     }
 
     public static String getWebDriverName() {
-        return getProperty(DRIVER_BROWSER_NAME.key(), "chrome");
+        return getProperty(WEB_DRIVER_NAME.key(), WebDriverName.CHROME.getName());
     }
 
-    public static void setWebDriverName(String driverName) {
-        setProperty(DRIVER_BROWSER_NAME.key(), driverName);
+    public static String getUsedBrowserName() {
+        return getProperty(USE_BROWSER_NAME.key(), WebDriverName.CHROME.getName());
     }
 
     public static String getWebDriverBinLocation() {
@@ -543,6 +544,10 @@ public class PropertyResolver {
 
     public static boolean hasNonHeadlessMethod() {
         return getProperty(METHOD_NONHEADLESS_EXISTS.key(), "false").equalsIgnoreCase("true");
+    }
+
+    public static String getBrowserProfileDir() {
+        return getProperty(BROWSER_PROFILE_DIR.key(), "target/generated-user-data/chrome-profile");
     }
 
     public static boolean isOpenPDFInSystemReader() {

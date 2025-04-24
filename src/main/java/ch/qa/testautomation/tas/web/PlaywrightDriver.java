@@ -28,7 +28,7 @@ public class PlaywrightDriver {
 
     private BrowserType.LaunchPersistentContextOptions getBrowserLauchOptions() {
         BrowserType.LaunchPersistentContextOptions launchOptions = new BrowserType.LaunchPersistentContextOptions()
-                .setChannel("chrome").setHeadless(PropertyResolver.isHeadlessModeEnabled())
+                .setChannel(PropertyResolver.getUsedBrowserName()).setHeadless(PropertyResolver.isHeadlessModeEnabled())
                 .setChromiumSandbox(false)
                 .setDownloadsPath(new File(PropertyResolver.getDownloadDir()).toPath())
                 .setTimeout(PropertyResolver.getDriverWaitTimeout())
@@ -56,6 +56,7 @@ public class PlaywrightDriver {
         arguments.add("--disable-infobars");
         arguments.add("--disable-web-security");
         arguments.add("--allow-running-insecure-content");
+        arguments.add("--no-cache");
         return arguments;
     }
 
