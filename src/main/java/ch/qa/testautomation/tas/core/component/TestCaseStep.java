@@ -27,7 +27,6 @@ import java.lang.reflect.Type;
 import java.util.*;
 
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.logStepInfo;
-import static ch.qa.testautomation.tas.common.logging.SystemLogger.warn;
 import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
 
 public class TestCaseStep implements Executable {
