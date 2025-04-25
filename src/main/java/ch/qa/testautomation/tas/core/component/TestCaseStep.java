@@ -378,23 +378,19 @@ public class TestCaseStep implements Executable {
             setTakeScreenshot(false);
             return;
         }
-        //Prüfen, ob es auf TestStep Ebene definiert wurde
-        if (isTakeScreenshotSetOnTestCaseStep()) {
-            setTakeScreenshot(jsonTestCaseStep.getTakeScreenshot().equalsIgnoreCase("true")
+        //Mit dieser Kombination werden auch die FAIL und ERROR Situationen abgedeckt
+        setTakeScreenshot(testStepResult.getStatus().equals(TestStatus.PASS)
+                == ScreenshotLevel.SUCCESS.equals(jsonTestCaseMetaData.getScreenshotLevel()));
+
+        //Falls nicht, Prüfen, ob es auf TestStep Ebene definiert wurde
+        if (!takeScreenshot) {
+            setTakeScreenshot("true".equalsIgnoreCase(jsonTestCaseStep.getTakeScreenshot())
                     || runMethod.getDeclaredAnnotation(TestStep.class).takeScreenshot());
-        } else {
-            //Mit dieser Kombination werden auch die FAIL und ERROR Situationen abgedeckt
-            setTakeScreenshot(testStepResult.getStatus().equals(TestStatus.PASS)
-                    == jsonTestCaseMetaData.getScreenshotLevel().equals(ScreenshotLevel.SUCCESS));
         }
         //Screenshot erstellen
         if (takeScreenshot) {
             testStepResult.setFullScreen(ScreenCapture.takeScreenShot().getScreenshotFile());
         }
-    }
-
-    private boolean isTakeScreenshotSetOnTestCaseStep() {
-        return Objects.nonNull(jsonTestCaseStep.getTakeScreenshot());
     }
 
     /**
