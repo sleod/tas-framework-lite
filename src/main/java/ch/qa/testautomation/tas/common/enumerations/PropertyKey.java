@@ -90,7 +90,9 @@ public enum PropertyKey {
     JIRA_PROXY_HOST("jira.proxy.host"),
     JIRA_PROXY_PORT("jira.proxy.port"),
     QC_PASSWORD("qc.password"),
-    QC_USER("qc.user");
+    QC_USER("qc.user"),
+    PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD"),
+    PLAYWRIGHT_NODEJS_PATH("PLAYWRIGHT_NODEJS_PATH");
 
     private final String key;
 

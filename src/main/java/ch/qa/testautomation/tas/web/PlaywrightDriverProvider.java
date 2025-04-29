@@ -1,10 +1,12 @@
 package ch.qa.testautomation.tas.web;
 
+import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.intefaces.DriverProvider;
 import com.microsoft.playwright.Playwright;
 import lombok.Getter;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
@@ -40,8 +42,14 @@ public class PlaywrightDriverProvider implements DriverProvider {
     @Override
     public void initialize() {
         info("Initialize Playwright driver.");
-        playwright = Playwright.create();
+        playwright = Playwright.create(new Playwright.CreateOptions().setEnv(getPlaywrightEnv()));
         drivers.set(new PlaywrightDriver(playwright));
+    }
+
+    private Map<String, String> getPlaywrightEnv() {
+        return Map.of(
+                "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", PropertyResolver.isSkipPlaywrightBrowserDownload() ? "1" : "0",
+                "PLAYWRIGHT_NODEJS_PATH", PropertyResolver.getNodeJSBinFilePath());
     }
 
 }

@@ -431,6 +431,14 @@ public class PropertyResolver {
         return getProperty(DOWNLOAD_LOCATION.key(), dir);
     }
 
+    public static boolean isSkipPlaywrightBrowserDownload() {
+        return getProperty(PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD.key(), "true").equalsIgnoreCase("true");
+    }
+
+    public static String getNodeJSBinFilePath() {
+        return getProperty(PLAYWRIGHT_NODEJS_PATH.key(), "");
+    }
+
     public static String getBrowserBinPath() {
         return getProperty(BROWSER_BIN_PATH.key(), "");
     }
@@ -597,6 +605,10 @@ public class PropertyResolver {
         if (isGenerateVideoEnabled() && isExecutionRemoteParallelEnabled()) {
             error("Remote parallel Execution mode with video recording may cause memory overflow! Use Server Video Recording instead!");
             isOK = false;
+        }
+
+        if (getNodeJSBinFilePath().isEmpty() && isSkipPlaywrightBrowserDownload() && getWebDriverName().equals(WebDriverName.PLAYWRIGHT)) {
+            warn("Node JS bin file path may not well set!");
         }
 
         if (!isOK) {
