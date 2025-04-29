@@ -247,7 +247,8 @@ public class ReportBuilder {
             String propValue = PropertyResolver.getProperty(keyName);
             String sysValue = System.getProperty(keyName);
             String value = isValid(sysValue) ? sysValue : propValue;
-            String keyPrefix = keyName.substring(0, keyName.indexOf("."));
+            int index = keyName.indexOf('.') >= 0 ? keyName.indexOf('.') : keyName.indexOf('_');
+            String keyPrefix = keyName.substring(0, index);
             if ((keyName.contains("password") || keyName.contains("pat")) && isValid(value)) {
                 value = value.substring(0, 2) + "******" + value.substring(value.length() - 2);
             }

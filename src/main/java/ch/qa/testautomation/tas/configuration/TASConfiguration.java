@@ -393,7 +393,27 @@ public class TASConfiguration {
         PropertyResolver.setProperty(CDP_ALLOWED.key(), String.valueOf(value));
         return this;
     }
-    
+
+    /**
+     * toggle if skip download playwright browser binaries
+     *
+     * @param value boolean, default true
+     */
+    public TASConfiguration setSkipPlaywrightBrowserDownload(boolean value) {
+        PropertyResolver.setProperty(PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD.key(), String.valueOf(value));
+        return this;
+    }
+
+    /**
+     * set Node.js bin file path
+     *
+     * @param value full path to Node.js binary file
+     */
+    public TASConfiguration setNodeJSBinFilePath(String value) {
+        PropertyResolver.setProperty(PLAYWRIGHT_NODEJS_PATH.key(), value);
+        return this;
+    }
+
     /**
      * set test id attribute for Playwright specially
      *
