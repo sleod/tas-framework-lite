@@ -221,15 +221,6 @@
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
-                    <compilerArgs>
-                        <!-- Add args for JDK 17 Encapsulation-->
-                        <arg>--add-opens</arg>
-                        <arg>java.base/java.lang=ALL-UNNAMED</arg>
-                        <arg>--add-opens</arg>
-                        <arg>java.base/sun.reflect.annotation=ALL-UNNAMED</arg>
-                        <arg>--add-opens</arg>
-                        <arg>java.base/sun.nio.fs=ALL-UNNAMED</arg>
-                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>
