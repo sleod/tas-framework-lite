@@ -42,13 +42,17 @@ public class PlaywrightDriverProvider implements DriverProvider {
     @Override
     public void initialize() {
         info("Initialize Playwright driver.");
-        playwright = Playwright.create(new Playwright.CreateOptions().setEnv(getPlaywrightEnv()));
+        if (PropertyResolver.isSkipPlaywrightBrowserDownload()) {
+            playwright = Playwright.create(new Playwright.CreateOptions().setEnv(getPlaywrightEnv()));
+        } else {
+            playwright = Playwright.create();
+        }
         drivers.set(new PlaywrightDriver(playwright));
     }
 
     private Map<String, String> getPlaywrightEnv() {
         return Map.of(
-                "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", PropertyResolver.isSkipPlaywrightBrowserDownload() ? "1" : "0",
+                "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", "1",
                 "PLAYWRIGHT_NODEJS_PATH", PropertyResolver.getNodeJSBinFilePath());
     }
 
