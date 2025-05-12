@@ -35,6 +35,7 @@ public class PlaywrightDriver {
                 .setDownloadsPath(new File(PropertyResolver.getDownloadDir()).toPath())
                 .setLocale("de-CH")
                 .setAcceptDownloads(true)
+                .setIgnoreHTTPSErrors(true)
                 .setViewportSize(PropertyResolver.getBrowserScreenWidth(), PropertyResolver.getBrowserScreenHigh())
                 .setArgs(getArguments());
         String chromePath = PropertyResolver.getBrowserBinPath();
