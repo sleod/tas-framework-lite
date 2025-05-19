@@ -27,6 +27,8 @@ public class TestDataContainer {
 
     private JsonNode jsonData;
     private List<Map<String, Object>> dataContent;
+    @Setter
+    @Getter
     private boolean repeat = false;
     private static JsonNode globalTestData;
     private static final Map<String, Object> tempData = new LinkedHashMap<>();
@@ -125,14 +127,6 @@ public class TestDataContainer {
         } else return value;
     }
 
-    public boolean isRepeat() {
-        return repeat;
-    }
-
-    public void setRepeat(boolean repeat) {
-        this.repeat = repeat;
-    }
-
     public Object getParameter(String key, int parameterRow) {
         if (key.isEmpty()) {
             throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Key of parameter should not be empty!");
@@ -154,7 +148,12 @@ public class TestDataContainer {
     }
 
     private boolean checkDataContentContainsKey(String key) {
-        return dataContent.get(0).containsKey(key);
+        if(dataContent.isEmpty()) {
+            warn("Test Data Content is empty!!!");
+            return false;
+        }else {
+            return dataContent.getFirst().containsKey(key);
+        }
     }
 
     public Integer getDataContentSize() {
