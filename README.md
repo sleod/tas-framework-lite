@@ -63,21 +63,19 @@ It unifies **Web, Mobile, API, and App testing** under a consistent JSON-based t
 ```
 src/
   main/java/           # Framework source
-  main/resources/      # Config (drivers, proxy, integrations)
-  test/java/           # Tests
-  test/resources/      # Test data
-driverConfig/          # Driver and connector JSON configs
+  main/resources/      # Config (drivers, proxy, integrations etc.)
 ```
 
 ---
 
 ## 🚀 Quickstart
 
-1. **Clone & Build**  
-```bash
-git clone https://github.com/sleod/tas-framework-lite.git
-cd tas-framework-lite
-mvn clean install
+1. **Including**  
+```xml
+<Dependency>
+  comming soon...
+</Dependency>
+
 ```
 
 2. **Create a Test Case (`.tas`)**  
@@ -111,16 +109,25 @@ Example `driverDownloadConfig.json`:
   "proxyPort": ""
 }
 ```
+3.1 **Selenium Web Driver**
+Make sure that the driver is compatible to browser. In case the driver bin file is in local folder:
+```
+webdriver.chrome.driver=/path/to/chromedriver
+```
+***Additional settings:***
+```
+webdriver.name=chrome
+driver.browser.headless=true
+```
 
 4. **Run Tests**  
 ```bash
-mvn test
+mvn -Drun.start.url=”http://xxxx.xxx” -Dtest=TestCasesRunner test
 ```
 
-5. **Generate Report**  
-```bash
-allure serve target/allure-results
-```
+5. **Report**  
+Allure report will be generated automatically in /target folder als default
+
 
 ---
 
