@@ -1,7 +1,7 @@
 # TAS Framework Lite
 
 **TAS Framework Lite** is a lightweight, extensible **Java-based Test Automation Framework**.  
-It unifies **Web, Mobile, API, and App testing** under a consistent JSON-based test case format, supports external integrations (Azure DevOps, JIRA/Xray, Microfocus QC), and generates detailed execution reports via **Allure**.
+It unifies **Web, Mobile, API, and App testing** under a consistent JSON-based test case and test data format, supports database and external integrations (MS Azure TFS, JIRA/Xray, HP QC), and generates detailed execution reports via **Allure**. It use the junit 5 as runner engine.
 
 ---
 
