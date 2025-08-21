@@ -1,7 +1,7 @@
 # TAS Framework Lite
 
 **TAS Framework Lite** is a lightweight, extensible **Java-based Test Automation Framework**.  
-It unifies **Web and Rest API testing** under a consistent JSON-based test case and test data format, supports database and external integrations (MS Azure TFS, JIRA/Xray, HP QC), and generates detailed execution reports via **Allure**. It use the junit 5 as runner engine.
+It unifies **Web and Rest API testing** under a consistent JSON-based test case and test data format, supports database and external integrations (JIRA/Xray, HP QC), and generates detailed execution reports via **Allure**. It use the junit 5 as runner engine.
 
 ---
 
@@ -48,10 +48,6 @@ It unifies **Web and Rest API testing** under a consistent JSON-based test case 
 - Can override per-step.
 - Full-page screenshots supported via CDP (`setCDPEnabled(true)`).
 
-### Proxy Handling
-- Global proxy configuration with `proxyConfig.json` (host, port, user, password, exclusions).
-- Proxy automatically applied to REST drivers and browser downloads.
-
 ### Enumerations
 - Provides enums for `TestType`, `TestStatus`, `BrowserName`, `WebDriverName`, `FileFormat`, `ImageFormat`, `ConfigType`, `DownloadStrategy`, `Direction`, `TestCaseSource`, `ScreenshotLevel`.
 - Simplifies usage and avoids string literals.
@@ -63,7 +59,7 @@ It unifies **Web and Rest API testing** under a consistent JSON-based test case 
 ```
 src/
   main/java/           # Framework source
-  main/resources/      # Config (drivers, proxy, integrations etc.)
+  main/resources/      # Config (drivers, integrations etc.)
 ```
 
 ---

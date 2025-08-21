@@ -21,24 +21,6 @@ import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
 public class PropertyResolver {
     private final static ThreadLocal<Properties> propertyThreadsMap = new ThreadLocal<>();
 
-    public static List<String> getAllPropertiesWith(String subKey) {
-        List<String> settings = new LinkedList<>();
-        for (String name : EnumUtils.getEnumMap(PropertyKey.class)
-                .keySet()) {
-            if (name.toLowerCase()
-                    .contains(subKey.toLowerCase())) {
-                String key = PropertyKey.valueOf(name)
-                        .key();
-                String setting = getProperty(key);
-                if (setting == null) {
-                    info("Property for key: " + key + " was not set!!");
-                }
-                settings.add(setting);
-            }
-        }
-        return settings;
-    }
-
     public static void setProperty(String key, String value) {
         if (isValid(value)) {
             geCurrentProperties().setProperty(key, value.trim());
