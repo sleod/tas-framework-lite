@@ -10,7 +10,7 @@ It unifies **Web and Rest API testing** under a consistent JSON-based test case 
 ### Unified Test Case Format (`.tas`)
 - JSON-based files with `.tas` extension (schema supported for IDE auto-completion).
 - Attributes include `meta`, `name`, `description`, `type`, `testCaseId`, `requirement`, `reference`, `screenshotLevel`, `testDataRef`, `conditions`, `story`, `epic`, `feature`, `startURL`, `steps`, etc.
-- Supported test types: `web_app`, `mobile_ios`, `mobile_android`, `mobile_app`, `rest`, `app`, etc.
+- Supported test types: `web_app`, `rest`, `app`
 - Steps can define `stopOnError`, `retry`, `comment`, and `takeScreenshot`.
 
 ### Driver Resolution & Execution
@@ -138,7 +138,7 @@ Allure report will be generated automatically in /target folder als default
 - **Azure DevOps:** `azureDevOpsConfig.json`, `azureDevOpsExecution.json`
 - **JIRA/Xray:** `jiraConfig.json`, `jiraExecutionConfig.json`
 - **Microfocus QC:** `qcConfig.json`
-- **Remote/Mobile Drivers:** `driverConfig/*.json`
+- **Drivers:** `driverConfig/*.json`
 
 ---
 
@@ -177,5 +177,7 @@ Apache License 2.0 — see [LICENSE](./LICENSE).
 
 - Extend integrations (TestRail, Zephyr, others)  
 - Enhanced dashboards and reports  
-- More prebuilt `.tas` templates  
-- Advanced mobile/device farm support  
+- More prebuilt `.tas` templates
+- Advanced mobile/device farm support
+- Improved error handling and debugging tools
+- OCR support for test case
