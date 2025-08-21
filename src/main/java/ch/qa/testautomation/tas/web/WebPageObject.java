@@ -6,7 +6,6 @@ import ch.qa.testautomation.tas.core.component.DriverManager;
 import com.codeborne.selenide.WebDriverRunner;
 import com.codeborne.selenide.impl.SelenidePageFactory;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.events.EventFiringDecorator;
 
 /**

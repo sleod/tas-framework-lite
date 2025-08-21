@@ -13,7 +13,6 @@ import java.awt.*;
 import java.io.File;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.*;
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.*;

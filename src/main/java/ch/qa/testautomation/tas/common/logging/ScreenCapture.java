@@ -10,11 +10,10 @@ import ch.qa.testautomation.tas.web.PlaywrightDriverProvider;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.devtools.DevTools;
-import org.openqa.selenium.devtools.v131.emulation.Emulation;
-import org.openqa.selenium.devtools.v85.page.Page;
+import org.openqa.selenium.devtools.v138.emulation.Emulation;
+import org.openqa.selenium.devtools.v138.page.Page;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -181,7 +180,9 @@ public class ScreenCapture {
                     Optional.of(Page.CaptureScreenshotFormat.PNG), // Output format
                     Optional.empty(),            // Quality (only applies to JPEG)
                     Optional.empty(),            // Clip
-                    Optional.empty()             // From surface
+                    Optional.empty(),            // From surface
+                    Optional.empty(),            // Capture beyond viewport
+                    Optional.of(true)      // optimized for speed
             )));
         }
     }

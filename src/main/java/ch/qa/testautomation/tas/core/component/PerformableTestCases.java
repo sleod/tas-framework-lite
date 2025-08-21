@@ -1,7 +1,7 @@
 package ch.qa.testautomation.tas.core.component;
 
-import ch.qa.testautomation.tas.configuration.TASConfiguration;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
+import ch.qa.testautomation.tas.configuration.TASConfiguration;
 import ch.qa.testautomation.tas.core.report.ReportBuilder;
 import ch.qa.testautomation.tas.core.report.allure.ReportBuilderAllureService;
 import com.codeborne.selenide.Configuration;

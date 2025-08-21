@@ -1,7 +1,6 @@
 package ch.qa.testautomation.tas.core.component;
 
 import ch.qa.testautomation.tas.common.enumerations.TestStatus;
-import ch.qa.testautomation.tas.common.logging.Screenshot;
 import ch.qa.testautomation.tas.common.utils.DateTimeUtils;
 import ch.qa.testautomation.tas.core.media.IgnoredScreen;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
@@ -10,7 +9,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.File;
-import java.util.List;
 import java.util.Objects;
 
 public class TestStepResult {

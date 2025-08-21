@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ch.qa.testautomation</groupId>
     <artifactId>tas-framework</artifactId>
-    <version>6.0.04-RELEASE</version>
+    <version>6.1.00-RELEASE</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -29,11 +29,11 @@
         <oracle.jdbc.version>21.7.0.0</oracle.jdbc.version>
         <poi.version>5.4.1</poi.version>
         <reflection.version>0.10.2</reflection.version>
-        <selenide.version>7.7.0</selenide.version>
+        <selenide.version>7.9.4</selenide.version>
         <tess4j.version>5.15.0</tess4j.version>
         <zxing.version>3.5.3</zxing.version>
         <hamcrest.version>3.0</hamcrest.version>
-        <playwright.version>1.51.0</playwright.version>
+        <playwright.version>1.54.0</playwright.version>
     </properties>
 
     <dependencyManagement>

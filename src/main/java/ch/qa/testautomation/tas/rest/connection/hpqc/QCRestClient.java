@@ -1,7 +1,6 @@
 package ch.qa.testautomation.tas.rest.connection.hpqc;
 
 import ch.qa.testautomation.tas.common.IOUtils.FileOperation;
-import ch.qa.testautomation.tas.common.logging.Screenshot;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.component.TestCaseObject;
 import ch.qa.testautomation.tas.core.component.TestCaseStep;

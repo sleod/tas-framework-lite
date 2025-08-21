@@ -9,6 +9,7 @@ import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.json.ObjectMapperSingleton;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
+import ch.qa.testautomation.tas.exception.TestDataEmptyException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -154,7 +155,10 @@ public class TestDataContainer {
     }
 
     private boolean checkDataContentContainsKey(String key) {
-        return dataContent.get(0).containsKey(key);
+        if( dataContent == null || dataContent.isEmpty()) {
+            throw new TestDataEmptyException("Data content is empty or not initialized.", "TestDataContainer -> dataContent");
+        }
+        return dataContent.getFirst().containsKey(key);
     }
 
     public Integer getDataContentSize() {

@@ -1,18 +1,12 @@
 package ch.qa.testautomation.tas.web;
 
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
-import ch.qa.testautomation.tas.exception.ExceptionBase;
-import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import org.openqa.selenium.Point;
-import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.devtools.DevTools;
-import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;

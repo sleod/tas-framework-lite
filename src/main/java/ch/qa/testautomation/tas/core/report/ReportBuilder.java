@@ -53,7 +53,7 @@ public class ReportBuilder {
         String folder = PropertyResolver.getTestCaseReportLocation();
         String today = DateTimeUtils.getFormattedDateNow(PropertyResolver.getDateFormat());
         String fileName = folder + today + "/" + testRunResult.getName() + "/" + Thread.currentThread().getName()
-                + "/" + "report_" + DateTimeUtils.getFormattedLocalTimestamp() + ".log";
+                          + "/" + "report_" + DateTimeUtils.getFormattedLocalTimestamp() + ".log";
         File logFile = new File(fileName);
         logFile.getParentFile().mkdirs();
         info("Set up log file: " + logFile.getAbsolutePath());
@@ -162,7 +162,7 @@ public class ReportBuilder {
         if (FileOperation.isFileExists(currReportDir)) {
             command += "--clean ";
         }
-        if(PropertyResolver.isGenerateSingleFileReport()){
+        if (PropertyResolver.isGenerateSingleFileReport()) {
             command += "--single-file ";
         }
         command += PropertyResolver.getAllureResultsDirectory() + " -o " + currReportDir;
@@ -221,7 +221,8 @@ public class ReportBuilder {
     public static void generateEnvironmentProperties() {
         info("Prepare Environment Property List for Report later.");
         Properties properties = new Properties();
-        System.getenv().forEach(properties::setProperty);
+        System.getenv().entrySet().stream().filter(entry -> entry.getKey().toLowerCase().contains("home"))
+                .forEach(entry -> properties.put(entry.getKey(), entry.getValue()));
         SortedProperties propertiesSorted = sortProperties(properties);
         String environment = PropertyResolver.getAllureResultsDirectory() + EVN_FILE_NAME;
         try {
@@ -449,7 +450,7 @@ public class ReportBuilder {
         if (typ.startsWith("web") && DriverManager.getDriverProvider() instanceof RemoteWebDriverProvider remoteWebDriverProvider) {
             JSONDriverConfig config = remoteWebDriverProvider.getConfig();
             testCaseName += " (" + DriverManager.getCurrentPlatform() + "-"
-                    + config.getPlatformVersion() + "-" + config.getBrowserName() + ")";
+                            + config.getPlatformVersion() + "-" + config.getBrowserName() + ")";
         }
         result.setName(testCaseName);
     }

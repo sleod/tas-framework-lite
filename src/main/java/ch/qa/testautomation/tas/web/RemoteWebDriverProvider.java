@@ -1,13 +1,10 @@
 package ch.qa.testautomation.tas.web;
 
-import ch.qa.testautomation.tas.common.logging.Screenshot;
 import ch.qa.testautomation.tas.core.component.DriverManager;
 import ch.qa.testautomation.tas.core.json.container.JSONDriverConfig;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import ch.qa.testautomation.tas.intefaces.DriverProvider;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -18,7 +15,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static ch.qa.testautomation.tas.common.logging.ScreenCapture.getScreenshot;
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
 
 public class RemoteWebDriverProvider implements DriverProvider {

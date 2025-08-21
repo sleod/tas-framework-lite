@@ -3,14 +3,9 @@ package ch.qa.testautomation.tas.common.logging;
 import ch.qa.testautomation.tas.common.utils.DateTimeUtils;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.component.TestStepMonitor;
-import ch.qa.testautomation.tas.core.component.TestStepResult;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
 
 /**
  * Logger class of System using log4j2

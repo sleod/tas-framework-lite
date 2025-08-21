@@ -4,7 +4,10 @@ import ch.qa.testautomation.tas.common.enumerations.TestStatus;
 
 import java.io.File;
 import java.time.Instant;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.getSimpleCustomInfo;
 
