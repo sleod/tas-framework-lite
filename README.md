@@ -86,10 +86,96 @@ src/
   "testDataRef": "File:my-testData.json",
   "startURL": "https://www.my.ch/de.html",
   "steps": [
-    { "name": "Click Menu", "testObject": "My Homepage Page" },
-    { "name": "Insert Bank Name", "testObject": "My Homepage Page", "using": "zip", "takeScreenshot": true }
+    { "name": "Cookie Handling", "testObject": "My Homepage Page"},
+    { "name": "Click Menu", "testObject": "My Homepage Page" }
   ]
 }
+```
+2.1 **Test Data (`my-testData.json`)**  
+```json
+{
+  "zip": "2342",
+  "linkText": "my link",
+  "menu": {
+    "card": "card",
+    "payment": "billing"
+  },
+  "testArray": [
+    123,
+    "rar",
+    22.1,
+    true
+  ],
+  "testValues": {
+    "a": 123,
+    "b": "name",
+    "c": 12.33,
+    "d": true
+  },
+  "nestedObject": {
+    "nameObject1": {
+      "nameObject1_1": "text1_1",
+      "nameObject1_2": "text1_2"
+    }
+  }
+}
+```
+2.2 **Test Objects (`MyPage.java`)**  
+```java
+@TestObject(name = "My Homepage Page")
+public class MyHomePage extends WebPageObject{
+    @FindBy(css = "list-item")
+    SelenideElement firstValueFromList;
+    @FindBy(id = "hamburger-icon")
+    private SelenideElement hamburgerIcon;
+    @FindBy(xpath = "//button[contains(text(),'Decline all cookies')]")
+    private SelenideElement declineAllCookies;
+    
+    @TestStep(name = "Cookie Handling")
+    public void handleRaiffeisenCookie() {
+        if(declineAllCookies.exists() && declineAllCookies.isDisplayed()) {
+            declineAllCookies.click();
+        }
+    }
+
+    @TestStep(name = "Click Menu")
+    public void clickHamburgerIcon() {
+        raiffeisenHamburgerIcon.click();
+        //just for demo
+        WaitUtils.waitStep(3);
+    }
+}
+```
+```java
+@TestObject(name = "Test using Parameters")
+public class TestUsingParameters extends SingleTestObject {
+
+    @TestStep(name = "Change Language")
+    public void assertUsingParameter(String code, String language) {
+        logStepInfo("Change Language: " + code + " - " + language);
+    }
+
+    @TestStep(name = "Assert using parameter")
+    public void assertUsingParameter(int param1) {
+        Assertions.assertEquals(param1, 5);
+    }
+
+    @TestStep(name = "Test complex parameter - map and list")
+    public void testParamMapAndList(Map<String, String> param1, List<String> param2) {
+        logStepInfo("Test complex parameter - map");
+    }
+
+    @TestStep(name = "Test complex parameter - json array")
+    public void testParamJsonArray(ArrayNode arrayNode) {
+        logStepInfo("Test complex parameter - jsonArray");
+    }
+
+    @TestStep(name = "Test complex parameter - json Object")
+    public void testParamJsonObject(ObjectNode objectNode) {
+        logStepInfo("Test complex parameter - jsonObject");
+    }
+}
+
 ```
 
 3. **Configure Drivers**  

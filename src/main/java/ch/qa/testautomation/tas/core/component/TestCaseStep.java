@@ -10,6 +10,7 @@ import ch.qa.testautomation.tas.core.json.container.JSONTestCaseStep;
 import ch.qa.testautomation.tas.core.json.container.JsonTestCaseMetaData;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
+import ch.qa.testautomation.tas.exception.TestDataEmptyException;
 import com.beust.jcommander.Strings;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -158,6 +159,8 @@ public class TestCaseStep implements Executable {
                 Throwable issue = throwable;
                 if (issue instanceof InvocationTargetException) {
                     issue = ((InvocationTargetException) issue).getTargetException();
+                } else if (issue instanceof TestDataEmptyException) {
+                    setSkipOnError(true);
                 }
                 if (isSkipOnError()) {
                     testStepResult.setStatus(TestStatus.SKIPPED);
@@ -348,7 +351,7 @@ public class TestCaseStep implements Executable {
 
     public String[] toDesignStep() {
         String desc = "Test Object: " + jsonTestCaseStep.getTestObject() + "; " + System.lineSeparator() +
-                "Action: " + jsonTestCaseStep.getName() + "; " + System.lineSeparator() + getComment();
+                      "Action: " + jsonTestCaseStep.getName() + "; " + System.lineSeparator() + getComment();
         String excepted = "Will be checked automatically.";
         return new String[]{desc, excepted};
     }
@@ -380,12 +383,12 @@ public class TestCaseStep implements Executable {
         }
         //Mit dieser Kombination werden auch die FAIL und ERROR Situationen abgedeckt
         setTakeScreenshot(testStepResult.getStatus().equals(TestStatus.PASS)
-                == ScreenshotLevel.SUCCESS.equals(jsonTestCaseMetaData.getScreenshotLevel()));
+                          == ScreenshotLevel.SUCCESS.equals(jsonTestCaseMetaData.getScreenshotLevel()));
 
         //Falls nicht, Prüfen, ob es auf TestStep Ebene definiert wurde
         if (!takeScreenshot) {
             setTakeScreenshot("true".equalsIgnoreCase(jsonTestCaseStep.getTakeScreenshot())
-                    || runMethod.getDeclaredAnnotation(TestStep.class).takeScreenshot());
+                              || runMethod.getDeclaredAnnotation(TestStep.class).takeScreenshot());
         }
         //Screenshot erstellen
         if (takeScreenshot) {
