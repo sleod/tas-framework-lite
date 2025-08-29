@@ -1,9 +1,6 @@
 package ch.qa.testautomation.tas.common.processhandling;
 
 /**
- * @author Intellon
- * @date 17.05.2024
- *
  * An interface for creating {@link ProcessBuilder} instances.
  * Implementing classes are responsible for providing the logic to
  * create and configure {@link ProcessBuilder} objects.

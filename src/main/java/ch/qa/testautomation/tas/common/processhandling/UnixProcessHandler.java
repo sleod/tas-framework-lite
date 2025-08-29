@@ -3,9 +3,6 @@ package ch.qa.testautomation.tas.common.processhandling;
 import ch.qa.testautomation.tas.common.logging.SystemLogger;
 
 /**
- * @author Intellon
- * @date 16.05.2024
- *
  * UnixProcessHandler implements the ProcessHandler interface for Unix-based operating systems
  * such as Linux and macOS. This class uses the `ps` command executed via a shell
  * to find and analyze active Chrome processes. Similar to the WindowsProcessHandler,

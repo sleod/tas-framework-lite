@@ -1,9 +1,6 @@
 package ch.qa.testautomation.tas.common.processhandling;
 
 /**
- * @author Intellon
- * @date 17.05.2024
- *
  * A factory class for creating {@link ProcessBuilder} instances.
  * This class implements the {@link IProcessBuilderFactory} interface.
  */

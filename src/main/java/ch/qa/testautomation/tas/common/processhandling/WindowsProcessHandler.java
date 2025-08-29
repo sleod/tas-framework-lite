@@ -3,9 +3,6 @@ package ch.qa.testautomation.tas.common.processhandling;
 import ch.qa.testautomation.tas.common.logging.SystemLogger;
 
 /**
- * @author Intellon
- * @date 16.05.2024
- *
  * WindowsProcessHandler implements the ProcessHandler interface specifically for Windows operating systems.
  * This class uses the WMIC command to retrieve and analyze information about running Chrome processes.
  * It initiates the execution of a process scan and carries out specific logic
