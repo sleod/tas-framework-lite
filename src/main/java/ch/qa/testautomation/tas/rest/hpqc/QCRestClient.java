@@ -6,13 +6,13 @@ import ch.qa.testautomation.tas.core.component.TestCaseObject;
 import ch.qa.testautomation.tas.core.component.TestCaseStep;
 import ch.qa.testautomation.tas.core.component.TestRunResult;
 import ch.qa.testautomation.tas.core.component.TestStepResult;
+import ch.qa.testautomation.tas.core.json.ObjectMapperSingleton;
 import ch.qa.testautomation.tas.core.json.container.JSONTestCase;
 import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
@@ -66,7 +66,7 @@ public class QCRestClient {
         this.testLabFolderPath = config.get("testLabFolderPath").asText();
         this.vcEnabled = config.get("versionControlEnabled").asBoolean();
         this.testSetName = config.get("testSetName").asText();
-        testCaseRequiredFields = new ObjectMapper().convertValue(config.get("testCaseRequiredFields"), new TypeReference<>() {
+        testCaseRequiredFields = ObjectMapperSingleton.mapper().convertValue(config.get("testCaseRequiredFields"), new TypeReference<>() {
         });
     }
 

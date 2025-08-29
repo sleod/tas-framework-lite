@@ -29,7 +29,7 @@ import static ch.qa.testautomation.tas.common.utils.ObjectWriterReader.WriteObje
 import static ch.qa.testautomation.tas.common.utils.ObjectWriterReader.readObject;
 import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
 import static ch.qa.testautomation.tas.configuration.PropertyResolver.getTestCaseLocation;
-import static ch.qa.testautomation.tas.core.json.ObjectMapperSingleton.getObjectMapper;
+import static ch.qa.testautomation.tas.core.json.ObjectMapperSingleton.mapper;
 
 public class TestRunManager {
 
@@ -293,7 +293,7 @@ public class TestRunManager {
                         } else {//mobile App case, check test case id map
                             if (Objects.nonNull(testData.get("testCaseIdMap"))) {
                                 try {
-                                    Map<String, String> testCaseIdMap = getObjectMapper().readValue(testData.get("testCaseIdMap").toString(), new TypeReference<>() {
+                                    Map<String, String> testCaseIdMap = mapper().readValue(testData.get("testCaseIdMap").toString(), new TypeReference<>() {
                                     });
                                     new_tco.setTestCaseIdMap(testCaseIdMap);
                                 } catch (JsonProcessingException ex) {

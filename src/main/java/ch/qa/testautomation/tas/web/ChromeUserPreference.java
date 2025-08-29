@@ -3,6 +3,7 @@ package ch.qa.testautomation.tas.web;
 
 import ch.qa.testautomation.tas.common.IOUtils.FileOperation;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
+import ch.qa.testautomation.tas.core.json.ObjectMapperSingleton;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -22,7 +23,7 @@ public class ChromeUserPreference {
     }
 
     private static String getPreferenceContent() {
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = ObjectMapperSingleton.mapper();
         ObjectNode profileNode = objectMapper.createObjectNode();
         ObjectNode download = objectMapper.createObjectNode().put("prompt_for_download", false)
                 .put("open_pdf_in_system_reader", PropertyResolver.isOpenPDFInSystemReader());

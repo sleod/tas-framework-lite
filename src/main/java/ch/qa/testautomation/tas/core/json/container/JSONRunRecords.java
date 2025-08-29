@@ -2,11 +2,14 @@ package ch.qa.testautomation.tas.core.json.container;
 
 import ch.qa.testautomation.tas.core.json.customDeserializer.CustomResultSetListDesrializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import lombok.Setter;
 
 import java.util.List;
 
 public class JSONRunRecords extends JSONContainer {
+    @Setter
     private int keep;
+    @Setter
     private int runs;
     private List<JSONResultSet> resultSets;
 
@@ -20,16 +23,8 @@ public class JSONRunRecords extends JSONContainer {
         return keep;
     }
 
-    public void setKeep(int keep) {
-        this.keep = keep;
-    }
-
     public int getRuns() {
         return runs;
-    }
-
-    public void setRuns(int runs) {
-        this.runs = runs;
     }
 
     public List<JSONResultSet> getResultSets() {

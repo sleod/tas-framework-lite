@@ -1,5 +1,6 @@
 package ch.qa.testautomation.tas.rest.base;
 
+import ch.qa.testautomation.tas.core.json.ObjectMapperSingleton;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -14,7 +15,7 @@ import java.nio.file.StandardCopyOption;
 
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.debug;
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
-import static ch.qa.testautomation.tas.core.json.ObjectMapperSingleton.getObjectMapper;
+
 
 public class TASRestClient {
 
@@ -39,7 +40,7 @@ public class TASRestClient {
         if (isSuccessful(response)) {
             try {
                 response.close();
-                return getObjectMapper().readTree(body);
+                return ObjectMapperSingleton.mapper().readTree(body);
             } catch (JsonProcessingException ex) {
                 throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, ex, "Exception while read tree of Json!");
             }

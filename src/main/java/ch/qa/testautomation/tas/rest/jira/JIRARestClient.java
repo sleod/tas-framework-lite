@@ -7,6 +7,7 @@ import ch.qa.testautomation.tas.common.utils.WaitUtils;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.component.DriverManager;
 import ch.qa.testautomation.tas.core.component.TestRunResult;
+import ch.qa.testautomation.tas.core.json.ObjectMapperSingleton;
 import ch.qa.testautomation.tas.core.json.container.JSONRunnerConfig;
 import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
@@ -216,7 +217,7 @@ public class JIRARestClient extends RestClientBase {
      */
     public JsonNode addTestExecutionToPlan(String exeKey, String planKey) {
         String path = XRAY_PATH + "testplan/" + planKey + "/testexecution";
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = ObjectMapperSingleton.mapper();
         ArrayNode keyList = objectMapper.createArrayNode();
         ObjectNode payload = objectMapper.createObjectNode();
         keyList.add(exeKey);
@@ -234,7 +235,7 @@ public class JIRARestClient extends RestClientBase {
      */
     public JsonNode removeTestsFromPlan(List<String> testKeys, String planKey) {
         String path = XRAY_PATH + "testplan/" + planKey + "/test";
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = ObjectMapperSingleton.mapper();
         ArrayNode keyList = objectMapper.createArrayNode();
         ObjectNode payload = objectMapper.createObjectNode();
         testKeys.forEach(keyList::add);
@@ -251,7 +252,7 @@ public class JIRARestClient extends RestClientBase {
      */
     public void addIssueLink(String source, List<String> targets) {
         String path = GENERAL_PATH + "issueLink";
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = ObjectMapperSingleton.mapper();
         for (String target : targets) {
             ObjectNode type = objectMapper.createObjectNode().put("name", "Tests");
             ObjectNode outwardIssue = objectMapper.createObjectNode().put("key", target);
@@ -275,7 +276,7 @@ public class JIRARestClient extends RestClientBase {
      */
     public JsonNode addTestsToExecution(List<String> testKeys, String execKey) {
         String path = XRAY_PATH + "testexec/" + execKey + "/test";
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = ObjectMapperSingleton.mapper();
         ArrayNode keyList = objectMapper.createArrayNode();
         ObjectNode payload = objectMapper.createObjectNode();
         testKeys.forEach(keyList::add);
@@ -293,7 +294,7 @@ public class JIRARestClient extends RestClientBase {
      */
     public JsonNode removeTestsFromExecution(List<String> testKeys, String key) {
         String path = XRAY_PATH + "testexec/" + key + "/test";
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = ObjectMapperSingleton.mapper();
         ArrayNode keyList = objectMapper.createArrayNode();
         ObjectNode payload = objectMapper.createObjectNode();
         testKeys.forEach(keyList::add);
@@ -341,7 +342,7 @@ public class JIRARestClient extends RestClientBase {
         if (run != null) {
             String runId = run.get("id").asText();
             String path = XRAY_PATH + "testrun/" + runId;
-            ObjectNode payload = new ObjectMapper().createObjectNode().put("status", "TODO");
+            ObjectNode payload = ObjectMapperSingleton.mapper().createObjectNode().put("status", "TODO");
             getResponseNode(getRestDriver().put(path, payload.toString()), "Fail with reset status to run: " + runId);
         }
     }
@@ -359,7 +360,7 @@ public class JIRARestClient extends RestClientBase {
         String path = XRAY_PATH + "testrun/" + runId;
         List<File> dataFiles = testRunResult.getAttachments();
         dataFiles.add(new File(testRunResult.getLogFilePath()));
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = ObjectMapperSingleton.mapper();
         ArrayNode evidence = objectMapper.createArrayNode();
         dataFiles.forEach(file ->
                 evidence.add(objectMapper.createObjectNode()
@@ -386,7 +387,7 @@ public class JIRARestClient extends RestClientBase {
      * @return JSONObject as payload
      */
     private JsonNode buildXrayTest(String projectKey, String summary, String description, List<String> plans, List<String> testStepNames) {
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = ObjectMapperSingleton.mapper();
         ObjectNode project = objectMapper.createObjectNode().put("key", projectKey);
         ObjectNode issueType = objectMapper.createObjectNode().put("name", "Test").put("id", "10400");
         ObjectNode testType = objectMapper.createObjectNode().put("value", "Manual").put("id", "10200");
@@ -427,7 +428,7 @@ public class JIRARestClient extends RestClientBase {
      * @return JsonNode as payload
      */
     private JsonNode buildIssue(String projectKey, String summary, String description, String issieType) {
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = ObjectMapperSingleton.mapper();
         ObjectNode project = objectMapper.createObjectNode().put("key", projectKey);
         ObjectNode issueType = objectMapper.createObjectNode().put("name", issieType);
         ObjectNode fields = objectMapper.createObjectNode()

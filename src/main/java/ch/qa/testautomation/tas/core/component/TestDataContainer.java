@@ -33,7 +33,7 @@ public class TestDataContainer {
     private static final Map<String, Object> tempData = new LinkedHashMap<>();
     private final Map<String, Object> pageObjects = new LinkedHashMap<>();
     private boolean additionalData = false;
-    private final static ObjectMapper mapper = ObjectMapperSingleton.getObjectMapper();
+    private final static ObjectMapper mapper = ObjectMapperSingleton.mapper();
 
     public TestDataContainer(String testDataRef, String additional) {
         if (StringTextUtils.isValid(testDataRef)) {
@@ -241,7 +241,7 @@ public class TestDataContainer {
         info("Load Global Test Data: " + path);
         String content = FileOperation.readFileToLinedString(path.toString());
         try {
-            globalTestData = new ObjectMapper().readTree(content);
+            globalTestData = mapper.readTree(content);
         } catch (JsonProcessingException ex) {
             throw new ExceptionBase(ExceptionErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, path);
         }

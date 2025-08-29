@@ -5,12 +5,12 @@ import ch.qa.testautomation.tas.common.enumerations.TestStatus;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.component.TestCaseStep;
 import ch.qa.testautomation.tas.core.component.TestStepResult;
+import ch.qa.testautomation.tas.core.json.ObjectMapperSingleton;
 import ch.qa.testautomation.tas.core.json.customDeserializer.CustomAttachmentListDeserializer;
 import ch.qa.testautomation.tas.core.json.customDeserializer.CustomResultLabelDeserializer;
 import ch.qa.testautomation.tas.core.media.ImageHandler;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;
 import lombok.Setter;
@@ -125,7 +125,7 @@ public class JSONStepResult extends JSONContainer {
         byte[] actual = FileOperation.readFileToByteArray(stepResult.getActualScreen());
         File diffImage = ImageHandler.comparePixel(stepResult.getExpectedScreen(), stepResult.getActualScreen(), stepResult.getIgnoredScreen());
         byte[] diff = FileOperation.readFileToByteArray(diffImage);
-        String diffContent = new ObjectMapper().createObjectNode()
+        String diffContent = ObjectMapperSingleton.mapper().createObjectNode()
                 .put("expected", "data:image/png;base64," + Base64.getEncoder().encodeToString(expected))
                 .put("actual", "data:image/png;base64," + Base64.getEncoder().encodeToString(actual))
                 .put("diff", "data:image/png;base64," + Base64.getEncoder().encodeToString(diff))

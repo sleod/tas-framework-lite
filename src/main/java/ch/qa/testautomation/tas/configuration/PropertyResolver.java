@@ -2,11 +2,9 @@ package ch.qa.testautomation.tas.configuration;
 
 import ch.qa.testautomation.tas.common.IOUtils.FileLocator;
 import ch.qa.testautomation.tas.common.enumerations.DownloadStrategy;
-import ch.qa.testautomation.tas.common.enumerations.PropertyKey;
 import ch.qa.testautomation.tas.common.enumerations.WebDriverName;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
-import org.apache.commons.lang3.EnumUtils;
 import org.apache.logging.log4j.Level;
 
 import java.awt.*;

@@ -1,10 +1,11 @@
 package ch.qa.testautomation.tas.core.json.customDeserializer;
 
+import ch.qa.testautomation.tas.core.json.ObjectMapperSingleton;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import lombok.Getter;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -25,14 +26,12 @@ public class CustomStringMapDeserializer extends StdDeserializer<Map<String, Str
 
     @Override
     public Map<String, String> deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
-        MapContent mapContent = new ObjectMapper().readValue(jsonParser, MapContent.class);
+        MapContent mapContent = ObjectMapperSingleton.mapper().readValue(jsonParser, MapContent.class);
         return mapContent.getContent();
     }
 
+    @Getter
     private static class MapContent {
-        public Map<String, String> getContent() {
-            return content;
-        }
 
         @JsonAnySetter
         public void add(String key, String value) {

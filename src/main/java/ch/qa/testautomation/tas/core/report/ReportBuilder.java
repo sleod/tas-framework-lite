@@ -7,6 +7,7 @@ import ch.qa.testautomation.tas.common.utils.DateTimeUtils;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.component.*;
 import ch.qa.testautomation.tas.core.controller.ExternAppController;
+import ch.qa.testautomation.tas.core.json.ObjectMapperSingleton;
 import ch.qa.testautomation.tas.core.json.container.JSONDriverConfig;
 import ch.qa.testautomation.tas.core.json.container.JSONStepResult;
 import ch.qa.testautomation.tas.core.json.container.JSONTestResult;
@@ -30,7 +31,7 @@ import java.util.*;
 
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
 import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
-import static ch.qa.testautomation.tas.core.json.ObjectMapperSingleton.getObjectMapper;
+import static ch.qa.testautomation.tas.core.json.ObjectMapperSingleton.mapper;
 import static ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory.*;
 
 public class ReportBuilder {
@@ -182,14 +183,14 @@ public class ReportBuilder {
      * Generate executor json and set current order of run
      */
     public static void generateExecutorJSON() {
-        ObjectNode executor = getObjectMapper().createObjectNode();
+        ObjectNode executor = mapper().createObjectNode();
         String url = System.getProperty(MAIN_BUILD_URL_KEY, "http://localhost:63342/framework/target/allure-report/");
         int buildOrder = 1;
         String content = getExecutorContent();
         JsonNode existingExecutor = null;
         if (!content.isEmpty()) {
             try {
-                existingExecutor = getObjectMapper().readTree(content);
+                existingExecutor = mapper().readTree(content);
             } catch (JsonProcessingException ex) {
                 throw new ExceptionBase(ExceptionErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, content);
             }
@@ -234,7 +235,7 @@ public class ReportBuilder {
 
     public void generateFrameworkConfig() {
         info("Prepare Framework Configuration List for Report later.");
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = ObjectMapperSingleton.mapper();
         ObjectNode frameworkConfig = mapper.createObjectNode();
         //summary
         ObjectNode summary = mapper.createObjectNode();
@@ -334,7 +335,7 @@ public class ReportBuilder {
     private void rebaseExistingAllureResults() {
         String historyContent = getHistoryContent();
         List<JsonNode> rebasedAllureResults = new LinkedList<>();
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = ObjectMapperSingleton.mapper();
         String tempPath = "";
         try {
             for (String filePath : getAllureResults()) {

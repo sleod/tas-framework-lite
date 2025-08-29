@@ -4,32 +4,43 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.*;
 
 public class JSONRunnerConfig {
+    @Setter
     private String runName;
+    @Setter
     private String planId;
+    @Setter
     private String suiteId;
+    @Setter
+    @Getter
     private String testPlanId;
     private Map<String, String> testExecutionIdMap;
+    @Setter
+    @Getter
     private String projectKey;
+    @Setter
     private boolean fullRun;
+    @Setter
     private boolean failureRetest;
+    @Setter
+    @Getter
     private String configurationId;
+    @Getter
     private Map<String, String> testCaseFiles;
+    @Setter
+    @Getter
     private String[] selectedTestCaseIds;
+    @Getter
     private Map<String, String> tfsConfig;
 
+    @Getter
+    @Setter
     private Map<String, String> testPlanConfig;
-
-    public String getTestPlanId() {
-        return testPlanId;
-    }
-
-    public void setTestPlanId(String testPlanId) {
-        this.testPlanId = testPlanId;
-    }
 
     public Map<String, String> getTestExecutionIdMap() {
         return Objects.isNull(testExecutionIdMap) ? Collections.emptyMap() : testExecutionIdMap;
@@ -43,14 +54,6 @@ public class JSONRunnerConfig {
         testExecutionIdMap.put(key, value);
     }
 
-    public String getProjectKey() {
-        return projectKey;
-    }
-
-    public void setProjectKey(String projectKey) {
-        this.projectKey = projectKey;
-    }
-
     public void setTestCaseFiles(String key, String value) {
         testCaseFiles = new LinkedHashMap<>();
         this.testCaseFiles.put(key, value);
@@ -59,10 +62,6 @@ public class JSONRunnerConfig {
     public void setTfsConfig(String key, String value) {
         tfsConfig = new LinkedHashMap<>();
         this.tfsConfig.put(key, value);
-    }
-
-    public void setTestPlanConfig(Map<String, String> config) {
-        this.testPlanConfig = config;
     }
 
     public String getPlanId() {
@@ -97,60 +96,12 @@ public class JSONRunnerConfig {
         }
     }
 
-    public Map<String, String> getTestCaseFiles() {
-        return testCaseFiles;
-    }
-
-    public String[] getSelectedTestCaseIds() {
-        return selectedTestCaseIds;
-    }
-
-    public Map<String, String> getTfsConfig() {
-        return tfsConfig;
-    }
-
-    public Map<String, String> getTestPlanConfig() {
-        return testPlanConfig;
-    }
-
-    public String getConfigurationId() {
-        return configurationId;
-    }
-
-    public void setConfigurationId(String configurationId) {
-        this.configurationId = configurationId;
-    }
-
-    public void setPlanId(String planId) {
-        this.planId = planId;
-    }
-
-    public void setSuiteId(String suiteId) {
-        this.suiteId = suiteId;
-    }
-
-    public void setFullRun(boolean fullRun) {
-        this.fullRun = fullRun;
-    }
-
-    public void setFailureRetest(boolean failureRetest) {
-        this.failureRetest = failureRetest;
-    }
-
-    public void setSelectedTestCaseIds(String[] selectedTestCaseIds) {
-        this.selectedTestCaseIds = selectedTestCaseIds;
-    }
-
     public String getRunName() {
         if (System.getProperty("tfs.runName") == null) {
             return runName;
         } else {
             return System.getProperty("tfs.runName");
         }
-    }
-
-    public void setRunName(String runName) {
-        this.runName = runName;
     }
 
     public Multimap<String, String> getCoverageMap() {

@@ -1,6 +1,7 @@
 package ch.qa.testautomation.tas.rest.allure;
 
 import ch.qa.testautomation.tas.common.IOUtils.FileOperation;
+import ch.qa.testautomation.tas.core.json.ObjectMapperSingleton;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -9,7 +10,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-import static ch.qa.testautomation.tas.core.json.ObjectMapperSingleton.getObjectMapper;
 
 /**
  * Stellt Methoden zur Verfügung, um benötigte Transfer Files
@@ -28,7 +28,7 @@ public class TransferFileBuilder {
      * @return JSON mit encoded Base64 String
      */
     public ObjectNode prepareFileTransferContainer(List<String> listOfFilesPathToSend) {
-        ObjectMapper mapper = getObjectMapper();
+        ObjectMapper mapper = ObjectMapperSingleton.mapper();
         ObjectNode transferContainer = mapper.createObjectNode();
         ArrayNode results = mapper.createArrayNode();
         for (String path : listOfFilesPathToSend) {
@@ -41,7 +41,7 @@ public class TransferFileBuilder {
     }
 
     public ObjectNode prepareFileTransferNode(Map<String, String> file4Upload) {
-        ObjectMapper mapper = getObjectMapper();
+        ObjectMapper mapper = ObjectMapperSingleton.mapper();
         ObjectNode transferContainer = mapper.createObjectNode();
         ArrayNode results = mapper.createArrayNode();
         file4Upload.forEach((key, value) -> {

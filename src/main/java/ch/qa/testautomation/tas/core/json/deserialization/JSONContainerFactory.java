@@ -19,7 +19,7 @@ import java.util.*;
 
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.debug;
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
-import static ch.qa.testautomation.tas.core.json.ObjectMapperSingleton.getObjectMapper;
+import static ch.qa.testautomation.tas.core.json.ObjectMapperSingleton.mapper;
 
 public class JSONContainerFactory {
 
@@ -186,7 +186,7 @@ public class JSONContainerFactory {
             String path = resultsDir + result.getUuid() + "-result.json";
             resultFilePaths.add(path);
             try {
-                String serialized = getObjectMapper().writeValueAsString(result);
+                String serialized = mapper().writeValueAsString(result);
                 FileOperation.writeStringToFile(serialized, path);
             } catch (IOException ex) {
                 throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_WRITING, ex, path);
@@ -199,7 +199,7 @@ public class JSONContainerFactory {
         String content = FileOperation.readFileToLinedString(path.toString());
         JsonNode node;
         try {
-            node = getObjectMapper().readTree(content);
+            node = mapper().readTree(content);
         } catch (JsonProcessingException ex) {
             throw new ExceptionBase(ExceptionErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, path);
         }
@@ -292,7 +292,7 @@ public class JSONContainerFactory {
         String content = FileOperation.readFileToLinedString(path);
         JsonNode fileData;
         try {
-            fileData = getObjectMapper().readTree(content);
+            fileData = mapper().readTree(content);
         } catch (JsonProcessingException ex) {
             throw new ExceptionBase(ExceptionErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, filePath);
         }
@@ -325,7 +325,7 @@ public class JSONContainerFactory {
 
     public static <T> T buildJSONObject(String jsonString, Class<T> myClass) {
         try {
-            return getObjectMapper().readValue(jsonString, myClass);
+            return mapper().readValue(jsonString, myClass);
         } catch (JsonProcessingException ex) {
             throw new ExceptionBase(ExceptionErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, myClass.getSimpleName());
         }

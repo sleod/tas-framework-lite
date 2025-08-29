@@ -1,6 +1,8 @@
 package ch.qa.testautomation.tas.core.component;
 
 import ch.qa.testautomation.tas.common.enumerations.TestStatus;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.File;
 import java.time.Instant;
@@ -12,48 +14,41 @@ import java.util.Map;
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.getSimpleCustomInfo;
 
 public class TestRunResult {
+    @Setter
+    @Getter
     private TestStatus status = TestStatus.NO_RUN;
+    @Getter
     private final List<TestStepResult> stepResults = new LinkedList<>();
+    @Setter
+    @Getter
     private String name;
+    @Setter
+    @Getter
     private List<File> attachments = new LinkedList<>();
     private long startTime;
     private long stopTime;
+    @Setter
+    @Getter
     private TestFailure testFailure;
+    @Setter
+    @Getter
     private String videoFilePath;
+    @Setter
+    @Getter
     private String logFilePath;
+    @Getter
     private String begin;
+    @Getter
     private String end;
+    @Getter
+    @Setter
     private String description;
+    @Setter
+    @Getter
     private String threadName;
+    @Getter
+    @Setter
     private Map<String, Object> parameters = Collections.emptyMap();
-
-    public String getBegin() {
-        return begin;
-    }
-
-    public String getEnd() {
-        return end;
-    }
-
-    public TestStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(TestStatus status) {
-        this.status = status;
-    }
-
-    public List<TestStepResult> getStepResults() {
-        return stepResults;
-    }
-
-    public TestFailure getTestFailure() {
-        return testFailure;
-    }
-
-    public void setTestFailure(TestFailure testFailure) {
-        this.testFailure = testFailure;
-    }
 
     public void addStepResults(TestStepResult stepResult) {
         this.stepResults.add(stepResult);
@@ -68,22 +63,6 @@ public class TestRunResult {
         if (stepResult.getStatus().equals(TestStatus.FAIL)) {
             setTestFailure(stepResult.getTestFailure());
         }
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public List<File> getAttachments() {
-        return attachments;
-    }
-
-    public void setAttachments(List<File> attachments) {
-        this.attachments = attachments;
     }
 
     public void startNow(String logText) {
@@ -108,43 +87,4 @@ public class TestRunResult {
         return Instant.ofEpochMilli(stopTime - startTime).getEpochSecond();
     }
 
-    public String getVideoFilePath() {
-        return videoFilePath;
-    }
-
-    public void setVideoFilePath(String videoFilePath) {
-        this.videoFilePath = videoFilePath;
-    }
-
-    public String getLogFilePath() {
-        return logFilePath;
-    }
-
-    public void setLogFilePath(String logFilePath) {
-        this.logFilePath = logFilePath;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getDescription() {
-        return this.description;
-    }
-
-    public String getThreadName() {
-        return threadName;
-    }
-
-    public void setThreadName(String threadName) {
-        this.threadName = threadName;
-    }
-
-    public void setParameters(Map<String, Object> first) {
-        this.parameters = first;
-    }
-
-    public Map<String, Object> getParameters() {
-        return parameters;
-    }
 }

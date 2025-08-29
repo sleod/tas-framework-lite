@@ -6,6 +6,7 @@ import ch.qa.testautomation.tas.common.enumerations.TestType;
 import ch.qa.testautomation.tas.common.logging.ScreenCapture;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.annotations.*;
+import ch.qa.testautomation.tas.core.json.ObjectMapperSingleton;
 import ch.qa.testautomation.tas.core.json.container.JSONTestCaseStep;
 import ch.qa.testautomation.tas.core.json.container.JsonTestCaseMetaData;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
@@ -50,7 +51,7 @@ public class TestCaseStep implements Executable {
     @Getter
     @Setter
     private boolean skipOnError = false;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = ObjectMapperSingleton.mapper();
     @Getter
     private final String name;
     private TestRunResult testRunResult;

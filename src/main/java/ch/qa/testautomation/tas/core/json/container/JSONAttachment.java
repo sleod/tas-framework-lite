@@ -1,5 +1,10 @@
 package ch.qa.testautomation.tas.core.json.container;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class JSONAttachment extends JSONContainer{
     private String name;
     private String type;
@@ -14,27 +19,4 @@ public class JSONAttachment extends JSONContainer{
     public JSONAttachment() {
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getSource() {
-        return source;
-    }
-
-    public void setSource(String source) {
-        this.source = source;
-    }
 }

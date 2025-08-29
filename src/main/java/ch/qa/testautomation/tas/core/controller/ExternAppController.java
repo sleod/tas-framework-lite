@@ -5,6 +5,7 @@ import ch.qa.testautomation.tas.common.IOUtils.FileOperation;
 import ch.qa.testautomation.tas.common.enumerations.DownloadStrategy;
 import ch.qa.testautomation.tas.common.utils.ZipUtils;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
+import ch.qa.testautomation.tas.core.json.ObjectMapperSingleton;
 import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
@@ -446,7 +447,7 @@ public class ExternAppController {
     private static String getChromeLatestStableVersion() {
         JsonNode config = getDownloadConfig();
         if (DownloadStrategy.ONLINE.equals(DownloadStrategy.valueOf(PropertyResolver.getDownloadStrategy().toUpperCase()))) {
-            ObjectMapper mapper = new ObjectMapper();
+            ObjectMapper mapper = ObjectMapperSingleton.mapper();
             String url = config.get("lastKnownGoodVersions").asText();
             JsonNode jsonNode;
             try {

@@ -1,10 +1,10 @@
 package ch.qa.testautomation.tas.core.json.customDeserializer;
 
+import ch.qa.testautomation.tas.core.json.ObjectMapperSingleton;
 import ch.qa.testautomation.tas.core.json.container.JSONAttachment;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 
 import java.io.IOException;
@@ -21,6 +21,6 @@ public class CustomAttachmentListDeserializer extends StdDeserializer<List<JSONA
 
     @Override
     public List<JSONAttachment> deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
-        return new ObjectMapper().readValue(jsonParser, new TypeReference<>() {});
+        return ObjectMapperSingleton.mapper().readValue(jsonParser, new TypeReference<>() {});
     }
 }

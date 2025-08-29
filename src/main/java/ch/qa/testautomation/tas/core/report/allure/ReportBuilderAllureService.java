@@ -2,11 +2,11 @@ package ch.qa.testautomation.tas.core.report.allure;
 
 import ch.qa.testautomation.tas.common.IOUtils.FileOperation;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
+import ch.qa.testautomation.tas.core.json.ObjectMapperSingleton;
 import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.tas.rest.connection.allure.AllureRestClient;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -67,7 +67,7 @@ public class ReportBuilderAllureService {
     protected AllureRestClient initAllureRestClient() {
         if (Objects.isNull(restClient)) {
             JsonNode config = JSONContainerFactory.getConfig(PropertyResolver.getReportServiceRunnerConfigFile());
-            Map<String, String> result = new ObjectMapper().convertValue(config.get(ALLURE_SERVICE_CONFIG), new TypeReference<>() {
+            Map<String, String> result = ObjectMapperSingleton.mapper().convertValue(config.get(ALLURE_SERVICE_CONFIG), new TypeReference<>() {
             });
             return new AllureRestClient(result);
         } else return restClient;
