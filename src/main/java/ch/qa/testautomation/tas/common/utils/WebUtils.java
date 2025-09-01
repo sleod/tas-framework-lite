@@ -1,17 +1,5 @@
 package ch.qa.testautomation.tas.common.utils;
 
-import ch.qa.testautomation.tas.exception.ExceptionBase;
-import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
-import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.SelenideElement;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.WebDriverWait;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,11 +7,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import com.codeborne.selenide.Condition;
+import static com.codeborne.selenide.Selectors.byText;
+import static com.codeborne.selenide.Selectors.shadowCss;
+import static com.codeborne.selenide.Selectors.withText;
+import com.codeborne.selenide.Selenide;
+import static com.codeborne.selenide.Selenide.$;
+import com.codeborne.selenide.SelenideElement;
+
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
 import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
-import static com.codeborne.selenide.Selectors.*;
-import static com.codeborne.selenide.Selenide.$;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 
+/**
+ * Utility class for web-related operations.
+ */
 public class WebUtils {
 
     public static final String BLOCK_CENTER = "{block: \"center\"}";
@@ -252,24 +258,47 @@ public class WebUtils {
         }
     }
 
+    /**
+     * Scrolls the given element horizontally to the right.
+     * @param element the element to scroll
+     */
     public static void scrollHorizontalToRight(WebElement element) {
         Selenide.executeJavaScript("arguments[0].scrollLeft += arguments[0].offsetWidth", element);
     }
 
+    /**
+     * Scrolls the given element horizontally to the left.
+     * @param element the element to scroll
+     */
     public static void scrollHorizontalToLeft(WebElement element) {
         Selenide.executeJavaScript("arguments[0].scrollLeft = 0", element);
     }
 
+    /**
+     * Prints the contents of a string map.
+     * @param stringMap the string map to print
+     * @return a formatted string representation of the map
+     */
     public static String printStringMap(Map<String, String> stringMap) {
         return " | " + stringMap.keySet().stream().map(stringMap::get).collect(Collectors.joining(" | ")) + " | ";
     }
 
+    /**
+     * Gets the current tab index in the browser.
+     * @param driver the WebDriver instance
+     * @return the index of the current tab
+     */
     public int getCurrentTabIndex(WebDriver driver) {
         String currentTab = driver.getWindowHandle();
         ArrayList<String> tabs = new ArrayList<>(driver.getWindowHandles());
         return tabs.indexOf(currentTab);
     }
 
+    /**
+     * Builds a JavaScript selector string for the given CSS selectors.
+     * @param selectors the CSS selectors
+     * @return the JavaScript selector string
+     */
     private static String buildSelectorInJS(String... selectors) {
         StringBuilder js = new StringBuilder();
         js.append("return document.querySelector(\"");

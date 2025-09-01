@@ -1,26 +1,40 @@
 package ch.qa.testautomation.tas.core.component;
 
-import ch.qa.testautomation.tas.configuration.PropertyResolver;
-import ch.qa.testautomation.tas.configuration.TASConfiguration;
-import ch.qa.testautomation.tas.core.report.ReportBuilder;
-import ch.qa.testautomation.tas.core.report.allure.ReportBuilderAllureService;
-import com.codeborne.selenide.Configuration;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.*;
-
+import static java.util.Arrays.asList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.DynamicContainer;
+import org.junit.jupiter.api.TestFactory;
+
+import com.codeborne.selenide.Configuration;
+
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.fatal;
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
 import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
-import static ch.qa.testautomation.tas.configuration.PropertyResolver.*;
-import static ch.qa.testautomation.tas.core.component.TestRunManager.*;
-import static java.util.Arrays.asList;
+import ch.qa.testautomation.tas.configuration.PropertyResolver;
+import static ch.qa.testautomation.tas.configuration.PropertyResolver.getMetaFilter;
+import static ch.qa.testautomation.tas.configuration.PropertyResolver.getTestCaseFileExtension;
+import static ch.qa.testautomation.tas.configuration.PropertyResolver.healthCheck;
+import ch.qa.testautomation.tas.configuration.TASConfiguration;
+import static ch.qa.testautomation.tas.core.component.TestRunManager.findAllFilePathOfTestCaseFile;
+import static ch.qa.testautomation.tas.core.component.TestRunManager.initTestCases;
+import static ch.qa.testautomation.tas.core.component.TestRunManager.loadGlobalTestData;
+import static ch.qa.testautomation.tas.core.component.TestRunManager.retrieveResources;
+import static ch.qa.testautomation.tas.core.component.TestRunManager.setPerformer;
+import ch.qa.testautomation.tas.core.report.ReportBuilder;
+import ch.qa.testautomation.tas.core.report.allure.ReportBuilderAllureService;
 
+/**
+ * Abstract class for performable test cases.
+ */
 public abstract class PerformableTestCases {
 
     private List<TestCaseObject> testCaseObjects = Collections.emptyList();
@@ -43,6 +57,10 @@ public abstract class PerformableTestCases {
         }
     }
 
+    /**
+     * Get the list of test case objects.
+     * @return list of test case objects
+     */
     public List<TestCaseObject> getTestCaseObjects() {
         return testCaseObjects;
     }
@@ -58,6 +76,10 @@ public abstract class PerformableTestCases {
         ReportBuilder.generateEnvironmentProperties();
     }
 
+    /**
+     * Get the stream of single test cases.
+     * @return stream of single test cases
+     */
     public Stream<DynamicContainer> getSingleTestCases() {
         //single test cases
         return testCaseObjects.stream()
@@ -65,6 +87,10 @@ public abstract class PerformableTestCases {
                 .map(this::getTestCaseReady);
     }
 
+    /**
+     * Get the stream of series test cases.
+     * @return stream of series test cases
+     */
     public Stream<DynamicContainer> getSeriesTestCases() {
         Map<String, TestCaseObject> serienTestCases = new TreeMap<>();
         testCaseObjects.stream().filter(testCaseObject -> isValid(testCaseObject.getSeriesNumber()))
@@ -78,6 +104,11 @@ public abstract class PerformableTestCases {
         return serienTestCases.values().stream().map(this::getTestCaseReady);
     }
 
+    /**
+     * Get the test case ready for execution.
+     * @param testCaseObject the test case object
+     * @return the dynamic container for the test case
+     */
     public DynamicContainer getTestCaseReady(TestCaseObject testCaseObject) {
         if (isValid(testCaseObject.getSeriesNumber())) {
             testCaseObject.setName(testCaseObject.getName() + " - SN - " + testCaseObject.getSeriesNumber());
@@ -85,6 +116,10 @@ public abstract class PerformableTestCases {
         return DynamicContainer.dynamicContainer(testCaseObject.prepareAndGetDisplayName(), testCaseObject.getTestSteps());
     }
 
+    /**
+     * Get the stream of test cases for execution.
+     * @return stream of test cases
+     */
     @TestFactory
     @DisplayName("Execute Test Cases...")
     public Stream<DynamicContainer> runTCs() {
@@ -116,6 +151,10 @@ public abstract class PerformableTestCases {
         info("Test Run is finished.");
     }
 
+    /**
+     * Get the TAS configuration.
+     * @return the TAS configuration
+     */
     public TASConfiguration getTASConfiguration() {
         return configuration;
     }
@@ -191,6 +230,9 @@ public abstract class PerformableTestCases {
         getTASConfiguration().setTestCaseFileExtension(".tas");
     }
 
+    /**
+     * Clean up results by checking their presence on the server.
+     */
     private void cleanResultsByPresentOnServer() {
         if (PropertyResolver.isCleanUpResults() && PropertyResolver.isAllureReportServiceEnabled() && !PropertyResolver.isExecutionRemoteParallelEnabled()) {
             info("Clean Allure Results on Server if present.");

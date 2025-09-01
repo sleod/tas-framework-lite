@@ -1,10 +1,33 @@
+
 package ch.qa.testautomation.tas.core.component;
+
+import java.io.File;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Stream;
+
+import org.junit.jupiter.api.DynamicTest;
 
 import ch.qa.testautomation.tas.common.IOUtils.FileOperation;
 import ch.qa.testautomation.tas.common.enumerations.TestStatus;
 import ch.qa.testautomation.tas.common.enumerations.TestType;
+import static ch.qa.testautomation.tas.common.logging.SystemLogger.debug;
+import static ch.qa.testautomation.tas.common.logging.SystemLogger.fatal;
+import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
 import ch.qa.testautomation.tas.common.utils.AnnotationReflector;
 import ch.qa.testautomation.tas.common.utils.AnnotationUtils;
+import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.annotations.AfterTest;
 import ch.qa.testautomation.tas.core.annotations.BeforeTest;
@@ -19,19 +42,14 @@ import ch.qa.testautomation.tas.core.report.allure.ReportBuilderAllureService;
 import ch.qa.testautomation.tas.core.service.FeedbackService;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
-import org.junit.jupiter.api.DynamicTest;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.io.File;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.*;
-import java.util.stream.Stream;
-
-import static ch.qa.testautomation.tas.common.logging.SystemLogger.*;
-import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
-
+/**
+ * Test Case Object to manage test case execution
+ */
+@Getter
+@Setter
 public class TestCaseObject implements Comparable<TestCaseObject> {
 
     //all target test objects class but not initialized
@@ -42,16 +60,16 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
     private final TestDataContainer testDataContainer;
     private final JSONTestCase testCase;
     private final TestRunResult testRunResult = new TestRunResult();
-    private String testCaseId;
-    private Map<String, String> testCaseIdMap;
-    private String seriesNumber;
+    @Setter private String testCaseId;
+    @Setter private Map<String, String> testCaseIdMap;
+    @Setter private String seriesNumber;
     private final String description;
-    private String name;
-    private String filePath;
+    @Setter private String name;
+    @Setter private String filePath;
     private final TestType testType;
-    private String suiteName;
-    private ReportBuilder reportBuilder;
-    private JsonTestCaseMetaData jsonTestCaseMetaData;
+    @Setter private String suiteName;
+    @Setter private ReportBuilder reportBuilder;
+    @Setter private JsonTestCaseMetaData jsonTestCaseMetaData;
     private final String originalName;
 
     /**
@@ -175,40 +193,12 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
         });
     }
 
-    public String getSuiteName() {
-        return suiteName;
-    }
-
-    public void setSuiteName(String suiteName) {
-        this.suiteName = suiteName;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public TestRunResult getTestRunResult() {
-        return testRunResult;
-    }
-
-    public List<TestCaseStep> getSteps() {
-        return steps;
-    }
-
-    public String getFilePath() {
-        return filePath;
-    }
-
     public String getPackageName() {
         return filePath.replace("/" + FileOperation.getFileName(filePath), "");
     }
 
     public String getTestCaseId() {
         return Objects.isNull(testCaseId) ? "" : testCaseId;
-    }
-
-    public void setTestCaseId(String testCaseId) {
-        this.testCaseId = testCaseId;
     }
 
     /**
@@ -218,26 +208,6 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
      */
     public Map<String, String> getTestCaseIdMap() {
         return Objects.isNull(testCaseIdMap) ? Collections.emptyMap() : testCaseIdMap;
-    }
-
-    public void setTestCaseIdMap(Map<String, String> testCaseIdMap) {
-        this.testCaseIdMap = testCaseIdMap;
-    }
-
-    public TestDataContainer getTestDataContainer() {
-        return testDataContainer;
-    }
-
-    public JSONTestCase getTestCase() {
-        return testCase;
-    }
-
-    public String getSeriesNumber() {
-        return seriesNumber;
-    }
-
-    public TestType getTestType() {
-        return testType;
     }
 
     @Override
@@ -250,11 +220,6 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
         }
         return result;
     }
-
-    public String getDescription() {
-        return this.description;
-    }
-
 
     /**
      * after test
@@ -340,40 +305,52 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
         }
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
+    /**
+     * prepare and get display name
+     * @return name to display
+     */
     public String prepareAndGetDisplayName() {
         TestStepMonitor.setCurrentTest(this);
         testRunResult.setThreadName(Thread.currentThread().getName());
         return name;
     }
 
-    public void setFilePath(String filePath) {
-        this.filePath = filePath;
-    }
-
-    public String getOriginalName() {
-        return originalName;
-    }
-
+    /**
+     * Check if there are conditions defined for the test case.
+     * @return true if conditions are present, false otherwise
+     */
     public boolean hasCondition() {
         return Objects.nonNull(getTestCase().getConditions());
     }
 
+    /**
+     * Check if random line usage is enabled.
+     * @return true if random line usage is enabled, false otherwise
+     */
     public boolean isUseRandomLine() {
         return getTestCase().getConditions().isUseRandomLine();
     }
 
+    /**
+     * Get the variant index for the test case.
+     * @return the variant index
+     */
     public List<Integer> getVariantIndex() {
         return getTestCase().getConditions().getIndex();
     }
 
+    /**
+     * Get the variant limit for the test case.
+     * @return the variant limit
+     */
     public int getVariantLimit() {
         return getTestCase().getConditions().getLimit();
     }
 
+    /**
+     * Get the report builder instance.
+     * @return the report builder
+     */
     private ReportBuilder getReportBuilder() {
         if (Objects.isNull(reportBuilder)) {
             reportBuilder = new ReportBuilder();
@@ -432,6 +409,10 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
         }
     }
 
+    /**
+     * Check if there is a non-headless method present.
+     * @return true if a non-headless method is present, false otherwise
+     */
     private boolean checkNonHeadlessMethod() {
         boolean lastState = PropertyResolver.hasNonHeadlessMethod();
         //pre-set NonHeadLess not exist.
@@ -456,6 +437,10 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
         return false;//no restore session
     }
 
+    /**
+     * Initialize JSON test case metadata.
+     * @param testCase
+     */
     private void initJsonTestCaseMetaData(JSONTestCase testCase) {
         jsonTestCaseMetaData = new JsonTestCaseMetaData();
         jsonTestCaseMetaData.setScreenshotLevel(testCase.getScreenshotLevel());

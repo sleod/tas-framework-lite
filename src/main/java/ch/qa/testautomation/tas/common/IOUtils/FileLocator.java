@@ -1,25 +1,30 @@
 package ch.qa.testautomation.tas.common.IOUtils;
 
-import ch.qa.testautomation.tas.exception.ExceptionBase;
-import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import static java.lang.Integer.MAX_VALUE;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.debug;
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
 import static ch.qa.testautomation.tas.common.utils.StringTextUtils.chop;
-import static java.lang.Integer.MAX_VALUE;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 
 public class FileLocator {
 
@@ -201,10 +206,20 @@ public class FileLocator {
         return FileOperation.retrieveFileFromResourcesAsStream(relativePath);
     }
 
+    /**
+     * Get the project base directory.
+     * @return the project base directory
+     */
     public static String getProjectBaseDir() {
         return Paths.get("").toAbsolutePath().toString();
     }
 
+    /**
+     * Prefix the given paths with the specified prefix.
+     * @param prefixWith the prefix to add
+     * @param paths the list of paths to modify
+     * @return the modified list of paths
+     */
     protected static List<String> prefix(final String prefixWith, List<String> paths) {
         if (StringUtils.isBlank(prefixWith)) {
             return paths;
@@ -214,12 +229,22 @@ public class FileLocator {
         return transformed;
     }
 
+    /**
+     * Normalise the given list of paths by replacing backslashes with forward slashes.
+     * @param paths the list of paths to normalise
+     * @return the normalised list of paths
+     */
     protected static List<String> normalise(List<String> paths) {
         List<String> transformed = new ArrayList<>(paths);
         CollectionUtils.transform(transformed, path -> path.replace('\\', '/'));
         return transformed;
     }
 
+    /**
+     * Sort the given list of strings.
+     * @param input the list of strings to sort
+     * @return the sorted list of strings
+     */
     protected static List<String> sort(List<String> input) {
         List<String> sorted = new ArrayList<>(input);
         sorted.sort(String.CASE_INSENSITIVE_ORDER);

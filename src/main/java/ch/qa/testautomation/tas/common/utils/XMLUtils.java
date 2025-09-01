@@ -1,5 +1,13 @@
 package ch.qa.testautomation.tas.common.utils;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang3.stream.Streams;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -9,16 +17,10 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
+/**
+ * Utility class for XML operations.
+ */
 public class XMLUtils {
-
 
     /**
      * create new doc with root element name

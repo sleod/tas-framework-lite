@@ -1,24 +1,131 @@
 package ch.qa.testautomation.tas.configuration;
 
-import ch.qa.testautomation.tas.common.IOUtils.FileLocator;
-import ch.qa.testautomation.tas.common.enumerations.DownloadStrategy;
-import ch.qa.testautomation.tas.common.enumerations.WebDriverName;
-import ch.qa.testautomation.tas.exception.ExceptionBase;
-import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+
 import org.apache.logging.log4j.Level;
 
-import java.awt.*;
-import java.io.File;
-import java.util.*;
-import java.util.List;
-
-import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.*;
-import static ch.qa.testautomation.tas.common.logging.SystemLogger.*;
+import ch.qa.testautomation.tas.common.IOUtils.FileLocator;
+import ch.qa.testautomation.tas.common.enumerations.DownloadStrategy;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.ALLURE_REPORT_CLEANUP;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.ALLURE_REPORT_LOCATION;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.ALLURE_REPORT_REBASE;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.ALLURE_REPORT_SERVICE;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.ALLURE_RESULTS_LOCATION;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.BROWSER_BIN_PATH;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.BROWSER_PROFILE_DIR;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.BROWSER_SCREEN_SIZE;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.CDP_ALLOWED;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.CURRENT_TESTCASE_NAME;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.DATE_FORMAT;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.DB_CONFIG;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.DB_HOST;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.DB_NAME;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.DB_PASSWORD;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.DB_PORT;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.DB_TYPE;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.DB_USER;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.DEBUG_KEEP_BROWSER;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.DEMO_MODE_ENABLED;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.DOWNLOAD_LOCATION;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.DRIVER_BROWSER_FULLSCREEN;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.DRIVER_BROWSER_HEADLESS;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.DRIVER_BROWSER_VERSION;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.DRIVER_CONFIG_LOCATION;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.DRIVER_DOWNLOAD_CONFIG;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.DRIVER_DOWNLOAD_STRATEGY;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.DRIVER_WAIT_TIMEOUT;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.EXECUTION_REMOTE_DEVICE_ENABLED;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.EXECUTION_REMOTE_PARALLEL;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.EXECUTION_REMOTE_THREAD_MAX;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.GENERATE_SINGLE_FILE_REPORT;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.GENERATE_VIDEO;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.JIRA_CONFIG;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.JIRA_EXEC_CONFIG;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.JIRA_HOST;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.JIRA_PASSWORD;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.JIRA_PAT;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.JIRA_PROXY_HOST;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.JIRA_PROXY_PORT;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.JIRA_USER;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.LOG_LEVEL_TAS;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.METHOD_NONHEADLESS_EXISTS;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.OCR_TESSDATA_LOCATION;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.OPEN_PDF_IN_SYSTEM_READER;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.PAGE_CONFIG_LOCATION;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.PLAYWRIGHT_NODEJS_PATH;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.QC_CONFIG;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.QC_PASSWORD;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.QC_USER;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.REPORT_SERVICE_RUNNER_CONFIG;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.RESOURCE_PROJECT;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.REST_CONFIG;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.REST_HOST;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.REST_PASSWORD;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.REST_PAT;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.REST_USER;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.RETRY_MODE_ENABLED;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.RETRY_OVER_STEPS;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.RUN_DRIVER_RESTART;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.RUN_JIRA_SYNC;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.RUN_META_FILTER;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.RUN_QC_SYNC;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.RUN_START_URL;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.RUN_STOP_ON_ERROR;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.RUN_TFS_SYNC;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.SCREENSHOT_FORMAT;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.SIMPLE_STRING_PARAMETER_ALLOWED;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.TESTCASE_FILE_EXTENSION;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.TESTCASE_LOCATION;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.TESTCASE_REPORT_DIR;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.TESTDATA_LOCATION;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.TEST_AUTOMATION_PACKAGE;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.TEST_DRIVER_MOBILE_CONFIG;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.TEST_DRIVER_REMOTE_CONFIG;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.TEST_ENVIRONMENT;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.TEST_ID_ATTRIBUTE;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.TEXT_EDITOR;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.TFS_CONFIGURATION_ID;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.TFS_RUNNER_CONFIG;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.USE_BROWSER_NAME;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.VIDEO_FORMAT;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.WEBDRIVER_BIN_LOCATION;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.WEBDRIVER_CHROME_DRIVER;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.WEBDRIVER_CHROME_FILENAME;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.WEBDRIVER_EDGE_DRIVER;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.WEBDRIVER_EDGE_FILENAME;
+import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.WEB_DRIVER_NAME;
+import ch.qa.testautomation.tas.common.enumerations.WebDriverName;
+import static ch.qa.testautomation.tas.common.logging.SystemLogger.debug;
+import static ch.qa.testautomation.tas.common.logging.SystemLogger.error;
+import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
+import static ch.qa.testautomation.tas.common.logging.SystemLogger.warn;
 import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 
+/**
+ * Utility class for resolving properties.
+ */
 public class PropertyResolver {
     private final static ThreadLocal<Properties> propertyThreadsMap = new ThreadLocal<>();
 
+
+    /**
+     * Sets a property value for the current thread.
+     *
+     * @param key   the property key
+     * @param value the property value
+     */
     public static void setProperty(String key, String value) {
         if (isValid(value)) {
             geCurrentProperties().setProperty(key, value.trim());
@@ -32,9 +139,14 @@ public class PropertyResolver {
         } else {
             debug("Try to set invalid value with Property Key: " + key);
         }
-
     }
 
+
+    /**
+     * Gets the current thread's Properties object, creating it if necessary.
+     *
+     * @return the Properties object for the current thread
+     */
     public static Properties geCurrentProperties() {
         if (propertyThreadsMap.get() == null) {
             propertyThreadsMap.set(new Properties());
@@ -42,6 +154,13 @@ public class PropertyResolver {
         return propertyThreadsMap.get();
     }
 
+
+    /**
+     * Decodes a Base64-encoded string.
+     *
+     * @param encoded the Base64-encoded string
+     * @return the decoded string, or the original if not valid Base64
+     */
     public static String decodeBase64(String encoded) {
         if (isValid(encoded)) {
             if (org.apache.commons.codec.binary.Base64.isBase64(encoded.getBytes())) {
@@ -58,6 +177,13 @@ public class PropertyResolver {
         }
     }
 
+
+    /**
+     * Encodes a string to Base64.
+     *
+     * @param freeText the string to encode
+     * @return the Base64-encoded string
+     */
     public static String encodeBase64(String freeText) {
         byte[] context = Base64.getEncoder().encode(freeText.getBytes());
         return new String(context);
@@ -91,48 +217,131 @@ public class PropertyResolver {
                 .toList();
     }
 
+    /**
+     * Gets the test case location property.
+     *
+     * @return the test case location
+     */
     public static String getScreenshotFormat() {
         return getProperty(SCREENSHOT_FORMAT.key(), "png");
     }
 
+    /**
+     * Checks if cleanup of results is enabled.
+     *
+     * @return true if cleanup is enabled, false otherwise
+     */
+
     public static String getTestautomationPackage() {
         return getProperty(TEST_AUTOMATION_PACKAGE.key(), "ch.qa.testautomation");
+
+    /**
+     * Gets the test data location property.
+     *
+     * @return the test data location
+     */
     }
 
     public static String getCurrentTestCaseName() {
+
+    /**
+     * Gets the test case report location property.
+     *
+     * @return the test case report location
+     */
         return getProperty(CURRENT_TESTCASE_NAME.key(), "");
     }
 
+
+    /**
+     * Gets the test case file extension property.
+     *
+     * @return the test case file extension
+     */
     public static void setCurrentTestCaseName(String name) {
         setProperty(CURRENT_TESTCASE_NAME.key(), name);
     }
+
+    /**
+     * Gets the meta filter as a list of strings.
+     *
+     * @return the meta filter list
+     */
 
     public static String getDateFormat() {
         return getProperty(DATE_FORMAT.key(), "yyyy-MM-dd");
     }
 
     public static boolean isAllureReportServiceEnabled() {
+
+    /**
+     * Gets the screenshot format property.
+     *
+     * @return the screenshot format
+     */
         return getProperty(ALLURE_REPORT_SERVICE.key(), "false").equalsIgnoreCase("true");
     }
 
+
+    /**
+     * Gets the test automation package property.
+     *
+     * @return the test automation package
+     */
     public static String getAllureResultsDirectory() {
         return getProperty(ALLURE_RESULTS_LOCATION.key(), "target/allure-results/");
     }
 
+    /**
+     * Gets the current test case name property.
+     *
+     * @return the current test case name
+     */
+
     public static String getAllureReportDirectory() {
         return getProperty(ALLURE_REPORT_LOCATION.key(), "target/allure-reports/");
+
+    /**
+     * Sets the current test case name property.
+     *
+     * @param name the test case name
+     */
     }
 
     public static void setChromeDriverPath(String path) {
+
+    /**
+     * Gets the date format property.
+     *
+     * @return the date format
+     */
         System.setProperty(WEBDRIVER_CHROME_DRIVER.key(), path);
     }
 
+
+    /**
+     * Checks if Allure report service is enabled.
+     *
+     * @return true if enabled, false otherwise
+     */
     public static String getChromeDriverPath() {
         return getProperty(WEBDRIVER_CHROME_DRIVER.key(), "");
     }
 
+    /**
+     * Gets the Allure results directory property.
+     *
+     * @return the Allure results directory
+     */
+
     public static void setEdgeDriverPath(String path) {
         System.setProperty(WEBDRIVER_EDGE_DRIVER.key(), path);
+
+    /**
+     * Gets the Allure report directory property.
+     *
+     * @return the Allure report directory
+     */
     }
 
     public static String getEdgeDriverPath() {
@@ -199,45 +408,128 @@ public class PropertyResolver {
         return getProperty("file.separator");
     }
 
+    /**
+     * Gets the Chrome driver path property.
+     *
+     * @return the Chrome driver path
+     */
     public static String getTextEditor() {
         return getProperty(TEXT_EDITOR.key(), "notepad");
     }
 
+    /**
+     * Sets the Chrome driver path property.
+     *
+     * @param path the Chrome driver path
+     */
+
     public static String getRemoteWebDriverConfig() {
         return getProperty(TEST_DRIVER_REMOTE_CONFIG.key(), "");
+
+    /**
+     * Gets the Edge driver path property.
+     *
+     * @return the Edge driver path
+     */
     }
 
     public static String getMobileAppDriverConfig() {
+
+    /**
+     * Sets the Edge driver path property.
+     *
+     * @param path the Edge driver path
+     */
         return getProperty(TEST_DRIVER_MOBILE_CONFIG.key(), "");
     }
 
+
+    /**
+     * Gets the WebDriver name property.
+     *
+     * @return the WebDriver name
+     */
     public static boolean isHeadlessModeEnabled() {
         //exist @NonHeadless method then return false
         if (getProperty(METHOD_NONHEADLESS_EXISTS.key(), "false").equalsIgnoreCase("true")) {
+
+    /**
+     * Gets the used browser name property.
+     *
+     * @return the used browser name
+     */
             return false;
         } else {
             return getProperty(DRIVER_BROWSER_HEADLESS.key(), "true").equalsIgnoreCase("true");
+
+    /**
+     * Gets the WebDriver binary location property.
+     *
+     * @return the WebDriver binary location
+     */
         }
     }
 
+
+    /**
+     * Checks if the operating system is Windows.
+     *
+     * @return true if Windows, false otherwise
+     */
     public static boolean isDemoModeEnabled() {
         return getProperty(DEMO_MODE_ENABLED.key(), "false").equalsIgnoreCase("true");
     }
 
+    /**
+     * Gets the Edge driver file name property.
+     *
+     * @return the Edge driver file name
+     */
+
     public static boolean getBrowserFullscreenEnabled() {
         return getProperty(DRIVER_BROWSER_FULLSCREEN.key(), "false").equalsIgnoreCase("true");
+
+    /**
+     * Sets the Edge driver file name property.
+     *
+     * @param fileName the Edge driver file name
+     */
     }
 
     public static String getBrowserScreenSize() {
+
+    /**
+     * Sets the browser version property.
+     *
+     * @param browserVersion the browser version
+     */
         return getProperty(BROWSER_SCREEN_SIZE.key(), "1920,1080");
     }
 
+
+    /**
+     * Gets the browser version property.
+     *
+     * @return the browser version
+     */
     public static int getBrowserScreenWidth() {
         return getBrowserScreen(0);
     }
 
+    /**
+     * Gets the Chrome driver file name property.
+     *
+     * @return the Chrome driver file name
+     */
+
     public static int getBrowserScreenHigh() {
         return getBrowserScreen(1);
+
+    /**
+     * Sets the Chrome driver file name property.
+     *
+     * @param fileName the Chrome driver file name
+     */
     }
 
     private static int getBrowserScreen(int i) {

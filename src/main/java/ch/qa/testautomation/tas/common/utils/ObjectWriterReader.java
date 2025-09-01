@@ -1,9 +1,14 @@
 package ch.qa.testautomation.tas.common.utils;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
-
-import java.io.*;
 
 /**
  * Read and Write Serializable Object

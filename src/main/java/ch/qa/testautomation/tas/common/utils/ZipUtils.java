@@ -1,9 +1,10 @@
 package ch.qa.testautomation.tas.common.utils;
 
-import ch.qa.testautomation.tas.exception.ExceptionBase;
-import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Enumeration;
 import java.util.List;
@@ -11,6 +12,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
+
+/**
+ * Utility class for ZIP file operations.
+ */
 public class ZipUtils {
 
     /**

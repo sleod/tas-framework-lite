@@ -1,8 +1,25 @@
 package ch.qa.testautomation.tas.core.component;
 
+import java.io.File;
+import java.util.Objects;
+
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.RemoteWebDriver;
+
+import static com.codeborne.selenide.Selenide.open;
+import com.codeborne.selenide.WebDriverRunner;
+import com.fasterxml.jackson.databind.JsonNode;
+
 import ch.qa.testautomation.tas.common.enumerations.WebDriverName;
+import static ch.qa.testautomation.tas.common.logging.SystemLogger.debug;
+import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
 import ch.qa.testautomation.tas.common.processhandling.CrossPlatformProcessScanner;
 import ch.qa.testautomation.tas.common.utils.WaitUtils;
+import static ch.qa.testautomation.tas.configuration.PropertyResolver.getRestConfigFile;
+import static ch.qa.testautomation.tas.configuration.PropertyResolver.getWebDriverName;
+import static ch.qa.testautomation.tas.configuration.PropertyResolver.setChromeDriverFileName;
+import static ch.qa.testautomation.tas.configuration.PropertyResolver.setChromeDriverPath;
 import ch.qa.testautomation.tas.core.controller.ExternAppController;
 import ch.qa.testautomation.tas.core.json.deserialization.JSONContainerFactory;
 import ch.qa.testautomation.tas.core.service.RemoteWebDriverConfigService;
@@ -11,20 +28,11 @@ import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import ch.qa.testautomation.tas.intefaces.DriverProvider;
 import ch.qa.testautomation.tas.rest.base.RestDriverProvider;
 import ch.qa.testautomation.tas.rest.base.TASRestDriver;
-import ch.qa.testautomation.tas.web.*;
-import com.codeborne.selenide.WebDriverRunner;
-import com.fasterxml.jackson.databind.JsonNode;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.remote.RemoteWebDriver;
-
-import java.io.File;
-import java.util.Objects;
-
-import static ch.qa.testautomation.tas.common.logging.SystemLogger.debug;
-import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
-import static ch.qa.testautomation.tas.configuration.PropertyResolver.*;
-import static com.codeborne.selenide.Selenide.open;
+import ch.qa.testautomation.tas.web.ChromeDriverProvider;
+import ch.qa.testautomation.tas.web.PlaywrightDriver;
+import ch.qa.testautomation.tas.web.PlaywrightDriverProvider;
+import ch.qa.testautomation.tas.web.RemoteWebDriverProvider;
+import ch.qa.testautomation.tas.web.WebDriverProvider;
 
 /**
  * Utility class to manage drivers that will be used for testing
@@ -34,6 +42,9 @@ public class DriverManager {
     private static final ThreadLocal<String> platforms = new ThreadLocal<>();
     private static final ThreadLocal<DriverProvider> driverProviders = new ThreadLocal<>();
 
+    /**
+     * Setup web driver for testing.
+     */
     public static void setupWebDriver() {
         String driverName = getWebDriverName();
         if (WebDriverName.CHROME.getName().equals(driverName)) {
@@ -109,6 +120,10 @@ public class DriverManager {
         }
     }
 
+    /**
+     * Get the current driver provider.
+     * @return DriverProvider
+     */
     public static DriverProvider getDriverProvider() {
         if (Objects.nonNull(driverProviders.get())) {
             return driverProviders.get();
@@ -213,6 +228,12 @@ public class DriverManager {
         throw new ExceptionBase(ExceptionErrorKeys.NO_REST_DRIVER_INITIALIZED);
     }
 
+    /**
+     * Install ChromeDriver with the given options.
+     *
+     * @param options ChromeOptions to configure the driver
+     * @return WebDriverProvider for the installed ChromeDriver
+     */
     private static WebDriverProvider installChromeDriver(ChromeOptions options) {
         String path = ExternAppController.prepareChromeDriver().toString();
         File driverFile = new File(path);
@@ -247,11 +268,19 @@ public class DriverManager {
         info("Start Recording Video.");
     }
 
+    /**
+     * Set the current platform.
+     * @param platform
+    */
     public static void setCurrentPlatform(String platform) {
         debug("Set Current Platform to: " + platform + " for: " + Thread.currentThread().getName());
         platforms.set(platform);
     }
 
+    /**
+     * Get the current platform.
+     * @return current platform
+     */
     public static String getCurrentPlatform() {
         String platform = platforms.get();
         debug("Get Current Platform " + platform + " for: " + Thread.currentThread().getName());

@@ -56,8 +56,25 @@ It unifies **Web and Rest API testing** under a consistent JSON-based test case 
 
 ```
 src/
-  main/java/           # Framework source
-  main/resources/      # Config (drivers, integrations etc.)
+  main/
+    java/
+      ch/qa/testautomation/tas/
+        common/         # Common utilities, enums, logging, etc.
+        configuration/  # Configuration classes
+        core/           # Core framework logic (annotations, controller, service, etc.)
+        exception/      # Custom exceptions and error handling
+        intefaces/      # Driver and REST interfaces
+        rest/           # REST driver providers and integrations
+        web/            # Web driver providers and page objects
+    resources/
+      allure.properties         # Allure reporting config
+      log4j2.xml                # Logging configuration
+      messages_en.properties    # Message resources
+      driverConfig/             # Driver and integration configs (JSON)
+      schema/                   # Test case and surefire schemas
+changelog.md                   # Project changelog
+pom.xml                        # Maven build file
+README.md                      # Project documentation
 ```
 
 ---

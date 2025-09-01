@@ -1,11 +1,12 @@
 package ch.qa.testautomation.tas.common.logging;
 
-import ch.qa.testautomation.tas.common.utils.DateTimeUtils;
-import ch.qa.testautomation.tas.configuration.PropertyResolver;
-import ch.qa.testautomation.tas.core.component.TestStepMonitor;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import ch.qa.testautomation.tas.common.utils.DateTimeUtils;
+import ch.qa.testautomation.tas.configuration.PropertyResolver;
+import ch.qa.testautomation.tas.core.component.TestStepMonitor;
 
 /**
  * Logger class of System using log4j2
@@ -53,36 +54,66 @@ public class SystemLogger {
         LOGGER.error(ex.getMessage(), ex);
     }
 
+    /**
+     * Logs an error message.
+     *
+     * @param msg the error message
+     */
     public static void error(String msg) {
         if (Level.getLevel(PropertyResolver.getTASLogLevel()).intLevel() >= Level.ERROR.intLevel()) {
             LOGGER.error(msg);
         }
     }
 
+    /**
+     * Logs a warning message.
+     *
+     * @param msg the warning message
+     */
     public static void warn(String msg) {
         if (Level.getLevel(PropertyResolver.getTASLogLevel()).intLevel() >= Level.WARN.intLevel()) {
             LOGGER.warn(msg);
         }
     }
 
+    /**
+     * Logs an informational message.
+     *
+     * @param msg the informational message
+     */
     public static void info(String msg) {
         if (Level.getLevel(PropertyResolver.getTASLogLevel()).intLevel() >= Level.INFO.intLevel()) {
             LOGGER.info(msg);
         }
     }
 
+    /**
+     * Logs a step information message.
+     *
+     * @param msg the step information message
+     */
     public static void stepInfo(String msg) {
         if (Level.getLevel(PropertyResolver.getTASLogLevel()).intLevel() >= STEP_INFO.intLevel()) {
             LOGGER.log(STEP_INFO, msg);
         }
     }
 
+    /**
+     * Logs a debug message.
+     *
+     * @param msg the debug message
+     */
     public static void debug(String msg) {
         if (Level.getLevel(PropertyResolver.getTASLogLevel()).intLevel() >= Level.DEBUG.intLevel()) {
             LOGGER.debug(msg);
         }
     }
 
+    /**
+     * Logs a trace message.
+     *
+     * @param msg the trace message
+     */
     public static void trace(String msg) {
         if (Level.getLevel(PropertyResolver.getTASLogLevel()).intLevel() >= Level.TRACE.intLevel()) {
             LOGGER.trace(msg);

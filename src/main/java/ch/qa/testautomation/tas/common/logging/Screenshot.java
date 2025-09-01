@@ -1,5 +1,13 @@
 package ch.qa.testautomation.tas.common.logging;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import javax.imageio.ImageIO;
+
 import ch.qa.testautomation.tas.common.IOUtils.FileOperation;
 import ch.qa.testautomation.tas.common.enumerations.ImageFormat;
 import ch.qa.testautomation.tas.common.utils.DateTimeUtils;
@@ -7,13 +15,6 @@ import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import lombok.Getter;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 
 /**
@@ -34,6 +35,12 @@ public class Screenshot {
     private final File screenshotFile;
     private final ImageFormat format = ImageFormat.getFormat(PropertyResolver.getScreenshotFormat());
 
+    /**
+     * Creates a Screenshot object from image data.
+     * @param imageData the image data
+     * @param testCaseName the test case name
+     * @param stepName the step name
+     */
     public Screenshot(BufferedImage imageData, String testCaseName, String stepName) {
         this.testCaseName = testCaseName;
         this.stepName = stepName;
@@ -41,6 +48,14 @@ public class Screenshot {
         this.name = testCaseName + "_" + stepName;
     }
 
+    /**
+     * Creates a Screenshot object from image data.
+     * @param imageData the image data
+     * @param testCaseName the test case name
+     * @param stepName the step name
+     * @param name the screenshot name
+     * @param location the screenshot location
+     */
     public Screenshot(BufferedImage imageData, String testCaseName, String stepName, String name, String location) {
         this.testCaseName = testCaseName;
         this.stepName = stepName;
@@ -48,6 +63,12 @@ public class Screenshot {
         this.name = testCaseName + "_" + stepName + "_" + name;
     }
 
+    /**
+     * Creates a Screenshot object from a file.
+     * @param srcFile the source file
+     * @param testCaseName the test case name
+     * @param stepName the step name
+     */
     public Screenshot(File srcFile, String testCaseName, String stepName) {
         this.testCaseName = testCaseName;
         this.stepName = stepName;
@@ -71,9 +92,12 @@ public class Screenshot {
     }
 
     /**
-     * write image file to local
+     * Writes the image file to the local file system.
      *
-     * @return image file
+     * @param image the image data
+     * @param location the location to save the image
+     * @param fileName the name of the image file
+     * @return the created image file
      */
     private File writeImageToLocalFile(BufferedImage image, String location, String fileName) {
         if (!location.endsWith("/") && !location.startsWith("//")) {

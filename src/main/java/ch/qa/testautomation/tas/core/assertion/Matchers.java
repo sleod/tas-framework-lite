@@ -7,8 +7,10 @@ import org.hamcrest.Matcher;
 import java.time.Instant;
 import java.util.regex.Pattern;
 
+/**
+ * Custom matchers for testing.
+ */
 public class Matchers {
-
 
     /**
      * matcher between time objects

@@ -1,23 +1,41 @@
 package ch.qa.testautomation.tas.common.utils;
 
-import ch.qa.testautomation.tas.exception.ExceptionBase;
-import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
-import com.codeborne.selenide.SelenideElement;
-import org.openqa.selenium.*;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.ElementClickInterceptedException;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
 
-import java.time.Duration;
-import java.util.concurrent.TimeUnit;
-
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Selenide.$;
+import com.codeborne.selenide.SelenideElement;
 
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
+
+/**
+ * Utility class for waiting operations.
+ */
 public class WaitUtils {
 
     private static int timeout = 10;
 
+
+    /**
+     * Sets the default timeout value (in seconds) for wait operations.
+     *
+     * @param timeout the timeout in seconds
+     */
     public static void setTimeout(int timeout) {
         WaitUtils.timeout = timeout;
     }
@@ -51,10 +69,25 @@ public class WaitUtils {
         return $(selector).should(appear);
     }
 
+
+    /**
+     * Wait until element located by selector is visible for a given duration.
+     *
+     * @param selector selector with by (e.g. By.xpath(), By.id()...)
+     * @param duration time to wait in seconds
+     * @return SelenideElement expected element
+     */
     public static SelenideElement waitUntilVisible(By selector, int duration) {
         return $(selector).should(appear, Duration.ofSeconds(duration));
     }
 
+
+    /**
+     * Wait until element located by selector is visible using the expanded timeout value.
+     *
+     * @param selector selector with by (e.g. By.xpath(), By.id()...)
+     * @return SelenideElement expected element
+     */
     public static SelenideElement waitUntilVisibleExpandedTimeout(By selector) {
         return $(selector).should(appear, Duration.ofSeconds(timeout));
     }
@@ -123,6 +156,12 @@ public class WaitUtils {
         return webElement.should(hidden, Duration.ofSeconds(timeout));
     }
 
+
+    /**
+     * Waits for the specified number of seconds (thread sleep).
+     *
+     * @param sec seconds to wait
+     */
     public static void waitStep(int sec) {
         try {
             TimeUnit.SECONDS.sleep(sec);
@@ -132,6 +171,12 @@ public class WaitUtils {
         }
     }
 
+
+    /**
+     * Waits for the specified number of milliseconds (thread sleep).
+     *
+     * @param ms milliseconds to wait
+     */
     public static void waitStepMilli(long ms) {
         try {
             TimeUnit.MILLISECONDS.sleep(ms);
@@ -141,10 +186,23 @@ public class WaitUtils {
         }
     }
 
+
+    /**
+     * Waits for the page to load by waiting for the <body> tag to be visible.
+     *
+     * @return SelenideElement representing the body tag
+     */
     public static SelenideElement waitForPageLoad() {
         return waitUntilVisible(By.tagName("Body"));
     }
 
+
+    /**
+     * Waits for the page to load by waiting for the <body> tag to be visible with a custom timeout.
+     *
+     * @param timeout time to wait in seconds
+     * @return SelenideElement representing the body tag
+     */
     public static SelenideElement waitForPageLoad(int timeout) {
         return waitUntilVisible(By.tagName("Body"), timeout);
     }

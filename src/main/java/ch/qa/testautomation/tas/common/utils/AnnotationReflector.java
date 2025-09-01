@@ -1,14 +1,18 @@
 package ch.qa.testautomation.tas.common.utils;
 
-import ch.qa.testautomation.tas.exception.ExceptionBase;
-import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
-import org.reflections.Reflections;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.*;
-
+import java.util.ArrayList;
 import static java.util.Arrays.asList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.reflections.Reflections;
+
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 
 /**
  * Annotation Reflector for gathering all classes with the annotation
@@ -70,6 +74,7 @@ public class AnnotationReflector {
     }
 
     /**
+     * reflect class with given annotation
      * @param prefix     package of class
      * @param annotation wanted annotation
      * @return set of classes

@@ -1,5 +1,24 @@
 package ch.qa.testautomation.tas.common.logging;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Base64;
+import java.util.Optional;
+
+import javax.imageio.ImageIO;
+
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.devtools.DevTools;
+import org.openqa.selenium.devtools.v138.emulation.Emulation;
+import org.openqa.selenium.devtools.v138.page.Page;
+
+import static com.codeborne.selenide.Selenide.executeJavaScript;
+
+import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
+import static ch.qa.testautomation.tas.common.logging.SystemLogger.warn;
+import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.core.component.TestStepMonitor;
 import ch.qa.testautomation.tas.exception.ExceptionBase;
@@ -7,24 +26,10 @@ import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import ch.qa.testautomation.tas.intefaces.DriverProvider;
 import ch.qa.testautomation.tas.web.ChromeDriverProvider;
 import ch.qa.testautomation.tas.web.PlaywrightDriverProvider;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.devtools.DevTools;
-import org.openqa.selenium.devtools.v138.emulation.Emulation;
-import org.openqa.selenium.devtools.v138.page.Page;
 
-import javax.imageio.ImageIO;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.util.Base64;
-import java.util.Optional;
-
-import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
-import static ch.qa.testautomation.tas.common.logging.SystemLogger.warn;
-import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
-import static com.codeborne.selenide.Selenide.executeJavaScript;
-
+/**
+ * Utility class for capturing screenshots.
+ */
 public class ScreenCapture {
 
     private static DriverProvider screenShotTaker = null;
@@ -81,6 +86,10 @@ public class ScreenCapture {
         return screenshot;
     }
 
+    /**
+     * Returns the current screenshot taker.
+     * @return the current screenshot taker
+     */
     public static DriverProvider getScreenShotTaker() {
         if (screenShotTaker == null) {
             throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "No Screenshot taker available!");
@@ -88,6 +97,11 @@ public class ScreenCapture {
         return screenShotTaker;
     }
 
+    /**
+     * Creates a Screenshot object from a file.
+     * @param screenshotFile the screenshot file
+     * @return the created Screenshot object
+     */
     private static Screenshot getScreenshot(File screenshotFile) {
         Screenshot screenshot = null;
         if (screenshotFile != null && screenshotFile.exists()) {
@@ -114,6 +128,11 @@ public class ScreenCapture {
         return screenshot;
     }
 
+    /**
+     * Creates a Screenshot object from base64 encoded image content.
+     * @param codes the base64 encoded image content
+     * @return the created Screenshot object
+     */
     private static Screenshot createScreenshot(String codes) {
         String testCaseName = TestStepMonitor.getCurrentTestCaseName();
         String stepName = TestStepMonitor.getCurrentTestStepName();
@@ -128,6 +147,11 @@ public class ScreenCapture {
         }
     }
 
+    /**
+     * Creates a Screenshot object from a file.
+     * @param screenshotFile the screenshot file
+     * @return the created Screenshot object
+     */
     private static Screenshot createScreenshot(File screenshotFile) {
         String testCaseName = TestStepMonitor.getCurrentTestCaseName();
         String stepName = TestStepMonitor.getCurrentTestStepName();
@@ -141,6 +165,10 @@ public class ScreenCapture {
         }
     }
 
+    /**
+     * Takes a screenshot of the current screen.
+     * @return the created Screenshot object
+     */
     private static Screenshot takeScreen() {
         if (getScreenShotTaker() instanceof PlaywrightDriverProvider playwrightDriverProvider) {
             return getScreenshot(playwrightDriverProvider.getDriver().screenshot(false));
@@ -149,6 +177,10 @@ public class ScreenCapture {
         }
     }
 
+    /**
+     * Takes a screenshot of the full screen.
+     * @return the created Screenshot object
+     */
     private static Screenshot takeFullScreen() {
         if (getScreenShotTaker() instanceof PlaywrightDriverProvider playwrightDriverProvider) {
             File filePath = playwrightDriverProvider.getDriver().screenshot(true);
@@ -187,6 +219,10 @@ public class ScreenCapture {
         }
     }
 
+    /**
+     * Gets the DevTools instance for the current WebDriver.
+     * @return the DevTools instance
+     */
     private static DevTools getDevTools() {
         DevTools devTools;
         if (getScreenShotTaker() instanceof ChromeDriverProvider chromeDriverProvider) {

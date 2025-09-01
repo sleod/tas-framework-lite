@@ -1,17 +1,30 @@
 package ch.qa.testautomation.tas.common.utils;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
+import static java.time.temporal.TemporalAdjusters.lastDayOfYear;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.*;
-import java.time.format.DateTimeFormatter;
-import java.time.format.TextStyle;
-import java.util.*;
-
-import static java.time.temporal.TemporalAdjusters.lastDayOfYear;
-
+/**
+ * Utility class for date and time operations.
+ */
 public class DateTimeUtils {
 
     /**
@@ -539,6 +552,13 @@ public class DateTimeUtils {
         return Instant.ofEpochMilli(milli).toString();
     }
 
+    /**
+     * Calculates the number of minutes between two time instants.
+     *
+     * @param begin the start time instant
+     * @param end   the end time instant
+     * @return the number of minutes between the two time instants
+     */
     public static long getMinuteBetween(Instant begin, Instant end) {
         Duration duration = Duration.between(end, begin);
         return duration.abs().toMinutes();

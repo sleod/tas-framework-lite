@@ -2,6 +2,10 @@ package ch.qa.testautomation.tas.common.enumerations;
 
 import lombok.Getter;
 
+/**
+ * Enumeration for screenshot levels.
+ */
+
 @Getter
 public enum ScreenshotLevel {
     SUCCESS("SUCCESS"),

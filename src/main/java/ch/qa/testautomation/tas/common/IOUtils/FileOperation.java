@@ -1,37 +1,67 @@
 package ch.qa.testautomation.tas.common.IOUtils;
 
-import ch.qa.testautomation.tas.core.assertion.Matchers;
-import ch.qa.testautomation.tas.exception.ExceptionBase;
-import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
-import org.apache.commons.io.FileUtils;
-import org.hamcrest.Matcher;
-import org.junit.jupiter.api.Assertions;
-
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.*;
+import static java.util.Arrays.asList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
+
+import javax.imageio.ImageIO;
+
+import org.apache.commons.io.FileUtils;
+import org.hamcrest.Matcher;
+import org.junit.jupiter.api.Assertions;
 
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.debug;
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
 import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
-import static java.util.Arrays.asList;
+import ch.qa.testautomation.tas.core.assertion.Matchers;
+import ch.qa.testautomation.tas.exception.ExceptionBase;
+import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 
+/**
+ * Utility class for file operations.
+ */
 public class FileOperation {
 
+    /**
+     * Commonly referenced by public methods for file extension validation.
+     */
     private static final List<String> extensions = asList("txt", "csv", "log", "out", "html", "json", "xml", "pdf", "png", "jpg", "jpeg", "mp4", "zip");
+    /**
+     * Commonly referenced by public methods for UUID validation.
+     */
     private static final String UUID_REGEX = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-5][0-9a-fA-F]{3}-[089ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}";
 
+    /**
+     * Checks if the given file has an allowed file extension.
+     * @param fileName the name of the file to check
+     * @return true if the file has an allowed extension, false otherwise
+     */
     public static boolean isAllowedFileExtension(String fileName) {
         return extensions.contains(getFileNameExtension(fileName));
     }
 
+    /**
+     * Returns a comma-separated list of allowed file extensions.
+     * @return a comma-separated list of allowed file extensions
+     */
     public static String getAllowedFileExtension() {
         return String.join(",", extensions);
     }
@@ -521,6 +551,11 @@ public class FileOperation {
         }
     }
 
+    /**
+     * Creates the specified directory and any necessary parent directories.
+     *
+     * @param folder the directory to create
+     */
     public static void makeDirs(File folder) {
         if (!folder.exists()) {
             if (folder.mkdirs()) {
@@ -531,6 +566,12 @@ public class FileOperation {
         }
     }
 
+    /**
+     * Reads an image file.
+     *
+     * @param srcFile the source file
+     * @return the buffered image
+     */
     public static BufferedImage readImageFile(File srcFile) {
         try {
             return ImageIO.read(srcFile);
