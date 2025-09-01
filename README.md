@@ -16,20 +16,18 @@ It unifies **Web and Rest API testing** under a consistent JSON-based test case 
 ### Driver Resolution & Execution
 - Automatically selects and initializes driver based on test type.
 - Supports **Selenium (Selenide)** and **Playwright** for web.
-- **Appium** for mobile (iOS and Android).
 - Remote driver configs via JSON in `driverConfig/`.
-- Automatic driver download and version check with strategies: `AUTO`, `AzureDevOps`, `SharedFile`, `Online`.
+- Automatic driver download and version check with strategies: `AUTO`, `SharedFile`, `Online`.
 
 ### REST Testing
 - **SimpleRestDriver**: Direct Jakarta client with simple GET/POST/PUT/DELETE/PATCH methods.
 - **RestDriver**: Extended functionality with JSON config and proxy auto-detection.
 - Authentication supported (Basic, Bearer, PAT).
-- Extensible for specific clients (Jira, TFS, Allure Cloud).
+- Extensible for specific clients (Jira, Allure Cloud).
 
 ### Integrations
-- **Azure DevOps Connector**: Sync results to Test Plans, full runs, failure retests, or selected cases via config files (`azureDevOpsConfig.json`, `azureDevOpsExecution.json`).
 - **JIRA/Xray Connector**: Sync issues, executions, results, and evidence. Requires `jiraConfig.json` and `jiraExecutionConfig.json` plus Atlassian client credentials.
-- **Microfocus QC Connector**: Create/manage test sets, runs, attach results (requires `qcConfig.json`).
+- **HP QC Connector**: Create/manage test sets, runs, attach results (requires `qcConfig.json`).
 
 ### Reporting
 - Integrated with **Allure** report framework.

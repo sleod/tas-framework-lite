@@ -36,8 +36,8 @@ public class WebUtils {
      */
     public static void scrollToMiddleOfView(WebElement target) {
         String scrollElementIntoMiddle = "var viewPortHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);"
-                + "var elementTop = arguments[0].getBoundingClientRect().top;"
-                + "window.scrollBy(0, elementTop-(viewPortHeight/2));";
+                                         + "var elementTop = arguments[0].getBoundingClientRect().top;"
+                                         + "window.scrollBy(0, elementTop-(viewPortHeight/2));";
         Selenide.executeJavaScript(scrollElementIntoMiddle, target);
     }
 
@@ -62,15 +62,15 @@ public class WebUtils {
     public static Boolean isVisibleInViewport(WebDriver driver, WebElement element) {
         return (Boolean) ((JavascriptExecutor) driver).executeScript(
                 "var elem = arguments[0],                 " +
-                        "  box = elem.getBoundingClientRect(),    " +
-                        "  cx = box.left + box.width / 2,         " +
-                        "  cy = box.top + box.height / 2,         " +
-                        "  e = document.elementFromPoint(cx, cy); " +
-                        "for (; e; e = e.parentElement) {         " +
-                        "  if (e === elem)                        " +
-                        "    return true;                         " +
-                        "}                                        " +
-                        "return false;                            "
+                "  box = elem.getBoundingClientRect(),    " +
+                "  cx = box.left + box.width / 2,         " +
+                "  cy = box.top + box.height / 2,         " +
+                "  e = document.elementFromPoint(cx, cy); " +
+                "for (; e; e = e.parentElement) {         " +
+                "  if (e === elem)                        " +
+                "    return true;                         " +
+                "}                                        " +
+                "return false;                            "
                 , element);
     }
 
@@ -123,7 +123,6 @@ public class WebUtils {
      * switch to iframe via name
      *
      * @param iframeName name of the iframe
-     * @author Andrej Bagoutdinov
      */
     public static void switchToIframeWithName(String iframeName) {
         Selenide.switchTo().frame(iframeName);
@@ -131,10 +130,7 @@ public class WebUtils {
 
     /**
      * switch to default iframe
-     *
-     * @author Andrej Bagoutdinov
      */
-
     public static void switchToDefaultIframe() {
         Selenide.switchTo().defaultContent();
     }
@@ -150,7 +146,6 @@ public class WebUtils {
      * default javascript hover that moves mouse over specified webElement
      *
      * @param webElement webElement
-     * @author Andrej Bagoutdinov
      */
     public static void moveToElement(WebElement webElement) {
         Selenide.actions().moveToElement(webElement).perform();
@@ -162,7 +157,6 @@ public class WebUtils {
      * @param driver     driver
      * @param timeout    long
      * @param partOfText String
-     * @author Andrej Bagoutdinov
      */
     public static void checkIfUrlContains(WebDriver driver, long timeout, String partOfText) {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));

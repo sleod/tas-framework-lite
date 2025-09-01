@@ -8,7 +8,9 @@ package ch.qa.testautomation.tas.intefaces;
 import java.util.Map;
 
 /**
- * @author txl4x
+ * Interface for RESTful API interactions.
+ * Provides methods for standard HTTP operations: GET, POST, PUT, DELETE.
+ * Implementations should handle connection management and response parsing.
  */
 public interface RestDriver {
 

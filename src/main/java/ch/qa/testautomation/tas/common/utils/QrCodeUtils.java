@@ -15,11 +15,8 @@ import java.io.IOException;
 import java.util.Base64;
 
 /**
- * @author UEX13996
- * <p>
- * Utils for manipulating and reading of generated QR codes.
+ * Utility class for QR code operations such as reading from images and creating images from base64 strings.
  */
-
 public class QrCodeUtils {
 
     /**

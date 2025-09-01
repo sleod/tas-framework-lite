@@ -7,9 +7,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 /**
- * @author Intellon
- * @date 16.05.2024
- *
  * The ProcessHandler class provides methods for scanning, analyzing, and terminating processes
  * based on command-line arguments. This class is utilized by specific ProcessHandler implementations
  * to initiate the process, analyze the output, and support both Windows and Unix-based systems

@@ -6,9 +6,6 @@ import ch.qa.testautomation.tas.common.logging.SystemLogger;
 import java.util.Optional;
 
 /**
- * @author Intellon
- * @date 16.05.2024
- *
  * CrossPlatformProcessScanner is the main class that serves as the entry point of the program.
  * This class determines the user's operating system and selects the appropriate ProcessHandler implementation.
  * It is responsible for initializing and executing the specific ProcessHandler.
