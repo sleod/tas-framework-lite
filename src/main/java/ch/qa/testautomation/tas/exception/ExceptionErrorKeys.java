@@ -1,5 +1,8 @@
 package ch.qa.testautomation.tas.exception;
 
+/**
+ * Enumeration for exception error keys used in the application.
+ */
 public enum ExceptionErrorKeys {
 
     //Core Component

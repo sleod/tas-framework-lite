@@ -61,6 +61,15 @@ public class TestCaseStep implements Executable {
     @Setter
     private Map<String, Object> parameters = new LinkedHashMap<>();
 
+    /**
+     * constructor
+     *
+     * @param orderNumber       order number of step in test case
+     * @param jsonTestCaseMetaData metadata of test case
+     * @param jStep             json test case step
+     * @param testObjectClass   class of test object
+     * @param testDataContainer container of test data
+     */
     public TestCaseStep(int orderNumber, JsonTestCaseMetaData jsonTestCaseMetaData, JSONTestCaseStep jStep, Class<?> testObjectClass, TestDataContainer testDataContainer) {
         this.name = ("Step " + orderNumber + ". " + testObjectClass.getDeclaredAnnotation(TestObject.class)
                 .name() + "@" + jStep.getName());
@@ -74,6 +83,13 @@ public class TestCaseStep implements Executable {
         this.jsonTestCaseMetaData = jsonTestCaseMetaData;
     }
 
+    /**
+     * prepare step for display in report
+     *
+     * @param retry      is retry process
+     * @param retryOrder current retry order
+     * @return name of step
+     */
     public String prepareAndGetDisplayName(boolean retry, int retryOrder) {
         noRun = PropertyResolver.isRetryOnErrorEnabled() && retry
                 && retryOrder >= 0 && retryOrder >= getOrderNumber() + PropertyResolver.getRetryOverSteps();
@@ -181,6 +197,12 @@ public class TestCaseStep implements Executable {
         afterStep();
     }
 
+    /**
+     * handle parameter after read from test data container
+     *
+     * @param parameter parameter object
+     * @param using     using definition
+     */
     private void invokeMethodeAfterConvertParameter(Object parameter, String using) throws InvocationTargetException, IllegalAccessException {
         if (parameter instanceof ArrayNode arrayNode) {// Array Node
             Iterator<JsonNode> elements = arrayNode.elements();
@@ -191,6 +213,12 @@ public class TestCaseStep implements Executable {
         }
     }
 
+    /**
+     * extract multiple parameters from using definition and process them
+     *
+     * @param using using definition
+     * @return array of parameters
+     */
     private Object[] extractAndProcessParameters(String using) {
         Object[] parameters;
         String[] usingKeys = using.replace("[", "").replace("]", "").split(",");
@@ -211,6 +239,12 @@ public class TestCaseStep implements Executable {
         return parameters;
     }
 
+    /**
+     * get parameter from test data container
+     *
+     * @param using using definition
+     * @return parameter object
+     */
     private Object getParameterFromDataContainer(String using) {
         Object parameter;
         if (using.equalsIgnoreCase("CustomizedDataMap")) {//transfer whole map as parameter
@@ -221,10 +255,21 @@ public class TestCaseStep implements Executable {
         return parameter;
     }
 
+    /**
+     * check if parameter type is JsonNode or its subclass
+     *
+     * @param genericParameterType parameter type
+     * @return true if parameter type is JsonNode or its subclass
+     */
     private boolean isJsonNodeParameter(Type genericParameterType) {
         return genericParameterType instanceof Class<?> && JsonNode.class.isAssignableFrom((Class<?>) genericParameterType);
     }
 
+    /**
+     * get using definition from json test case step or from annotation
+     *
+     * @return using definition
+     */
     private String getUsingFromJsonTestcaseStep() {
         String using;
         if (jsonTestCaseStep.getUsing() == null || jsonTestCaseStep.getUsing().isEmpty()) {
@@ -239,6 +284,12 @@ public class TestCaseStep implements Executable {
         return using;
     }
 
+    /**
+     * invoke method with object node parameter
+     *
+     * @param using     using definition
+     * @param parameter parameter object
+     */
     private void invokeMethodeWithObjectNode(String using, Object parameter) throws InvocationTargetException, IllegalAccessException {
         if (using.contains("@base64")) {
             parameter = PropertyResolver.decodeBase64(((TextNode) parameter).asText());
@@ -248,6 +299,13 @@ public class TestCaseStep implements Executable {
         invokeThis(parameterObject);
     }
 
+    /**
+     * invoke method based on array node content
+     *
+     * @param using       using definition
+     * @param arrayNode   array node
+     * @param elementNode first element of array node
+     */
     private void invokeMethodeBasedOnNodeContent(String using, ArrayNode arrayNode, JsonNode elementNode) throws InvocationTargetException, IllegalAccessException {
         if (elementNode.isValueNode()) {//in case plain array, wrap to string list
             List<String> textNodeValues = mapper.convertValue(arrayNode, new TypeReference<>() {
@@ -264,6 +322,11 @@ public class TestCaseStep implements Executable {
         }
     }
 
+    /**
+     * invoke method with parameters
+     *
+     * @param parameter parameters
+     */
     private void invokeThis(Object... parameter) throws InvocationTargetException, IllegalAccessException {
         invokeMethod(runMethod, pageObject, parameter);
     }

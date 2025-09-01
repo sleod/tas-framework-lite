@@ -188,7 +188,7 @@ public class WaitUtils {
 
 
     /**
-     * Waits for the page to load by waiting for the <body> tag to be visible.
+     * Waits for the page to load by waiting for the &lt;body&gt; tag to be visible.
      *
      * @return SelenideElement representing the body tag
      */
@@ -198,7 +198,7 @@ public class WaitUtils {
 
 
     /**
-     * Waits for the page to load by waiting for the <body> tag to be visible with a custom timeout.
+     * Waits for the page to load by waiting for the &lt;body&gt tag to be visible with a custom timeout.
      *
      * @param timeout time to wait in seconds
      * @return SelenideElement representing the body tag

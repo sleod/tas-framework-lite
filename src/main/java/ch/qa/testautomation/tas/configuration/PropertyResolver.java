@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Level;
 
 import ch.qa.testautomation.tas.common.IOUtils.FileLocator;
 import ch.qa.testautomation.tas.common.enumerations.DownloadStrategy;
+
 import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.ALLURE_REPORT_CLEANUP;
 import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.ALLURE_REPORT_LOCATION;
 import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.ALLURE_REPORT_REBASE;
@@ -104,12 +105,15 @@ import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.WEBDRIVER
 import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.WEBDRIVER_EDGE_DRIVER;
 import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.WEBDRIVER_EDGE_FILENAME;
 import static ch.qa.testautomation.tas.common.enumerations.PropertyKey.WEB_DRIVER_NAME;
+
 import ch.qa.testautomation.tas.common.enumerations.WebDriverName;
+
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.debug;
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.error;
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.warn;
 import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
+
 import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 
@@ -218,140 +222,106 @@ public class PropertyResolver {
     }
 
     /**
-     * Gets the test case location property.
+     * get screenshot format property.
      *
-     * @return the test case location
+     * @return the screenshot format
      */
     public static String getScreenshotFormat() {
         return getProperty(SCREENSHOT_FORMAT.key(), "png");
     }
 
     /**
-     * Checks if cleanup of results is enabled.
+     * Get the test automation package property.
      *
-     * @return true if cleanup is enabled, false otherwise
+     * @return the test automation package
      */
-
     public static String getTestautomationPackage() {
         return getProperty(TEST_AUTOMATION_PACKAGE.key(), "ch.qa.testautomation");
-
-    /**
-     * Gets the test data location property.
-     *
-     * @return the test data location
-     */
     }
 
     public static String getCurrentTestCaseName() {
-
-    /**
-     * Gets the test case report location property.
-     *
-     * @return the test case report location
-     */
         return getProperty(CURRENT_TESTCASE_NAME.key(), "");
     }
 
 
     /**
-     * Gets the test case file extension property.
-     *
-     * @return the test case file extension
+     * set current test case name property.
      */
     public static void setCurrentTestCaseName(String name) {
         setProperty(CURRENT_TESTCASE_NAME.key(), name);
     }
 
     /**
-     * Gets the meta filter as a list of strings.
+     * get date format property.
      *
-     * @return the meta filter list
+     * @return date format
      */
-
     public static String getDateFormat() {
         return getProperty(DATE_FORMAT.key(), "yyyy-MM-dd");
     }
 
     public static boolean isAllureReportServiceEnabled() {
-
-    /**
-     * Gets the screenshot format property.
-     *
-     * @return the screenshot format
-     */
         return getProperty(ALLURE_REPORT_SERVICE.key(), "false").equalsIgnoreCase("true");
     }
 
 
     /**
-     * Gets the test automation package property.
+     * get allure results directory property.
      *
-     * @return the test automation package
+     * @return allure results directory
      */
     public static String getAllureResultsDirectory() {
         return getProperty(ALLURE_RESULTS_LOCATION.key(), "target/allure-results/");
     }
 
     /**
-     * Gets the current test case name property.
+     * get allure report directory property.
      *
-     * @return the current test case name
+     * @return allure report directory
      */
-
     public static String getAllureReportDirectory() {
         return getProperty(ALLURE_REPORT_LOCATION.key(), "target/allure-reports/");
-
-    /**
-     * Sets the current test case name property.
-     *
-     * @param name the test case name
-     */
     }
 
     public static void setChromeDriverPath(String path) {
-
-    /**
-     * Gets the date format property.
-     *
-     * @return the date format
-     */
         System.setProperty(WEBDRIVER_CHROME_DRIVER.key(), path);
     }
 
-
     /**
-     * Checks if Allure report service is enabled.
+     * get chrome driver path property.
      *
-     * @return true if enabled, false otherwise
+     * @return chrome driver path
      */
     public static String getChromeDriverPath() {
         return getProperty(WEBDRIVER_CHROME_DRIVER.key(), "");
     }
 
     /**
-     * Gets the Allure results directory property.
-     *
-     * @return the Allure results directory
+     * set edge driver path property.
+     * @param path the edge driver path
      */
-
     public static void setEdgeDriverPath(String path) {
         System.setProperty(WEBDRIVER_EDGE_DRIVER.key(), path);
-
-    /**
-     * Gets the Allure report directory property.
-     *
-     * @return the Allure report directory
-     */
     }
 
     public static String getEdgeDriverPath() {
         return getProperty(WEBDRIVER_EDGE_DRIVER.key(), "");
     }
 
+    /**
+     * get browser profile directory property.
+     *
+     * @return browser profile directory
+     */
     public static String getWebDriverName() {
         return getProperty(WEB_DRIVER_NAME.key(), WebDriverName.CHROME.getName());
     }
 
+    /**
+     * get browser name
+     *
+     * @return browser name
+     */
     public static String getUsedBrowserName() {
         return getProperty(USE_BROWSER_NAME.key(), WebDriverName.CHROME.getName());
     }
@@ -409,129 +379,96 @@ public class PropertyResolver {
     }
 
     /**
-     * Gets the Chrome driver path property.
+     * get text editor property.
      *
-     * @return the Chrome driver path
+     * @return text editor name
      */
     public static String getTextEditor() {
         return getProperty(TEXT_EDITOR.key(), "notepad");
     }
 
     /**
-     * Sets the Chrome driver path property.
+     * gets the remote WebDriver config property.
      *
-     * @param path the Chrome driver path
+     * @return the remote WebDriver config
      */
-
     public static String getRemoteWebDriverConfig() {
         return getProperty(TEST_DRIVER_REMOTE_CONFIG.key(), "");
-
-    /**
-     * Gets the Edge driver path property.
-     *
-     * @return the Edge driver path
-     */
     }
 
-    public static String getMobileAppDriverConfig() {
-
     /**
-     * Sets the Edge driver path property.
+     * Gets the mobile app driver config property.
      *
-     * @param path the Edge driver path
+     * @return the mobile app driver config
      */
+    public static String getMobileAppDriverConfig() {
         return getProperty(TEST_DRIVER_MOBILE_CONFIG.key(), "");
     }
 
-
     /**
-     * Gets the WebDriver name property.
+     * Get if headless mode is enabled, default is true.
      *
-     * @return the WebDriver name
+     * @return true if headless mode is enabled, false otherwise
      */
     public static boolean isHeadlessModeEnabled() {
         //exist @NonHeadless method then return false
         if (getProperty(METHOD_NONHEADLESS_EXISTS.key(), "false").equalsIgnoreCase("true")) {
-
-    /**
-     * Gets the used browser name property.
-     *
-     * @return the used browser name
-     */
             return false;
         } else {
             return getProperty(DRIVER_BROWSER_HEADLESS.key(), "true").equalsIgnoreCase("true");
-
-    /**
-     * Gets the WebDriver binary location property.
-     *
-     * @return the WebDriver binary location
-     */
         }
     }
 
-
     /**
-     * Checks if the operating system is Windows.
+     * Checks if demo mode is enabled.
      *
-     * @return true if Windows, false otherwise
+     * @return true if demo mode is enabled, false otherwise
      */
     public static boolean isDemoModeEnabled() {
         return getProperty(DEMO_MODE_ENABLED.key(), "false").equalsIgnoreCase("true");
     }
 
     /**
-     * Gets the Edge driver file name property.
+     * checks if browser fullscreen mode is enabled.
      *
-     * @return the Edge driver file name
+     * @return if browser fullscreen mode is enabled
      */
-
     public static boolean getBrowserFullscreenEnabled() {
         return getProperty(DRIVER_BROWSER_FULLSCREEN.key(), "false").equalsIgnoreCase("true");
-
-    /**
-     * Sets the Edge driver file name property.
-     *
-     * @param fileName the Edge driver file name
-     */
     }
 
-    public static String getBrowserScreenSize() {
-
     /**
-     * Sets the browser version property.
+     * Gets the browser screen size property.
      *
-     * @param browserVersion the browser version
+     * @return the browser screen size
      */
+    public static String getBrowserScreenSize() {
         return getProperty(BROWSER_SCREEN_SIZE.key(), "1920,1080");
     }
 
-
     /**
-     * Gets the browser version property.
+     * Gets the browser screen width property.
      *
-     * @return the browser version
+     * @return the browser screen width
      */
     public static int getBrowserScreenWidth() {
         return getBrowserScreen(0);
     }
 
     /**
-     * Gets the Chrome driver file name property.
+     * Gets the browser screen high property.
      *
-     * @return the Chrome driver file name
+     * @return the browser screen high
      */
-
     public static int getBrowserScreenHigh() {
         return getBrowserScreen(1);
-
-    /**
-     * Sets the Chrome driver file name property.
-     *
-     * @param fileName the Chrome driver file name
-     */
     }
 
+    /**
+     * Gets the browser screen size property.
+     *
+     * @return the browser screen size
+     */
     private static int getBrowserScreen(int i) {
         String screen = getBrowserScreenSize();
         if (getBrowserFullscreenEnabled()) {
@@ -542,6 +479,11 @@ public class PropertyResolver {
         return Integer.parseInt(screens[i].trim());
     }
 
+    /**
+     * Gets the Driver Configs location dir.
+     *
+     * @return Driver Configs location dir.
+     */
     public static String getDriverConfigLocation() {
         return getProperty(DRIVER_CONFIG_LOCATION.key(), "driverConfig/");
     }

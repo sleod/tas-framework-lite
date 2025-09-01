@@ -14,6 +14,9 @@ public class MessageResolver {
     private static final Locale locale = new Locale("en", "DE");
     private static final ResourceBundle resourceBundle = ResourceBundle.getBundle("messages", locale);
 
+    /**
+     * Privater Konstruktor um Instanziierung zu verhindern
+     */
     private MessageResolver() {
         throw new IllegalStateException(this.getClass().getSimpleName() + "will not be instantiated");
     }

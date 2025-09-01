@@ -50,6 +50,10 @@ public class TestRunResult {
     @Setter
     private Map<String, Object> parameters = Collections.emptyMap();
 
+    /**
+     * add test step result to the test run result
+     * @param stepResult the test step result to add
+     */
     public void addStepResults(TestStepResult stepResult) {
         this.stepResults.add(stepResult);
         if (status.equals(TestStatus.NO_RUN) || !status.equals(TestStatus.FAIL)
@@ -65,24 +69,44 @@ public class TestRunResult {
         }
     }
 
+    /**
+     * start the test run now
+     * @param logText the log text to add to the start log entry
+     */
     public void startNow(String logText) {
         startTime = Instant.now().toEpochMilli();
         begin = getSimpleCustomInfo("TRACE", logText);
     }
 
+    /**
+     * stop the test run now
+     * @param logText the log text to add to the stop log entry
+     */
     public void stopNow(String logText) {
         stopTime = Instant.now().toEpochMilli();
         end = getSimpleCustomInfo("TRACE", logText);
     }
 
+    /**
+     * get the test step start time
+     * @return start time in milliseconds
+     */
     public long getStart() {
         return startTime;
     }
 
+    /**
+     * get the test step stop time
+     * @return stop time in milliseconds
+     */
     public long getStop() {
         return stopTime;
     }
 
+    /**
+     * get the test run duration in seconds
+     * @return duration in seconds
+     */
     public float getRunDuration() {
         return Instant.ofEpochMilli(stopTime - startTime).getEpochSecond();
     }

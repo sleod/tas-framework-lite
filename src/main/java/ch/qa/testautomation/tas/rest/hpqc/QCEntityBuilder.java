@@ -98,7 +98,7 @@ public class QCEntityBuilder {
     /**
      * build qc entity with xml doc element
      *
-     * @param element doc Element of single entity, likely startNow with <Entity><Entity/>
+     * @param element doc Element of single entity
      * @return qc entity
      */
     public static QCEntity buildEntityWithEntityDocElement(Element element) {
@@ -228,12 +228,11 @@ public class QCEntityBuilder {
      */
     public static String buildSingleFieldPayload(String fieldName, String value) {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><Entity Type=\"run\">"
-                + "<Fields><Field Name=\"" + fieldName + "\"><Value>" + StringTextUtils.escapeHTML(value) + "</Value></Field></Fields></Entity>";
+               + "<Fields><Field Name=\"" + fieldName + "\"><Value>" + StringTextUtils.escapeHTML(value) + "</Value></Field></Fields></Entity>";
     }
 
     /**
-     * build QC Entity with xml document, likely:
-     * <Entity Type="ttt"><Fields><Field Name="xxx"><Value>yyy<Value/><Field/><Fields/><Entity/>
+     * build QC Entity with xml document
      *
      * @param docElement Doc element
      * @return attributes of qc entity

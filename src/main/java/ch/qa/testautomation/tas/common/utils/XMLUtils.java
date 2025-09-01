@@ -103,8 +103,8 @@ public class XMLUtils {
      *
      * @param root          root element
      * @param fieldTag      tag name of field
-     * @param attributeName attribute name, likey <Field Name="xxxx"><Field/>
-     * @param valueNodeName name node name, likely <Value><Value/>
+     * @param attributeName attribute name, likey &lt;Field Name="xxxx"&gt;&lt;Field/&gt;
+     * @param valueNodeName name node name, likely &lt;Value&gt;&lt;Value/&gt;
      * @return map of attributes
      */
     public static Map<String, String> fetchFieldsAndValues(Element root, String fieldTag, String attributeName, String valueNodeName) {

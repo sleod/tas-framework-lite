@@ -2,29 +2,27 @@ package ch.qa.testautomation.tas.rest.base;
 
 import ch.qa.testautomation.tas.configuration.PropertyResolver;
 import ch.qa.testautomation.tas.intefaces.DriverProvider;
+import lombok.Setter;
 
+/**
+ * Provider for Rest Driver
+ */
 public class RestDriverProvider implements DriverProvider {
 
     private TASRestDriver restDriver = null;
+    @Setter
     private String user = "";
     private String password = "";
+    @Setter
     private String host;
+    @Setter
     private String patToken = "";
 
-    public void setUser(String user) {
-        this.user = user;
-    }
-
+    /**
+     * Set password (base64 encoded)
+     */
     public void setPassword(String password) {
         this.password = PropertyResolver.decodeBase64(password);
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public void setPatToken(String patToken) {
-        this.patToken = patToken;
     }
 
     /**
@@ -51,6 +49,10 @@ public class RestDriverProvider implements DriverProvider {
         this.patToken = patToken;
     }
 
+    /**
+     * get driver instance, initialize if not done yet
+     * @return rest driver
+     */
     @Override
     @SuppressWarnings("unchecked")
     public TASRestDriver getDriver() {
@@ -75,6 +77,10 @@ public class RestDriverProvider implements DriverProvider {
 
     /**
      * get driver with host, user and password
+     * @param host     host
+     * @param user     user
+     * @param password pw
+     * @return rest driver
      */
     public TASRestDriver getDriver(String host, String user, String password) {
         setHost(host);
@@ -83,6 +89,9 @@ public class RestDriverProvider implements DriverProvider {
         return restDriver;
     }
 
+    /**
+     * close driver
+     */
     @Override
     public void close() {
         if (restDriver != null) {
@@ -90,6 +99,9 @@ public class RestDriverProvider implements DriverProvider {
         }
     }
 
+    /**
+     * initialize driver
+     */
     @Override
     public void initialize() {
         if (!host.isEmpty()) {
@@ -105,6 +117,10 @@ public class RestDriverProvider implements DriverProvider {
         }
     }
 
+    /**
+     * set driver instance
+     * @param restDriver rest driver
+     */
     public void setDriver(TASRestDriver restDriver) {
         this.restDriver = restDriver;
     }

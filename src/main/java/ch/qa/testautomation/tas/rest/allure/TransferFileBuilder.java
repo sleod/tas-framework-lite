@@ -40,6 +40,12 @@ public class TransferFileBuilder {
         return transferContainer.set(RESULTS_NODE, results);
     }
 
+    /**
+     * Erstellt ein Transfers Object json aus der Map
+     *
+     * @param file4Upload Map mit Dateiname und Base64 String
+     * @return JSON mit encoded Base64 String
+     */
     public ObjectNode prepareFileTransferNode(Map<String, String> file4Upload) {
         ObjectMapper mapper = ObjectMapperSingleton.mapper();
         ObjectNode transferContainer = mapper.createObjectNode();

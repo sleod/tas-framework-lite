@@ -12,6 +12,9 @@ import java.util.stream.Collectors;
 import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
 import static ch.qa.testautomation.tas.configuration.PropertyResolver.*;
 
+/**
+ * Service class for retrieving and validating driver configurations.
+ */
 public class ConfigService {
 
     public static Map<String, JSONDriverConfig> getValidDriverConfigs(boolean isMobile) {
@@ -25,6 +28,12 @@ public class ConfigService {
         return configs;
     }
 
+    /**
+     * Check if the configuration type is valid.
+     *
+     * @param config The JSONDriverConfig object to validate.
+     * @return True if the configuration type is valid, otherwise throws an exception.
+     */
     private static boolean hasConfigType(JSONDriverConfig config) {
         if (!isValid(config.getConfigType())) {
             throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Mobile Driver Config has no ConfigType definition!");
@@ -33,23 +42,35 @@ public class ConfigService {
         }
     }
 
+    /**
+     * Validate the mobile driver configuration.
+     *
+     * @param config The JSONDriverConfig object to validate.
+     * @return True if the configuration is valid, otherwise false.
+     */
     private static boolean isValidMobileConfig(JSONDriverConfig config) {
         return hasConfigType(config)
-                && isValid(config.getPlatformName())
-                && isValid(config.getHubURL())
-                && ((ConfigType.valueOf(config.getConfigType().toUpperCase()).equals(ConfigType.REAL_DEVICE)
-                && (isValid(config.getUdid()) || isValid(config.getRealDeviceUuid())))
-                || ConfigType.valueOf(config.getConfigType().toUpperCase()).equals(ConfigType.EMULATOR_DEVICE));
+               && isValid(config.getPlatformName())
+               && isValid(config.getHubURL())
+               && ((ConfigType.valueOf(config.getConfigType().toUpperCase()).equals(ConfigType.REAL_DEVICE)
+                    && (isValid(config.getUdid()) || isValid(config.getRealDeviceUuid())))
+                   || ConfigType.valueOf(config.getConfigType().toUpperCase()).equals(ConfigType.EMULATOR_DEVICE));
     }
 
+    /**
+     * Validate the remote web driver configuration.
+     *
+     * @param config The JSONDriverConfig object to validate.
+     * @return True if the configuration is valid, otherwise false.
+     */
     private static boolean isValidRemoteConfig(JSONDriverConfig config) {
         return hasConfigType(config)
-                && isValid(config.getPlatformName())
-                && isValid(config.getPlatformVersion())
-                && isValid(config.getHubURL())
-                && isValid(config.getBrowserName())
-                && (ConfigType.valueOf(config.getConfigType().toUpperCase()).equals(ConfigType.REAL_DEVICE_WEB)
-                || ConfigType.valueOf(config.getConfigType().toUpperCase()).equals(ConfigType.EMULATOR_DEVICE_WEB)
-                || ConfigType.valueOf(config.getConfigType().toUpperCase()).equals(ConfigType.GRID_SERVICE));
+               && isValid(config.getPlatformName())
+               && isValid(config.getPlatformVersion())
+               && isValid(config.getHubURL())
+               && isValid(config.getBrowserName())
+               && (ConfigType.valueOf(config.getConfigType().toUpperCase()).equals(ConfigType.REAL_DEVICE_WEB)
+                   || ConfigType.valueOf(config.getConfigType().toUpperCase()).equals(ConfigType.EMULATOR_DEVICE_WEB)
+                   || ConfigType.valueOf(config.getConfigType().toUpperCase()).equals(ConfigType.GRID_SERVICE));
     }
 }

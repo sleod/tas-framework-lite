@@ -11,11 +11,18 @@ import lombok.Setter;
 import java.io.File;
 import java.util.Objects;
 
+/**
+ * TestStepResult is a class that holds the result of a test step execution.
+ * It contains information about the test status, failure details, timing, screenshots, logs, and other relevant data.
+ */
 public class TestStepResult {
-
     private TestStatus testStatus;
     private TestFailure testFailure;
+    @Getter
+    @Setter
     private long startTime;
+    @Getter
+    @Setter
     private long stopTime;
     @Getter
     @Setter
@@ -43,6 +50,12 @@ public class TestStepResult {
     @Getter
     private final StringBuilder logs = new StringBuilder();
 
+    /**
+     * Constructor for TestStepResult.
+     *
+     * @param name      The name of the test step.
+     * @param stepOrder The order of the test step in the sequence.
+     */
     public TestStepResult(String name, int stepOrder) {
         this.name = name;
         this.stepOrder = stepOrder;

@@ -5,6 +5,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Base class for all custom exceptions in the application.
+ * It extends RuntimeException and provides additional functionality
+ * for handling error messages and parameters.
+ */
 public class ExceptionBase extends RuntimeException {
 
     private final ExceptionErrorKeys messageKeyEnum;

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Stream;
 
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -37,8 +38,16 @@ import ch.qa.testautomation.tas.core.report.allure.ReportBuilderAllureService;
  */
 public abstract class PerformableTestCases {
 
+    /**
+     * -- GETTER --
+     *  List of test case objects.
+     */
+    @Getter
     private List<TestCaseObject> testCaseObjects = Collections.emptyList();
 
+    /**
+     * TAS configuration instance.
+     */
     private final TASConfiguration configuration = new TASConfiguration();
 
     public PerformableTestCases() {
@@ -55,14 +64,6 @@ public abstract class PerformableTestCases {
         } catch (Throwable throwable) {
             fatal(throwable);
         }
-    }
-
-    /**
-     * Get the list of test case objects.
-     * @return list of test case objects
-     */
-    public List<TestCaseObject> getTestCaseObjects() {
-        return testCaseObjects;
     }
 
     /**
@@ -208,7 +209,7 @@ public abstract class PerformableTestCases {
     /**
      * override to set up filter for CSV test data selection
      *
-     * @return map of filter : <column, value>
+     * @return map of filter : (column, value)
      */
     protected Map<String, String> getCSVTestDataSelectionFilter() {
         return Collections.emptyMap();
@@ -217,7 +218,7 @@ public abstract class PerformableTestCases {
     /**
      * override to set up filter for CSV test data exclusion
      *
-     * @return map of filter : <column, value>
+     * @return map of filter : (column, value)
      */
     protected Map<String, String> getCSVTestDataExclusionFilter() {
         return Collections.emptyMap();

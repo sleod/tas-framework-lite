@@ -19,6 +19,11 @@ import java.util.Map;
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.info;
 import static ch.qa.testautomation.tas.common.logging.SystemLogger.trace;
 
+/**
+ * Service to feedback test results to external systems like JIRA or HP QC/ALM.
+ *
+ * @author Patrick Schmid
+ */
 public class FeedbackService {
 
     public void jiraFeedback(List<TestCaseObject> testCaseObjects) {
@@ -29,7 +34,7 @@ public class FeedbackService {
             String testCaseId = testCaseObject.getTestCaseId();
             Map<String, String> testCaseIdMap = testCaseObject.getTestCase().getTestCaseIdMap();
             if (testCaseId.isEmpty() && !testCaseObject.getTestType().equals(TestType.MOBILE_APP)
-                    || testCaseObject.getTestType().equals(TestType.MOBILE_APP) && testCaseIdMap.isEmpty()) {
+                || testCaseObject.getTestType().equals(TestType.MOBILE_APP) && testCaseIdMap.isEmpty()) {
                 throw new ExceptionBase(ExceptionErrorKeys.TEST_CASE_ID_IS_REQUIRED, testCaseObject.getName());
             }
             if (!testCaseObject.getTestType().equals(TestType.MOBILE_APP)) {
@@ -44,6 +49,11 @@ public class FeedbackService {
         restClient.close();
     }
 
+    /**
+     * Feedback test results to HP QC/ALM.
+     *
+     * @param testCaseObjects List of TestCaseObject containing test results to be fed back.
+     */
     public void qcFeedback(List<TestCaseObject> testCaseObjects) {
         trace("Feedback Test Result back to QC...");
         new QCRestClient(PropertyResolver.getQCConfigFile()).syncTestCasesAndRunResults(testCaseObjects);

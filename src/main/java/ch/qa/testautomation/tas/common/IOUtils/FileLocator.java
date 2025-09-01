@@ -31,8 +31,8 @@ public class FileLocator {
     /**
      * Finds paths from a source path, allowing for includes/excludes. Paths
      * found are prefixed with specified path by {@link
-     * #prefix(String, List<String>)} and normalised by {@link
-     * #normalise(List<String>)}.
+     * #prefix(String, List)} and normalised by {@link
+     * #normalise(List)}.
      *
      * @param searchIn   the source path to search in
      * @param includes   the List of include patterns, or <code>null</code> if
@@ -52,8 +52,8 @@ public class FileLocator {
 
     /**
      * find all regular file paths within dir with max deep
-     * (p, bfa) -> bfa.isRegularFile()&& p.getFileName().toString().matches(".*\\.jpg")
-     * && bfa.lastModifiedTime().toMillis() > System.currentMillis() - 86400000
+     * (p, bfa) -> bfa.isRegularFile() and p.getFileName().toString().matches(.*\\.jpg)
+     * and bfa.lastModifiedTime().toMillis() > System.currentMillis() - 86400000
      *
      * @param sDir    start dir
      * @param maxDeep max deep
@@ -71,7 +71,7 @@ public class FileLocator {
 
     /**
      * find all regular file paths within dir with max deep
-     * (p, bfa) -> bfa.isRegularFile()&& p.getFileName().toString().matches(".*\\.jpg")
+     * (p, bfa) -> bfa.isRegularFile() and p.getFileName().toString().matches(.*\\.jpg)
      *
      * @param sDir    start dir
      * @param maxDeep max deep
@@ -81,7 +81,7 @@ public class FileLocator {
         List<Path> paths;
         try {
             paths = Files.find(Paths.get(sDir), maxDeep, (p, bfa) -> bfa.isRegularFile() && p.getFileName().toString().matches(".*" + name + ".*"))
-                    .collect(Collectors.toList());
+                    .toList();
         } catch (IOException ex) {
             throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_READING, ex, sDir + "/" + name);
         }
@@ -93,7 +93,7 @@ public class FileLocator {
 
     /**
      * find all regular file paths within dir with max deep
-     * (p, bfa) -> bfa.isRegularFile()&& p.getFileName().toString().matches(".*\\.jpg")
+     * (p, bfa) -> bfa.isRegularFile() and p.getFileName().toString().matches(".*\\.jpg")
      *
      * @param sDir    start dir
      * @param maxDeep max deep

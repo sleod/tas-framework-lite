@@ -4,6 +4,8 @@ import ch.qa.testautomation.tas.exception.ExceptionBase;
 import ch.qa.testautomation.tas.exception.ExceptionErrorKeys;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -17,6 +19,8 @@ import static ch.qa.testautomation.tas.common.utils.StringTextUtils.isValid;
 public class TASRestDriver extends SimpleRestDriver {
 
     protected Response response;
+    @Getter
+    @Setter
     protected String host = "";
 
     /**
@@ -77,22 +81,41 @@ public class TASRestDriver extends SimpleRestDriver {
         super();
     }
 
+    /**
+     * Set Bearer Token for Authorization Header
+     *
+     * @param authorizationToken authorization token with "Bearer " prefix
+     */
     public void setAuthorizationToken(String authorizationToken) {
         addHeader("Authorization", authorizationToken);
     }
 
+    /**
+     * Get all cookies as single string
+     *
+     * @return cookies as single string
+     */
     public String getCookies() {
         printCookies();
         return response.getCookies().values().stream().map(cookie -> cookie.getName() + "=" + cookie.getValue())
                 .collect(Collectors.joining(";"));
     }
 
+    /**
+     * Close the driver and release resources
+     */
     @Override
     public void close() {
         response = null;
         super.close();
     }
 
+    /**
+     * Not a Regular get with Query, only for query with param name "query" : "value"
+     *
+     * @param path path
+     * @return response
+     */
     @Override
     public Response get(String path) {
         response = super.get(getQueryUrl(path));
@@ -103,7 +126,7 @@ public class TASRestDriver extends SimpleRestDriver {
      * Not a Regular get with Query, only for query with param name "query" : "value"
      *
      * @param path  path
-     * @param query query like "?sss=xxx&aaa=bbb"
+     * @param query normal url query string ends with ?key=value&amp;key2=value2
      * @return response
      */
     @Override
@@ -140,41 +163,68 @@ public class TASRestDriver extends SimpleRestDriver {
         return response;
     }
 
+    /**
+     * Post with payload
+     *
+     * @param path    path
+     * @param payload payload
+     * @return response
+     */
     @Override
     public Response post(String path, String payload) {
         response = super.post(getQueryUrl(path), payload);
         return response;
     }
 
+    /**
+     * Post with payload and query params
+     *
+     * @param path    path
+     * @param payload payload
+     * @param params  map of params
+     * @return response
+     */
     public Response post(String path, String payload, Map<String, String> params) {
         setParams(params);
         response = post(path, payload);
         return response;
     }
 
+    /**
+     * Put with payload
+     *
+     * @param path    path
+     * @param payload payload
+     * @return response
+     */
     @Override
     public Response put(String path, String payload) {
         response = super.put(getQueryUrl(path), payload);
         return response;
     }
 
+    /**
+     * Delete with path
+     *
+     * @param path path
+     * @return response
+     */
     @Override
     public Response delete(String path) {
         response = super.delete(getQueryUrl(path));
         return response;
     }
 
+    /**
+     * Patch with payload
+     *
+     * @param path    path
+     * @param payload payload
+     * @return response
+     */
     public Response patch(String path, String payload) {
         response = super.patch(getQueryUrl(path), payload);
         return response;
-    }
-
-    public MediaType getMediaType() {
-        return mediaType;
-    }
-
-    public void setMediaType(MediaType mediaType) {
-        this.mediaType = mediaType;
     }
 
     /**
@@ -184,28 +234,49 @@ public class TASRestDriver extends SimpleRestDriver {
         this.mediaType = MediaType.APPLICATION_JSON_TYPE;
     }
 
+    /**
+     * Get Status of last response
+     *
+     * @return status code
+     */
     public int getStatus() {
         return response.getStatus();
     }
 
+    /**
+     * Get Response Message of last response
+     *
+     * @return response message
+     */
     public String getResponseMessage() {
         return response.readEntity(String.class);
     }
 
+    /**
+     * Print all cookies to debug log
+     */
     public void printCookies() {
         response.getCookies().forEach((key, value) -> debug("Cookie: " + key + "->" + value));
     }
 
+    /**
+     * Secure that parameter is not null or empty
+     *
+     * @param param     parameter to check
+     * @param paramName name of parameter for exception message
+     */
     public void secureParameter(String param, String paramName) {
         if (!isValid(param)) {
             throw new ExceptionBase(ExceptionErrorKeys.NULL_EXCEPTION_EMPTY, paramName);
         }
     }
 
-    public void setHost(String host) {
-        this.host = host;
-    }
-
+    /**
+     * Build the full URL for the request
+     *
+     * @param path path
+     * @return full url
+     */
     public String getQueryUrl(String path) {
         if (!isValid(host)) {
             throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Host for REST Call is invalid! -> " + host);
