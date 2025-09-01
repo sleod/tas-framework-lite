@@ -1,0 +1,34 @@
+/*
+ * To change this license header, choose License Headers in Project properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package io.github.sleod.tas.intefaces;
+
+import java.util.Map;
+
+/**
+ * Interface for RESTful API interactions.
+ * Provides methods for standard HTTP operations: GET, POST, PUT, DELETE.
+ * Implementations should handle connection management and response parsing.
+ */
+public interface RestDriver {
+
+    void close();
+
+    Object get(String path);
+
+    //special for query with name param name "query" and value
+    Object get(String path, String query);
+
+    Object get(String path, String key, String value);
+
+    Object get(String path, Map<String, String> queries);
+
+    Object post(String path, String payload);
+
+    Object put(String path, String payload);
+
+    Object delete(String path);
+
+}

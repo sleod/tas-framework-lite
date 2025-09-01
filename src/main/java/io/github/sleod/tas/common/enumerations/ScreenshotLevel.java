@@ -1,0 +1,20 @@
+package io.github.sleod.tas.common.enumerations;
+
+import lombok.Getter;
+
+/**
+ * Enumeration for screenshot levels.
+ */
+
+@Getter
+public enum ScreenshotLevel {
+    SUCCESS("SUCCESS"),
+    ERROR("ERROR");
+
+    private final String level;
+
+    ScreenshotLevel(String level) {
+        this.level = level;
+    }
+
+}
