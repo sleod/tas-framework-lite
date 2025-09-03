@@ -84,7 +84,9 @@ README.md                      # Project documentation
 1. **Including**  
 ```xml
 <Dependency>
-  comming soon...
+    <GroupId>io.github.sleod</GroupId>
+    <ArtifactId>tas-framework-lite</ArtifactId>
+    <Version>6.1.00-RELEASE</Version>
 </Dependency>
 
 ```
