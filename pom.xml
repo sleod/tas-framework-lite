@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.sleod</groupId>
     <artifactId>tas-framework-lite</artifactId>
-    <version>6.1.00-RELEASE</version>
+    <version>6.1.01-RELEASE</version>
     <packaging>jar</packaging>
     <name>tas-framework-lite</name>
     <description>A light-weight test automation framework</description>
