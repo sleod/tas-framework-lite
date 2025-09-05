@@ -210,7 +210,7 @@ public class TestDataContainer {
                     testDataLocation = FileLocator.findResource(PropertyResolver.getTestDataFolder()).toString();
                     filePath = FileLocator.findExactFile(testDataLocation, 5, token[1]).toString();
                 } else {
-                    filePath = filePaths.get(0).toString();
+                    filePath = filePaths.getFirst().toString();
                 }
             }
             info("Load test data file: " + filePath);

@@ -75,8 +75,8 @@ public class FileLocator {
     public static List<Path> listRegularFilesRecursiveMatchedToName(String sDir, int maxDeep, String name) {
         List<Path> paths;
         try {
-            paths = Files.find(Paths.get(sDir), maxDeep, (p, bfa) -> bfa.isRegularFile() && p.getFileName().toString().matches(".*" + name + ".*"))
-                    .toList();
+            paths = Files.find(Paths.get(sDir), maxDeep, (p, bfa) ->
+                            bfa.isRegularFile() && p.getFileName().toString().matches(".*" + name + ".*")).toList();
         } catch (IOException ex) {
             throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_READING, ex, sDir + "/" + name);
         }
