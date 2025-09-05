@@ -98,7 +98,7 @@ README.md                      # Project documentation
   "name": "My Homepage",
   "description": "UI Smoke Test",
   "type": "web_app",
-  "testCaseId": "BANKING-3131",
+  "testCaseId": "TEST-123",
   "screenshotLevel": "ERROR",
   "testDataRef": "File:my-testData.json",
   "startURL": "https://www.my.ch/de.html",

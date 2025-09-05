@@ -553,13 +553,14 @@ public class TestRunManager {
     public static void loadGlobalTestData() {
         if (FileLocator.isResourceFileExists(PropertyResolver.getTestDataLocation())) {
             Path path = FileLocator.findResource(PropertyResolver.getTestDataLocation());
-            List<Path> paths = FileLocator.listRegularFilesRecursiveMatchedToName(path.toString(), 5, "testdata-global");
-            List<Path> paths1 = FileLocator.listRegularFilesRecursiveMatchedToName(path.toString(), 5, "testData-global");
-            paths.addAll(paths1);
-            if (paths.size() > 1) {
-                throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_GLOBAL_FILE_SHOULD_BE_UNIQUE, Strings.join("|", paths.toArray()));
-            } else if (paths.size() == 1) {
-                TestDataContainer.loadGlobalTestData(paths.get(0));
+            List<Path> paths1 = FileLocator.listRegularFilesRecursiveMatchedToName(path.toString(), 5, "testdata-global");
+            List<Path> paths2 = FileLocator.listRegularFilesRecursiveMatchedToName(path.toString(), 5, "testData-global");
+            List<Path> globalTestDataPaths = new ArrayList<>(paths1);
+            globalTestDataPaths.addAll(paths2);
+            if (globalTestDataPaths.size() > 1) {
+                throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_GLOBAL_FILE_SHOULD_BE_UNIQUE, Strings.join("|", paths1.toArray()));
+            } else if (globalTestDataPaths.size() == 1) {
+                TestDataContainer.loadGlobalTestData(globalTestDataPaths.getFirst());
             } else {
                 info("No global test data file detected!");
             }
