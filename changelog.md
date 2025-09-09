@@ -6,6 +6,12 @@
 #### New Features and Changes
 ========================
 
+> :rocket: **Version 6.1.02-RELEASE**
+> 
+> [OPTIMIZATION]
+> * update selenide to 7.10.0 (resolve security issue)
+
+
 > :rocket: **Version 6.1.01-RELEASE**
 > 
 > [BUG FIX]
