@@ -29,6 +29,12 @@ It unifies **Web and Rest API testing** under a consistent JSON-based test case 
 - **JIRA/Xray Connector**: Sync issues, executions, results, and evidence. Requires `jiraConfig.json` and `jiraExecutionConfig.json` plus Atlassian client credentials.
 - **HP QC Connector**: Create/manage test sets, runs, attach results (requires `qcConfig.json`).
 
+### IDEA Support - [IntelliJ Plugin](https://github.com/sleod/tas-framework-lite/releases) (Cucumber, JBehavior likely)
+- JSON schema for `.tas` files for auto-completion and validation.
+- Navigation from steps to Java methods.
+- References browser for Java methods and classes to `.tas` files.
+- Test data files references in `.tas` files 
+
 ### Reporting
 - Integrated with **Allure** report framework.
 - Generates `allure-results` during test run, produces HTML reports.
