@@ -29,6 +29,7 @@ import java.lang.reflect.Type;
 import java.util.*;
 
 import static io.github.sleod.tas.common.logging.SystemLogger.logStepInfo;
+import static io.github.sleod.tas.common.logging.SystemLogger.warn;
 import static io.github.sleod.tas.common.utils.StringTextUtils.isValid;
 
 public class TestCaseStep implements Executable {
@@ -456,7 +457,11 @@ public class TestCaseStep implements Executable {
         }
         //Screenshot erstellen
         if (takeScreenshot) {
-            testStepResult.setFullScreen(ScreenCapture.takeScreenShot().getScreenshotFile());
+            try {
+                testStepResult.setFullScreen(ScreenCapture.takeScreenShot().getScreenshotFile());
+            } catch (Exception e) {
+                warn("Failed to take screenshot: " + e.getMessage());
+            }
         }
     }
 

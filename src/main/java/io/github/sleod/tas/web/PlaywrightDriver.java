@@ -14,11 +14,13 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 
-@Getter
+
 public class PlaywrightDriver {
+    @Getter
     private final BrowserContext context;
     @Setter
     private Page page;
+    @Getter
     private String videoDirectory;
 
     public PlaywrightDriver(Playwright playwright) {
@@ -106,13 +108,17 @@ public class PlaywrightDriver {
     }
 
     public Page newPage() {
-        setPage(context.newPage());
+        setPage(getContext().newPage());
         return getPage();
     }
 
     public Page getPage() {
         if (page == null) {
-            page = newPage();
+            if (getContext().pages().isEmpty()) {
+                page = newPage();
+            } else {
+                page = getContext().pages().getFirst();
+            }
         }
         return page;
     }

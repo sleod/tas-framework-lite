@@ -1,7 +1,10 @@
 package io.github.sleod.tas.web;
 
 import com.microsoft.playwright.Playwright;
+import io.github.sleod.tas.common.utils.NodeLocator;
 import io.github.sleod.tas.configuration.PropertyResolver;
+import io.github.sleod.tas.exception.ExceptionBase;
+import io.github.sleod.tas.exception.ExceptionErrorKeys;
 import io.github.sleod.tas.intefaces.DriverProvider;
 import lombok.Getter;
 
@@ -51,9 +54,19 @@ public class PlaywrightDriverProvider implements DriverProvider {
     }
 
     private Map<String, String> getPlaywrightEnv() {
+        String nodePath = PropertyResolver.getNodeJSBinFilePath();
+        if (nodePath == null || nodePath.isBlank()) {
+            NodeLocator.NodeInfo info = NodeLocator.findNode();
+            if (info == null) {
+                throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE,
+                        "Node bin file from node.js was not found.\nPlease use '.setNodeJSBinFilePath()' within setUpFramework in Runner");
+            } else {
+                nodePath = info.getExecutable().toString();
+            }
+        }
         return Map.of(
                 "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", "1",
-                "PLAYWRIGHT_NODEJS_PATH", PropertyResolver.getNodeJSBinFilePath());
+                "PLAYWRIGHT_NODEJS_PATH", nodePath);
     }
 
 }

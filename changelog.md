@@ -1,10 +1,18 @@
 #### Version Stack
 ========================
 
-* Latest development version: `6.1.01-RELEASE` (branch `main`)
+* Latest development version: `6.2.00-RELEASE` (branch `main`)
 
 #### New Features and Changes
 ========================
+> :rocket: **Version 6.2.00-RELEASE**
+>
+> [FEATURE]
+> * Add NodeLocator to identify installation of node.js
+>
+> [BUG FIX]
+> * Fix: Playwright open 2 tabs on start
+> * Fix: Change Annotation Value in runtime for @SearchCriteria
 
 > :rocket: **Version 6.1.02-RELEASE**
 > 
