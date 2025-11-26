@@ -2,6 +2,8 @@ package io.github.sleod.tas.web;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import io.github.sleod.tas.common.logging.SystemLogger;
+import io.github.sleod.tas.configuration.PropertyResolver;
 import io.github.sleod.tas.exception.ExceptionBase;
 import io.github.sleod.tas.exception.ExceptionErrorKeys;
 import lombok.Getter;
@@ -10,9 +12,9 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 
-@Getter
 public class PlaywrightWebElement {
 
+    @Getter
     private final Page page;
     private String searchCriteria;
     private Locator locator;
@@ -26,32 +28,36 @@ public class PlaywrightWebElement {
         this.page = page;
         this.locator = locator;
     }
-
     /**
-     * Try to locate element with defined locator
+     * Try to locate element with defined locator with default wait time
      *
      * @return element if found, else null
      */
     public Locator getElement() {
-        if (exists()) {
+        return getElement(PropertyResolver.getDriverWaitTimeout());
+    }
+
+    /**
+     * Try to locate element with defined locator with given timeout
+     *
+     * @return element if found, else null
+     */
+    public Locator getElement(long timeout) {
+        if (hasLocator()) {
+            locator.waitFor(new Locator.WaitForOptions().setTimeout(timeout));
+            if (PropertyResolver.isDemoModeEnabled()) {
+                flash(locator);
+            }
+            SystemLogger.debug("Locator: " + locator + " found: " + locator.count());
             return locator;
         } else {
             throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE,
-                    "Element not found with search criteria: " + searchCriteria);
+                    "Element locator can not be initialized with search criteria: " + searchCriteria);
         }
     }
 
     public boolean exists() {
-        if (locator == null) {
-            try {
-                locator = page.locator(searchCriteria);
-                return locator != null;
-            } catch (Throwable e) {
-                return false;
-            }
-        } else {
-            return true;
-        }
+        return hasLocator() && locator.count() > 0;
     }
 
     public void click() {
@@ -164,4 +170,16 @@ public class PlaywrightWebElement {
 
     }
 
+    private boolean hasLocator() {
+        if (locator == null) {
+            try {
+                locator = page.locator(searchCriteria);
+                return locator != null;
+            } catch (Throwable e) {
+                return false;
+            }
+        } else {
+            return true;
+        }
+    }
 }

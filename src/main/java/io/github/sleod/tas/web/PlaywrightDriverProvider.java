@@ -6,7 +6,6 @@ import io.github.sleod.tas.configuration.PropertyResolver;
 import io.github.sleod.tas.exception.ExceptionBase;
 import io.github.sleod.tas.exception.ExceptionErrorKeys;
 import io.github.sleod.tas.intefaces.DriverProvider;
-import lombok.Getter;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -14,7 +13,6 @@ import java.util.Set;
 
 import static io.github.sleod.tas.common.logging.SystemLogger.info;
 
-@Getter
 public class PlaywrightDriverProvider implements DriverProvider {
 
     private static final ThreadLocal<PlaywrightDriver> drivers = new ThreadLocal<>();
@@ -39,7 +37,7 @@ public class PlaywrightDriverProvider implements DriverProvider {
         info("Close Playwright driver.");
         getDriver().quit();
         drivers.remove();
-        getPlaywright().close();
+        playwright.close();
     }
 
     @Override

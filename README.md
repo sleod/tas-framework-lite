@@ -92,7 +92,7 @@ README.md                      # Project documentation
 <Dependency>
     <GroupId>io.github.sleod</GroupId>
     <ArtifactId>tas-framework-lite</ArtifactId>
-    <Version>6.2.00-RELEASE</Version>
+    <Version>6.3.00-RELEASE</Version>
 </Dependency>
 
 ```
@@ -169,6 +169,7 @@ public class MyHomePage extends WebPageObject{
     }
 }
 ```
+
 ```java
 @TestObject(name = "Test using Parameters")
 public class TestUsingParameters extends SingleTestObject {
@@ -198,7 +199,28 @@ public class TestUsingParameters extends SingleTestObject {
         logStepInfo("Test complex parameter - jsonObject");
     }
 }
+```
+2.3 **Test Objects (`MyPage.java`) with playwright**
 
+```java
+import io.github.sleod.tas.common.utils.WaitUtils;
+
+@TestObject(name = "My Page")
+public class myPage extends PlaywrightPage {
+    @SearchCriteria(locator = "css=#dt__input")
+    private PlaywrightWebElement dataInput;
+    @SearchCriteria(locator = "xpath=//button[@id='navigation']")
+    private PlaywrightWebElement hamburgerIcon;
+    @SearchCriteria(locator = "//div[@data-cookiebar-action='accept']")
+    private PlaywrightWebElement declineAllCookies;
+
+    @TestStep(name = "Cookie Handling", takeScreenshot = true)
+    public void handleRaiffeisenCookie() {
+        declineAllCookies.click();
+        WaitUtils.waitStep(1);
+        dataInput.sendKeys("text");
+    }
+}
 ```
 
 3. **Configure Drivers**  

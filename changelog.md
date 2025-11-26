@@ -1,10 +1,16 @@
 #### Version Stack
 ========================
 
-* Latest development version: `6.2.00-RELEASE` (branch `main`)
+* Latest development version: `6.3.00-RELEASE` (branch `main`)
 
 #### New Features and Changes
 ========================
+
+> :rocket: **Version 6.3.00-RELEASE**
+>
+> [BUG FIX]
+> * Fix: PlaywrightElement auto wait for methods .getElement(), .getElement(timeout)
+
 > :rocket: **Version 6.2.00-RELEASE**
 >
 > [FEATURE]
