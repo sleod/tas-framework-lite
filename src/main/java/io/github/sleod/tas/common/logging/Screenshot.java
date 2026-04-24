@@ -2,7 +2,6 @@ package io.github.sleod.tas.common.logging;
 
 import io.github.sleod.tas.common.IOUtils.FileOperation;
 import io.github.sleod.tas.common.enumerations.ImageFormat;
-import io.github.sleod.tas.common.utils.DateTimeUtils;
 import io.github.sleod.tas.configuration.PropertyResolver;
 import io.github.sleod.tas.exception.ExceptionBase;
 import io.github.sleod.tas.exception.ExceptionErrorKeys;
@@ -12,8 +11,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.UUID;
 
 
 /**
@@ -23,9 +21,6 @@ public class Screenshot {
 
     @Getter
     private final String name;
-    @Getter
-    private final LocalDateTime timeStamp = DateTimeUtils.getLocalDateTimeNow();
-    private final LocalDate today = DateTimeUtils.getLocalDateToday();
     @Getter
     private final String testCaseName;
     @Getter
@@ -63,20 +58,6 @@ public class Screenshot {
     }
 
     /**
-     * Creates a Screenshot object from a file.
-     * @param srcFile the source file
-     * @param testCaseName the test case name
-     * @param stepName the step name
-     */
-    public Screenshot(File srcFile, String testCaseName, String stepName) {
-        this.testCaseName = testCaseName;
-        this.stepName = stepName;
-        this.name = testCaseName + "_" + stepName;
-        this.screenshotFile = writeImageToLocalFile(FileOperation.readImageFile(srcFile), PropertyResolver.getTestCaseReportLocation());
-        FileOperation.deleteFile(srcFile);
-    }
-
-    /**
      * write image file to local
      *
      * @return image file
@@ -85,24 +66,21 @@ public class Screenshot {
         if (!folderPath.endsWith("/") && !folderPath.startsWith("//")) {
             folderPath += "/";
         }
-        String location = folderPath + DateTimeUtils.getFormattedDate(today, "yyyy-MM-dd") + "/" + testCaseName + "/";
-        String fileName = stepName + "_" + DateTimeUtils.formatLocalDateTime(timeStamp, "yyyy-MM-dd_HH-mm-ss");
-        return writeImageToLocalFile(image, location, fileName);
+        String location = folderPath + "/" + testCaseName + "/";
+        return writeImageToLocalFile(image, location, UUID.randomUUID().toString());
     }
 
     /**
-     * Writes the image file to the local file system.
+     * write image file to local
      *
-     * @param image the image data
-     * @param location the location to save the image
-     * @param fileName the name of the image file
-     * @return the created image file
+     * @return image file
      */
     private File writeImageToLocalFile(BufferedImage image, String location, String fileName) {
         if (!location.endsWith("/") && !location.startsWith("//")) {
             location += "/";
         }
-        location += "visualRegressionFiles/" + testCaseName + "/";
+        //folder/Step_x/
+        location += "visualRegressionFiles/" + stepName.substring(0, stepName.indexOf(".")).replace(" ", "_") + "/";
         File target = new File(location + fileName + "." + format.value());
         FileOperation.makeDirs(new File(location));
         try {

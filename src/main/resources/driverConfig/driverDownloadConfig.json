@@ -1,9 +1,11 @@
 {
-  "platform": "linux64", //mac-arm64, mac-x64, win32, win64, linux64
-  "installBrowser": true,
+  "platform": "linux64",  //mac-arm64, mac-x64, win32, win64, linux64
+  "installBrowser": false,
   "browser": "chrome",
-  "version": "",
-  "downloadLink": "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/",
+  "downloadLink": "https://storage.googleapis.com/chrome-for-testing-public/",
   "lastKnownGoodVersions": "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json",
-  "sharedFileLink": ""
+  "latestVersionPerMilestone": "https://googlechromelabs.github.io/chrome-for-testing/latest-versions-per-milestone.json",
+  "sharedFileLink": "",
+  "proxyHost": "",
+  "proxyPort": ""
 }

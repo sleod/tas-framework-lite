@@ -1,16 +1,16 @@
 package io.github.sleod.tas.core.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.sleod.tas.common.IOUtils.FileLocator;
 import io.github.sleod.tas.common.IOUtils.FileOperation;
 import io.github.sleod.tas.common.enumerations.DownloadStrategy;
 import io.github.sleod.tas.common.utils.ZipUtils;
 import io.github.sleod.tas.configuration.PropertyResolver;
-import io.github.sleod.tas.core.json.ObjectMapperSingleton;
 import io.github.sleod.tas.core.json.deserialization.JSONContainerFactory;
 import io.github.sleod.tas.exception.ExceptionBase;
 import io.github.sleod.tas.exception.ExceptionErrorKeys;
+import io.github.sleod.tas.rest.base.RestClientBase;
+import io.github.sleod.tas.rest.base.TASRestDriver;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -181,6 +181,13 @@ public class ExternAppController {
         return new String[]{String.valueOf(exitCode), output.toString()};
     }
 
+    /**
+     * Create system process output
+     *
+     * @param process system process
+     * @return output string
+     * @throws IOException IOException
+     */
     public static StringJoiner createOutput(Process process) throws IOException {
         StringJoiner output = new StringJoiner("\n");
         StringJoiner errorOutput = new StringJoiner("\n");
@@ -303,7 +310,7 @@ public class ExternAppController {
                     return path;
                 } else {
                     debug("Check Given Driver: <" + path + "> has Version: " + response[1]
-                            + ", but not match to Browser Version: " + browserVersion);
+                          + ", but not match to Browser Version: " + browserVersion);
                 }
             } else {
                 debug("Version can not be recognized with given pattern in: " + response[1]);
@@ -350,6 +357,12 @@ public class ExternAppController {
         return processResponse(response);
     }
 
+    /**
+     * get Process Response
+     *
+     * @param response system response
+     * @return response string
+     */
     public static String processResponse(String[] response) {
         if (Integer.parseInt(response[0]) != 0) {
             if (response[1].contains("not found")) {
@@ -403,6 +416,12 @@ public class ExternAppController {
         return JSONContainerFactory.getConfig(PropertyResolver.getDriverDownloadConfigFile());
     }
 
+    /**
+     * Download chrome driver online
+     *
+     * @param config driver download config in json
+     * @return true if success
+     */
     public static boolean downloadDriverOnline(JsonNode config) {
         info("Try to download driver online.");
         try {
@@ -413,17 +432,29 @@ public class ExternAppController {
             info("Current Stable Version: " + version);
             if (config.get("installBrowser").asBoolean()) {
                 String BROWSER_FILE_URL = downloadLink + version + "/" + platform + "/" + browser + "-" + platform + ".zip";
-                String location = FileLocator.getProjectBaseDir() + "/src/main/resources/" + PropertyResolver.getWebDriverBinLocation();
-                new File(location).mkdirs();
+                String location = FileLocator.getProjectBaseDir() + "/src/main/resources/" + config.get("location").asText();
+                if (new File(location).mkdirs()) {
+                    debug("Make dirs successful!");
+                } else {
+                    debug("Make dirs unsuccessful!");
+                }
                 String filePath = location + "/" + browser + "-" + platform + ".zip";
                 downloadFromURL(BROWSER_FILE_URL, filePath);
                 unzipAndDelete(new File(filePath));
-                setCurrentBrowser(location, browser);
+                Path browserBinPath = FileLocator.findExactFile(location, 5, PropertyResolver.isWindows() ? browser + ".exe" : browser);
+                //set chrome bin file path - chromeOption
+                PropertyResolver.setBrowserBinPath(browserBinPath.toFile().getAbsolutePath());
+                grantPermission(browserBinPath, 755);
             } else {
                 String currentChromeVersion = getCurrentChromeVersion();
                 if (!version.startsWith(currentChromeVersion)) {
                     debug("Online Stable Chrome Driver Version: " + version + " does not match current Chrome version: " + currentChromeVersion + ". Download Aborted!");
-                    return false;
+                    //try to get version per milestone
+                    version = getLatestVersionWithCurrent(currentChromeVersion);
+                    if (!version.startsWith(currentChromeVersion)) {
+                        debug("Online latest vesrion: " + version);
+                        return false;
+                    }
                 }
             }
             String DRIVER_FILE_URL = downloadLink + version + "/" + platform + "/" + browser + "driver" + "-" + platform + ".zip";
@@ -442,22 +473,6 @@ public class ExternAppController {
         //set chrome bin file path - chromeOption
         PropertyResolver.setBrowserBinPath(browserBinPath.toFile().getAbsolutePath());
         grantPermission(browserBinPath, 755);
-    }
-
-    private static String getChromeLatestStableVersion() {
-        JsonNode config = getDownloadConfig();
-        if (DownloadStrategy.ONLINE.equals(DownloadStrategy.valueOf(PropertyResolver.getDownloadStrategy().toUpperCase()))) {
-            ObjectMapper mapper = ObjectMapperSingleton.mapper();
-            String url = config.get("lastKnownGoodVersions").asText();
-            JsonNode jsonNode;
-            try {
-                jsonNode = mapper.readTree(new URL(url));
-            } catch (IOException ex) {
-                throw new ExceptionBase(CUSTOM_MESSAGE, ex, "Exception by get json from google! -> " + url);
-            }
-            return jsonNode.get("channels").get("Stable").get("version").asText();
-        } else return config.get("version").asText();
-
     }
 
     public static boolean downloadSharedDriver(JsonNode config) {
@@ -541,4 +556,29 @@ public class ExternAppController {
     public static void moveMouseTo(int x, int y) throws AWTException {
         UserRobot.moveMouseTo(x, y);
     }
+
+    private static String getChromeLatestStableVersion() {
+        JsonNode config = getDownloadConfig();
+        String url = config.get("lastKnownGoodVersions").asText();
+        JsonNode jsonNode;
+        try {
+            jsonNode = RestClientBase.getResponseNode(new TASRestDriver().get(url), "Fail on get Chrome Latest Stable Version with Google JSON API!");
+        } catch (Exception ex) {
+            throw new ExceptionBase(CUSTOM_MESSAGE, ex, "Exception by get json from google! -> " + url);
+        }
+        return jsonNode.get("channels").get("Stable").get("version").asText();
+    }
+
+    private static String getLatestVersionWithCurrent(String currentChromeVersion) {
+        JsonNode config = getDownloadConfig();
+        String url = config.get("latestVersionPerMilestone").asText();
+        JsonNode jsonNode;
+        try {
+            jsonNode = RestClientBase.getResponseNode(new TASRestDriver().get(url), "Fail on get Chrome Latest Stable Version with Google JSON API!");
+        } catch (Exception ex) {
+            throw new ExceptionBase(CUSTOM_MESSAGE, ex, "Exception by get json from google! -> " + url);
+        }
+        return jsonNode.get("milestones").get(currentChromeVersion).get("version").asText();
+    }
+
 } 

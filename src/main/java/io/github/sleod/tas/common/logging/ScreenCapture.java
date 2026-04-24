@@ -10,8 +10,8 @@ import io.github.sleod.tas.web.PlaywrightDriverProvider;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.devtools.DevTools;
-import org.openqa.selenium.devtools.v138.emulation.Emulation;
-import org.openqa.selenium.devtools.v138.page.Page;
+import org.openqa.selenium.devtools.v147.emulation.Emulation;
+import org.openqa.selenium.devtools.v147.page.Page;
 
 import javax.imageio.ImageIO;
 import java.io.ByteArrayInputStream;
@@ -134,7 +134,7 @@ public class ScreenCapture {
     private static Screenshot createScreenshot(String codes) {
         String testCaseName = TestStepMonitor.getCurrentTestCaseName();
         String stepName = TestStepMonitor.getCurrentTestStepName();
-        info("*** save screenshot: " + testCaseName + "/" + stepName);
+        info("*** save screenshot for: " + testCaseName + "/" + stepName);
         try {
             byte[] decodedBytes = Base64.getMimeDecoder().decode(codes);
             Screenshot screenshot = new Screenshot(ImageIO.read(new ByteArrayInputStream(decodedBytes)), testCaseName, stepName);
@@ -190,11 +190,11 @@ public class ScreenCapture {
             DevTools devTools = getDevTools();
             // Override device metrics to simulate full page
             devTools.send(Emulation.setDeviceMetricsOverride(
-                    width.intValue(),                                         // Width
-                    height.intValue(),                                        // Height (full page height)
-                    scale,                                                    // Device scale factor
-                    false,  // Mobile device (false for desktop)
-                    Optional.of(scale),                                       // Scale
+                    width.intValue(),               // Width
+                    height.intValue(),              // Height (full page height)
+                    scale,                          // Device scale factor
+                    false,                          // Mobile device (false for desktop)
+                    Optional.of(scale),             // Scale
                     Optional.of(width.intValue()),  // Screen width
                     Optional.of(height.intValue()), // Screen height
                     Optional.empty(),               // Position X
@@ -203,7 +203,9 @@ public class ScreenCapture {
                     Optional.empty(),               // Screen orientation
                     Optional.empty(),               // Viewport
                     Optional.empty(),               // Display feature
-                    Optional.empty()                // devicePosture
+                    Optional.empty(),               // devicePosture
+                    Optional.empty(),               // scrollbarType
+                    Optional.empty()                // screenOrientationLockEmulation
             ));
             // Send command to capture full page screenshot
             return getScreenshot(devTools.send(Page.captureScreenshot(

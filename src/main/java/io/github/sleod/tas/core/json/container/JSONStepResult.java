@@ -94,12 +94,12 @@ public class JSONStepResult extends JSONContainer {
 
     private void addLogs(TestStepResult stepResult) {
         String location = new File(logFilePath).getParentFile().getAbsolutePath();
-        String filePath = location + "/" + stepResult.getName().replace("/", "-") + "_stepLog.txt";
+        String filePath = location + "/" + UUID.randomUUID() + "_stepLog.txt";
         FileOperation.writeStringToFile(stepResult.getStepLogs(), new File(filePath));
         attachments.add(new JSONAttachment("Step Log", "text/plain", filePath));
         //add stack trace as attachment
         if (stepResult.getStatus().equals(TestStatus.FAIL)) {
-            filePath = location + "/" + stepResult.getName().replace("/", "-") + "_failure.txt";
+            filePath = location + "/" + UUID.randomUUID() + "_failure.txt";
             FileOperation.writeStringToFile(stepResult.getTestFailure().getTrace(), new File(filePath));
             attachments.add(new JSONAttachment("Failure", "text/plain", filePath));
         }

@@ -13,6 +13,7 @@ import org.glassfish.jersey.client.HttpUrlConnectorProvider;
 
 import java.net.Proxy;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -70,6 +71,32 @@ public class SimpleRestDriver implements RestDriver {
             client = ClientBuilder.newClient();
         }
     }
+
+    /**
+     * Constructor driver with Proxy settings, if present. Otherwise, normal driver
+     *
+     * @param proxyURL  proxy url
+     * @param proxyPort proxy port
+     * @param proxyUser proxy user, empty string for no user required
+     * @param proxyPass proxy pass, empty string for no pass required
+     */
+    public SimpleRestDriver(String proxyURL, int proxyPort, String proxyUser, String proxyPass, List<String> excludedHosts) {
+        if (isValid(proxyURL) && isValid(proxyPort)) {
+            ProxyConnectionFactory proxyConnectionFactory = new ProxyConnectionFactory(Proxy.Type.HTTP, proxyURL, proxyPort);
+            if (!excludedHosts.isEmpty()) {
+                proxyConnectionFactory.setExcludedHosts(excludedHosts);
+            }
+            ClientConfig config = new ClientConfig().connectorProvider(new HttpUrlConnectorProvider()
+                    .connectionFactory(proxyConnectionFactory));
+            if (isValid(proxyUser) && isValid(proxyPass)) {
+                config.property(ClientProperties.PROXY_USERNAME, proxyUser).property(ClientProperties.PROXY_PASSWORD, proxyPass);
+            }
+            client = ClientBuilder.newClient(config);
+        } else {
+            client = ClientBuilder.newClient();
+        }
+    }
+
 
     /**
      * Set Basic Authentication

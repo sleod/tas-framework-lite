@@ -43,7 +43,7 @@ public class RestClientBase {
      * @return A JsonNode representing the response body if successful.
      * @throws ExceptionBase If the response indicates an error or if there is an issue processing the JSON.
      */
-    public JsonNode getResponseNode(Response response, String errorMessage) {
+    public static JsonNode getResponseNode(Response response, String errorMessage) {
         debug("Status code: " + response.getStatus());
         String body = response.readEntity(String.class);
         debug(body);
@@ -77,7 +77,11 @@ public class RestClientBase {
      */
     protected void storeStreamIntoFile(Response response, File targetFile) {
         if (isSuccessful(response)) {
-            targetFile.getParentFile().mkdirs();
+            if (targetFile.getParentFile().mkdirs()) {
+                debug("Make dirs successful!");
+            } else {
+                debug("Make dirs unsuccessful!");
+            }
             info("Write to target: " + targetFile.getAbsolutePath());
             try {
                 Files.copy(response.readEntity(InputStream.class), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);

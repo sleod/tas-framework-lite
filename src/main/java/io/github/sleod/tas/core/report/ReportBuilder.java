@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
+import static io.github.sleod.tas.common.logging.SystemLogger.debug;
 import static io.github.sleod.tas.common.logging.SystemLogger.info;
 import static io.github.sleod.tas.common.utils.StringTextUtils.isValid;
 import static io.github.sleod.tas.core.json.ObjectMapperSingleton.mapper;
@@ -52,11 +53,14 @@ public class ReportBuilder {
     public void startRecordingTest(TestRunResult testRunResult) {
         info("Start recording Test Run ...");
         String folder = PropertyResolver.getTestCaseReportLocation();
-        String today = DateTimeUtils.getFormattedDateNow(PropertyResolver.getDateFormat());
-        String fileName = folder + today + "/" + testRunResult.getName() + "/" + Thread.currentThread().getName()
+        String fileName = folder + "/" + testRunResult.getName() + "/" + Thread.currentThread().getName()
                           + "/" + "report_" + DateTimeUtils.getFormattedLocalTimestamp() + ".log";
         File logFile = new File(fileName);
-        logFile.getParentFile().mkdirs();
+        if (logFile.getParentFile().mkdirs()) {
+            debug("Make dirs successful!");
+        } else {
+            debug("Make dirs unsuccessful!");
+        }
         info("Set up log file: " + logFile.getAbsolutePath());
         testRunResult.setLogFilePath(logFile.getAbsolutePath());
     }

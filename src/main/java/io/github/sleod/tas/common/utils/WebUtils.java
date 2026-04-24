@@ -14,7 +14,6 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -224,12 +223,8 @@ public class WebUtils {
      * @return list of elements
      */
     public static List<SelenideElement> getAllShadowElements(String target, String... shadowHosts) {
-        if (shadowHosts.length == 1) {
-            return Selenide.$$(shadowCss(target, shadowHosts[0])).asDynamicIterable().stream().toList();
-        } else if (shadowHosts.length == 2) {
-            return Selenide.$$(shadowCss(target, shadowHosts[0], shadowHosts[1])).asDynamicIterable().stream().toList();
-        } else if (shadowHosts.length > 2) {
-            return Selenide.$$(shadowCss(target, shadowHosts[0], Arrays.copyOfRange(shadowHosts, 1, shadowHosts.length - 1))).asDynamicIterable().stream().toList();
+        if (shadowHosts.length > 0) {
+            return Selenide.$$(shadowCss(target, shadowHosts)).asDynamicIterable().stream().toList();
         } else {
             throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Shadow Host Selector Array is empty!");
         }

@@ -4,9 +4,10 @@ import io.github.sleod.tas.exception.ExceptionBase;
 import io.github.sleod.tas.exception.ExceptionErrorKeys;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -19,7 +20,7 @@ import static io.github.sleod.tas.common.utils.StringTextUtils.isValid;
 public class TASRestDriver extends SimpleRestDriver {
 
     protected Response response;
-    @Getter
+
     @Setter
     protected String host = "";
 
@@ -36,6 +37,7 @@ public class TASRestDriver extends SimpleRestDriver {
         secureParameter(password, "Password for Basic Authorization");
         this.host = host;
         setBasicAuth(user, password);
+        mediaType = MediaType.APPLICATION_JSON_TYPE;
     }
 
     /**
@@ -46,6 +48,7 @@ public class TASRestDriver extends SimpleRestDriver {
     public TASRestDriver(String host) {
         secureParameter(host, "Host of Endpoint");
         this.host = host;
+        mediaType = MediaType.APPLICATION_JSON_TYPE;
     }
 
     /**
@@ -59,6 +62,7 @@ public class TASRestDriver extends SimpleRestDriver {
         secureParameter(patToken, "Personal Access Token");
         this.host = host;
         setBearerToken(patToken);
+        mediaType = MediaType.APPLICATION_JSON_TYPE;
     }
 
     /**
@@ -73,12 +77,23 @@ public class TASRestDriver extends SimpleRestDriver {
         super(proxyURL, port, user, pass);
     }
 
+    /**
+     * Construction with proxy setting
+     *
+     * @param proxyURL  proxy url
+     * @param proxyPort port
+     * @param proxyUser proxy user
+     * @param proxyPass proxy pass
+     */
+    public TASRestDriver(String proxyURL, int proxyPort, String proxyUser, String proxyPass, List<String> excludedHosts) {
+        super(proxyURL, proxyPort, proxyUser, proxyPass, excludedHosts);
+    }
 
     /**
      * Construction with rest config defined host and Authorization parameters
      */
     public TASRestDriver() {
-        super();
+        super("",0,"","", Collections.emptyList());
     }
 
     /**
@@ -278,7 +293,7 @@ public class TASRestDriver extends SimpleRestDriver {
      * @return full url
      */
     public String getQueryUrl(String path) {
-        if (!isValid(host)) {
+        if (!isValid(host) && !path.startsWith("http")) {
             throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Host for REST Call is invalid! -> " + host);
         } else if (path.startsWith("http")) {
             return path;

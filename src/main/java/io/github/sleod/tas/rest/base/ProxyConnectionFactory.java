@@ -1,5 +1,6 @@
 package io.github.sleod.tas.rest.base;
 
+import lombok.Setter;
 import org.glassfish.jersey.client.HttpUrlConnectorProvider.ConnectionFactory;
 
 import java.io.IOException;
@@ -7,33 +8,43 @@ import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URL;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A ConnectionFactory that creates HttpURLConnection instances using a specified proxy.
  */
 public class ProxyConnectionFactory implements ConnectionFactory {
-    private final Proxy proxy;
+    private final Proxy.Type proxyType;
+    private final String proxyHost;
+    private final int proxyPort;
 
-    /**
-     * Constructs a ProxyConnectionFactory with the specified proxy type, hostname, and port.
-     *
-     * @param type     the type of the proxy (e.g., Proxy.Type.HTTP, Proxy.Type.SOCKS)
-     * @param hostname the hostname of the proxy server
-     * @param port     the port number of the proxy server
-     */
-    public ProxyConnectionFactory(Proxy.Type type, String hostname, int port) {
-        proxy = new Proxy(type, new InetSocketAddress(hostname, port));
+    @Setter
+    private List<String> excludedHosts = Collections.emptyList();
+
+    public ProxyConnectionFactory(Proxy.Type proxyType, String proxyHost, int proxyPort) {
+        this.proxyType = proxyType;
+        this.proxyHost = proxyHost;
+        this.proxyPort = proxyPort;
     }
 
-    /**
-     * Opens a connection to the specified URL using the configured proxy.
-     *
-     * @param url the URL to connect to
-     * @return an HttpURLConnection instance connected through the proxy
-     * @throws IOException if an I/O error occurs while opening the connection
-     */
     @Override
     public HttpURLConnection getConnection(URL url) throws IOException {
-        return (HttpURLConnection) url.openConnection(proxy);
+        if (shouldUseProxy(url.getHost())) {
+            Proxy proxy = new Proxy(proxyType, new InetSocketAddress(proxyHost, proxyPort));
+            return (HttpURLConnection) url.openConnection(proxy);
+        } else {
+            return (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
+        }
     }
+
+    private boolean shouldUseProxy(String host) {
+        if (host == null) return false;
+        if (host.startsWith("192.168.") || host.startsWith("10.") || host.endsWith(".local") || host.equalsIgnoreCase("localhost")) {
+            return false;
+        }
+        return excludedHosts.stream().noneMatch(excluded -> host.equalsIgnoreCase(excluded) || host.endsWith("." + excluded)
+        );
+    }
+
 }

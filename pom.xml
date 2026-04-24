@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.sleod</groupId>
     <artifactId>tas-framework-lite</artifactId>
-    <version>6.3.00-RELEASE</version>
+    <version>6.3.01-RELEASE</version>
     <packaging>jar</packaging>
     <name>tas-framework-lite</name>
     <description>A light-weight test automation framework</description>
@@ -31,7 +31,6 @@
         </developer>
     </developers>
 
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -43,23 +42,23 @@
         <maven.surefire.version>3.2.5</maven.surefire.version>
         <aspectj.version>1.9.21</aspectj.version>
         <commons-exec.version>1.4.0</commons-exec.version>
-        <commons-text.version>1.11.0</commons-text.version>
-        <junit.version>5.10.2</junit.version>
-        <junit-platform.version>1.10.2</junit-platform.version>
+        <commons-text.version>1.13.0</commons-text.version>
+        <junit.version>5.13.1</junit.version>
+        <junit-platform.version>1.13.1</junit-platform.version>
         <jersey.version>3.1.10</jersey.version>
         <jdom2.version>2.0.6.1</jdom2.version> <!-- inactive -->
-        <jackson.version>2.16.1</jackson.version>
-        <log4j.version>2.24.3</log4j.version>
-        <lombok.version>1.18.38</lombok.version>
-        <ms.sqlserver.version>12.2.0.jre11</ms.sqlserver.version>
+        <jackson.version>2.21.2</jackson.version>
+        <log4j.version>2.25.4</log4j.version>
+        <lombok.version>1.18.46</lombok.version>
+        <ms.sqlserver.version>13.4.0.jre11</ms.sqlserver.version>
         <oracle.jdbc.version>21.7.0.0</oracle.jdbc.version>
         <poi.version>5.4.1</poi.version>
         <reflection.version>0.10.2</reflection.version>
-        <selenide.version>7.10.0</selenide.version>
-        <tess4j.version>5.15.0</tess4j.version>
+        <selenide.version>7.16.0</selenide.version>
+        <tess4j.version>5.18.0</tess4j.version>
         <zxing.version>3.5.3</zxing.version>
         <hamcrest.version>3.0</hamcrest.version>
-        <playwright.version>1.55.0</playwright.version>
+        <playwright.version>1.57.0</playwright.version>
     </properties>
 
     <dependencyManagement>
@@ -199,6 +198,7 @@
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
         </dependency>
+        <!-- Source: https://mvnrepository.com/artifact/net.sourceforge.tess4j/tess4j -->
         <dependency>
             <groupId>net.sourceforge.tess4j</groupId>
             <artifactId>tess4j</artifactId>
@@ -245,6 +245,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven.compiler.version}</version>
                 <configuration>
+                    <fork>true</fork>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
                 </configuration>
@@ -350,6 +351,11 @@
             <name>OSSRH Release Repository</name>
             <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
+<!--        <repository>-->
+<!--            <id>localRepo</id>-->
+<!--            <name>Local repository</name>-->
+<!--            <url>file://${user.home}/.m2/repository</url>-->
+<!--        </repository>-->
     </distributionManagement>
 
 </project>
