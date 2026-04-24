@@ -1,12 +1,12 @@
 #### Version Stack
 ========================
 
-* Latest development version: `6.3.01-RELEASE` (branch `main`)
+* Latest development version: `6.3.02-RELEASE` (branch `main`)
 
 #### New Features and Changes
 ========================
 
-> :rocket: **Version 6.3.01-RELEASE**
+> :rocket: **Version 6.3.02-RELEASE**
 >
 > [BUG FIX]
 > * Fix: Driver Download Issue
