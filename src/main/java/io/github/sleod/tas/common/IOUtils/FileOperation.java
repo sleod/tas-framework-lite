@@ -223,14 +223,13 @@ public class FileOperation {
     }
 
     public static void deleteFolder(File folder) {
-        if (!folder.exists()) {
+        if (folder != null && folder.exists()) {
             try (Stream<Path> paths = Files.walk(folder.toPath())) {
                 paths.sorted(Comparator.reverseOrder()).forEach(file -> FileOperation.deleteFile(file.toFile()));
             } catch (IOException ex) {
                 throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_GENERAL, ex, "Failed on deleting folder: " + folder.getPath());
             }
         } else info("Delete folder: " + folder + " does not exist!");
-
     }
 
     /**

@@ -38,6 +38,7 @@ public class PlaywrightDriver {
                 .setLocale("de-CH")
                 .setAcceptDownloads(true)
                 .setIgnoreHTTPSErrors(true)
+                .setChromiumSandbox(false)
                 .setViewportSize(PropertyResolver.getBrowserScreenWidth(), PropertyResolver.getBrowserScreenHigh())
                 .setArgs(getArguments());
         String chromePath = PropertyResolver.getBrowserBinPath();
@@ -59,7 +60,7 @@ public class PlaywrightDriver {
         arguments.add("--disable-infobars");
         arguments.add("--disable-web-security");
         arguments.add("--allow-running-insecure-content");
-        arguments.add("--no-cache");
+        arguments.add("--disable-gpu");
         return arguments;
     }
 

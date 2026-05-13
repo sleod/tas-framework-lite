@@ -1,10 +1,15 @@
 #### Version Stack
 ========================
 
-* Latest development version: `6.3.02-RELEASE` (branch `main`)
+* Latest development version: `6.3.03-RELEASE` (branch `main`)
 
 #### New Features and Changes
 ========================
+> :rocket: **Version 6.3.03-RELEASE**
+>
+> [BUG FIX]
+> * Fix: remove chrome profile temp folder
+
 
 > :rocket: **Version 6.3.02-RELEASE**
 >
@@ -15,7 +20,6 @@
 > * update pom versions to reduce vulnerability of dependencies
 > * update proxy factory of rest driver
 > * simplify log and screenshot file name
-
 
 
 > :rocket: **Version 6.3.00-RELEASE**
