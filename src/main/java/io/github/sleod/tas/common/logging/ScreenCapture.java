@@ -10,8 +10,8 @@ import io.github.sleod.tas.web.PlaywrightDriverProvider;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.devtools.DevTools;
-import org.openqa.selenium.devtools.v147.emulation.Emulation;
-import org.openqa.selenium.devtools.v147.page.Page;
+import org.openqa.selenium.devtools.v148.emulation.Emulation;
+import org.openqa.selenium.devtools.v148.page.Page;
 
 import javax.imageio.ImageIO;
 import java.io.ByteArrayInputStream;

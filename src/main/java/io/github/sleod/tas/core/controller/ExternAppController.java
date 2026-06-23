@@ -13,7 +13,6 @@ import io.github.sleod.tas.rest.base.RestClientBase;
 import io.github.sleod.tas.rest.base.TASRestDriver;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Path;
@@ -42,57 +41,6 @@ public class ExternAppController {
         String textEditor = PropertyResolver.getTextEditor();
         String command = "startNow " + textEditor + " \"" + file.getAbsolutePath();
         executeCommand(command);
-    }
-
-    /**
-     * set ocr language: deu, eng
-     *
-     * @param language such as: deu, eng
-     */
-    public static void setLanguage(String language) {
-        OCRController.setLanguage(language);
-    }
-
-    /**
-     * set Tess Page IteratorLevel
-     *
-     * @param level such as: ITessAPI.TessPageIteratorLevel.RIL_WORD
-     */
-    public static void setIteratorLevel(int level) {
-        OCRController.setIteratorLevel(level);
-    }
-
-    /**
-     * find element with its label text and click on
-     *
-     * @param text    label text of element
-     * @param waitSec wait for sec after click if value bigger than 0
-     * @throws AWTException AWT Exception
-     */
-    public static Rectangle findElementAndLeftClick(String text, boolean doubleClick, int waitSec) throws AWTException {
-        BufferedImage bufferedImage = UserRobot.captureMainFullScreen();
-        Rectangle element = OCRController.findTextPosition(text, bufferedImage);
-        leftClickOnElement(element, doubleClick, waitSec);
-        return element;
-    }
-
-    public static boolean checkElementPresentsWithText(String text) throws AWTException {
-        BufferedImage bufferedImage = UserRobot.captureMainFullScreen();
-        return OCRController.checkTextLineWithText(text, bufferedImage);
-    }
-
-    /**
-     * find element with its label text and click on
-     *
-     * @param text    label text of element
-     * @param waitSec wait for sec after click if value bigger than 0
-     * @throws AWTException AWT Exception
-     */
-    public static Rectangle findElementAndRightClick(String text, boolean doubleClick, int waitSec) throws AWTException {
-        BufferedImage bufferedImage = UserRobot.captureMainFullScreen();
-        Rectangle element = OCRController.findTextPosition(text, bufferedImage);
-        rightClickOnElement(element, doubleClick, waitSec);
-        return element;
     }
 
     /**
@@ -536,14 +484,6 @@ public class ExternAppController {
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
         }
-    }
-
-    public static void setPageSegMode(int mode) {
-        OCRController.setPageSegMode(mode);
-    }
-
-    public static void setOcrEngineMode(int mode) {
-        OCRController.setOcrEngineMode(mode);
     }
 
     /**

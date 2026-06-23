@@ -63,9 +63,9 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
     private final String originalName;
 
     /**
-     * create test case object with json test case object
+     * create test case object with JSON test case object
      *
-     * @param jsonTestCase deserialize json test case
+     * @param jsonTestCase deserialize JSON test case
      */
     public TestCaseObject(JSONTestCase jsonTestCase) {
         this.name = jsonTestCase.getName();
@@ -86,9 +86,9 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
     }
 
     /**
-     * create test case object with json test case object
+     * create test case object with JSON test case object
      *
-     * @param jsonTestCase       deserialize json test case
+     * @param jsonTestCase       deserialize JSON test case
      * @param testDataContent    test data content
      * @param optionalNameSuffix optional test case name suffix for variation or number
      */

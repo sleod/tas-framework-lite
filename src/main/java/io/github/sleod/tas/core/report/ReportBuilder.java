@@ -53,7 +53,7 @@ public class ReportBuilder {
     public void startRecordingTest(TestRunResult testRunResult) {
         info("Start recording Test Run ...");
         String folder = PropertyResolver.getTestCaseReportLocation();
-        String fileName = folder + "/" + testRunResult.getName() + "/" + Thread.currentThread().getName()
+        String fileName = folder + "/" + testRunResult.getName().replace(" ", "_") + "/" + Thread.currentThread().getName()
                           + "/" + "report_" + DateTimeUtils.getFormattedLocalTimestamp() + ".log";
         File logFile = new File(fileName);
         if (logFile.getParentFile().mkdirs()) {
@@ -111,14 +111,14 @@ public class ReportBuilder {
      * generate default allure results in json files
      *
      * @param testCaseObject test case object
-     * @return file paths of result json files
+     * @return file paths of result JSON files
      */
     public List<String> generateAllureResults(TestCaseObject testCaseObject) {
         List<JSONTestResult> allureResults = new LinkedList<>();
         String logFilePath = testCaseObject.getTestRunResult().getLogFilePath();
         JSONTestResult jsonTestResult = new JSONTestResult(testCaseObject.getTestRunResult());
         changeTestCaseNameInResult(jsonTestResult, testCaseObject);
-        jsonTestResult.setFullName(testCaseObject.getPackageName() + "." + testCaseObject.getName());//fill full name as required
+        jsonTestResult.setFullName(testCaseObject.getPackageName() + "." + testCaseObject.getName()); //fill full name as required
         addLabels(jsonTestResult, testCaseObject);//add labels
         addLinks(jsonTestResult, testCaseObject);//add links
         addParameters(jsonTestResult, testCaseObject);//add parameters

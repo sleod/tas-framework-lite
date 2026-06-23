@@ -5,11 +5,18 @@
 
 #### New Features and Changes
 ========================
+> :rocket: **Version 6.3.04-RELEASE**
+>
+> [OPTIMIZATION]
+> * deprecate and disable OCRController and plan to remove. Moving to → SikuliX API
+
+> [BUG FIX]
+> * Fix: Allure report may not able to get the txt content within a folder with spaced name
+
 > :rocket: **Version 6.3.03-RELEASE**
 >
 > [BUG FIX]
 > * Fix: remove chrome profile temp folder
-
 
 > :rocket: **Version 6.3.02-RELEASE**
 >

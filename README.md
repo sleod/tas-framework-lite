@@ -92,7 +92,7 @@ README.md                      # Project documentation
 <Dependency>
     <GroupId>io.github.sleod</GroupId>
     <ArtifactId>tas-framework-lite</ArtifactId>
-    <Version>6.3.03-RELEASE</Version>
+    <Version>6.3.04-RELEASE</Version>
 </Dependency>
 
 ```
