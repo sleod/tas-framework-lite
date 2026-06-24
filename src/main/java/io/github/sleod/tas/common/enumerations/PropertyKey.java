@@ -26,6 +26,7 @@ public enum PropertyKey {
     RUN_JIRA_SYNC("run.jira.sync"),
     RUN_QC_SYNC("run.hpqc.sync"),
     GENERATE_VIDEO("generate.video"),
+    GENERATE_ALLURE_REPORT("generate.allure.report"),
     RESOURCE_PROJECT("resource.project"),
     RUN_STOP_ON_ERROR("run.stop.on.error"),
     RUN_START_URL("run.start.url"),

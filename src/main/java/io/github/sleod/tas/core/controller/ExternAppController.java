@@ -100,7 +100,6 @@ public class ExternAppController {
         }
     }
 
-
     /**
      * execute command
      *
@@ -159,7 +158,6 @@ public class ExternAppController {
             error(errorOutput.toString());
             output.add(errorOutput.toString());
         }
-
         return output;
     }
 

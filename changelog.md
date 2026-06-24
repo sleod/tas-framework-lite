@@ -1,10 +1,17 @@
 #### Version Stack
 ========================
 
-* Latest development version: `6.3.03-RELEASE` (branch `main`)
+* Latest development version: `6.3.05-RELEASE` (branch `main`)
 
 #### New Features and Changes
 ========================
+
+> :rocket: **Version 6.3.05-RELEASE**
+>
+> [OPTIMIZATION]
+> * add args to disable edge start up wizard
+> * add toggle to allure report generation
+
 > :rocket: **Version 6.3.04-RELEASE**
 >
 > [OPTIMIZATION]

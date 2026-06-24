@@ -61,6 +61,9 @@ public class PlaywrightDriver {
         arguments.add("--disable-web-security");
         arguments.add("--allow-running-insecure-content");
         arguments.add("--disable-gpu");
+        arguments.add("--disable-features=msEdgeOnRampFRE");
+        arguments.add("--disable-features=EdgeFirstRunExperience");
+        arguments.add("--no-first-run");
         return arguments;
     }
 

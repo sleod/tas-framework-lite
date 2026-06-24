@@ -568,6 +568,10 @@ public class PropertyResolver {
         return getProperty(EXECUTION_REMOTE_PARALLEL.key(), "false").equalsIgnoreCase("true");
     }
 
+    public static boolean isGenerateAllureReport() {
+        return getProperty(GENERATE_ALLURE_REPORT.key(), "true").equalsIgnoreCase("true");
+    }
+
     public static boolean isRemoteDeviceEnabled() {
         return getProperty(EXECUTION_REMOTE_DEVICE_ENABLED.key(), "false").equalsIgnoreCase("true");
     }

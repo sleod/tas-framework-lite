@@ -132,6 +132,16 @@ public class TASConfiguration {
     }
 
     /**
+     * toggle if generate allure report
+     *
+     * @param value boolean
+     */
+    public TASConfiguration setGenerateAllureReportEnabled(boolean value) {
+        PropertyResolver.setProperty(GENERATE_ALLURE_REPORT.key(), String.valueOf(value));
+        return this;
+    }
+
+    /**
      * set driver download strategy
      *
      * @param driverDownloadStrategy {@link DownloadStrategy}

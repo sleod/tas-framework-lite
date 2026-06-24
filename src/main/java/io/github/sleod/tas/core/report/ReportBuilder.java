@@ -215,8 +215,10 @@ public class ReportBuilder {
     }
 
     public void generateReports() {
-        generateFrameworkConfig();
-        generateAllureHTMLReport();
+        if (PropertyResolver.isGenerateAllureReport()) {
+            generateFrameworkConfig();
+            generateAllureHTMLReport();
+        }
         generateMavenTestXMLReport();
     }
 
