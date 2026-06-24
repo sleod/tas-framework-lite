@@ -671,7 +671,7 @@ public class PropertyResolver {
     }
 
     public static String getBrowserProfileDir() {
-        return getProperty(BROWSER_PROFILE_DIR.key(), "target/generated-user-data/chrome-profile");
+        return getProperty(BROWSER_PROFILE_DIR.key(), "target/generated-user-data/user-profile");
     }
 
     public static boolean isOpenPDFInSystemReader() {

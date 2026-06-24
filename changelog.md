@@ -1,10 +1,15 @@
 #### Version Stack
 ========================
 
-* Latest development version: `6.3.06-RELEASE` (branch `main`)
+* Latest development version: `6.3.07-RELEASE` (branch `main`)
 
 #### New Features and Changes
 ========================
+> :rocket: **Version 6.3.07-RELEASE**
+>
+> [OPTIMIZATION]
+> * resolve attachments source issue before generate allure results file
+> * create browser profil folder before init
 
 > :rocket: **Version 6.3.06-RELEASE**
 >

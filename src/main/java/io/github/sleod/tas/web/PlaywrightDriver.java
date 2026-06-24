@@ -25,7 +25,7 @@ public class PlaywrightDriver {
 
     public PlaywrightDriver(Playwright playwright) {
         playwright.selectors().setTestIdAttribute(PropertyResolver.getTestIdAttribute());
-        this.context = playwright.chromium().launchPersistentContext(ChromeUserPreference.getUserDataDir(), getBrowserLauchOptions());
+        this.context = playwright.chromium().launchPersistentContext(BrowserUserPreference.getUserDataDir(), getBrowserLauchOptions());
     }
 
     private BrowserType.LaunchPersistentContextOptions getBrowserLauchOptions() {

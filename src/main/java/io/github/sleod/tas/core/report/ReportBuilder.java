@@ -155,7 +155,7 @@ public class ReportBuilder {
     }
 
     /**
-     * generate final allure html report via existing allure results
+     * generate final allure HTML report via existing allure results
      */
     public void generateAllureHTMLReport() {
         int currentOrder = getCurrentOrder();

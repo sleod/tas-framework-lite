@@ -97,8 +97,8 @@ public class JSONContainerFactory {
     /**
      * fetch driver configuration in json file
      *
-     * @param folderPath json config file folder path
-     * @return list of driver configs or preset driver config single
+     * @param folderPath JSON config file folder path
+     * @return map of driver configs or preset driver config single
      */
     public static Map<String, JSONDriverConfig> getDriverConfigs(String folderPath, String configFileName) {
         info("Try to find driver config in: " + folderPath);
@@ -124,7 +124,7 @@ public class JSONContainerFactory {
     /**
      * fetch runner configuration in json file
      *
-     * @param jsonFileName json file path
+     * @param jsonFileName JSON file path
      * @return JSONDriverConfig
      */
     public static JSONRunnerConfig getRunnerConfig(String jsonFileName) {
@@ -135,7 +135,7 @@ public class JSONContainerFactory {
     /**
      * load existing allure-results order by startNow time
      *
-     * @return list of json test result objects
+     * @return list of JSON test result objects
      */
     public static List<JSONTestResult> loadJSONAllureTestResults() {
         return sortListWithStartTime((LinkedList<JSONTestResult>) getExistingAllureTestResults());
@@ -144,7 +144,7 @@ public class JSONContainerFactory {
     /**
      * load existing allure-results order by startNow time
      *
-     * @return list of json test result objects
+     * @return list of JSON test result objects
      */
     public static List<JSONTestResult> getExistingAllureTestResults() {
         List<String> resultFiles = getAllureResults();
@@ -173,7 +173,7 @@ public class JSONContainerFactory {
     /**
      * regenerate allure results with given json test results
      *
-     * @param results list of json test result conform to allure result schema
+     * @param results list of JSON test result conform to allure result schema
      */
     public static List<String> regenerateAllureResults(List<JSONTestResult> results) {
         String resultsDir = PropertyResolver.getAllureResultsDirectory();
@@ -234,6 +234,16 @@ public class JSONContainerFactory {
     }
 
     /**
+     * Find all existing allure results in default allure results location
+     *
+     * @return list of result file path
+     */
+    public static List<String> getAllAttachments() {
+        File dir = new File(PropertyResolver.getAllureResultsDirectory());
+        return FileLocator.findPaths(dir.toPath(), Collections.singletonList("*attachment-*"), Collections.singletonList(""), dir.getPath());
+    }
+
+    /**
      * Find all existing allure results attachments in default allure results location
      *
      * @return list of result file path
@@ -251,13 +261,14 @@ public class JSONContainerFactory {
         FileOperation.deleteFiles(resultFiles);
     }
 
-    public static String archiveResults(int order) {
+    public static void archiveResults(int order) {
         String resultsDir = PropertyResolver.getAllureResultsDirectory() + "run" + order;
         File targetDir = new File(resultsDir);
         targetDir.mkdir();
         getAllureResults().stream().map(File::new)
                 .forEach(file -> FileOperation.moveFileTo(file.toPath(), Paths.get(targetDir.getAbsolutePath() + "/" + file.getName())));
-        return resultsDir;
+        getAllAttachments().stream().map(File::new)
+                .forEach(file -> FileOperation.moveFileTo(file.toPath(), Paths.get(targetDir.getAbsolutePath() + "/" + file.getName())));
     }
 
     /**
@@ -273,7 +284,7 @@ public class JSONContainerFactory {
     /**
      * Get Executor json Content
      *
-     * @return String Executor json Content
+     * @return String Executor JSON Content
      */
     public static String getExecutorContent() {
         String filePath = PropertyResolver.getAllureResultsDirectory() + "executor.json";
@@ -282,7 +293,7 @@ public class JSONContainerFactory {
 
     /**
      * @param filePath file path of config file
-     * @return json object of config file
+     * @return JSON object of config file
      */
     public static JsonNode getConfig(String filePath) {
         String path = FileLocator.findResource(filePath).toString();
@@ -299,8 +310,8 @@ public class JSONContainerFactory {
     /**
      * General method of get json file content
      *
-     * @param filePath file path of json file
-     * @return json object of file
+     * @param filePath file path of JSON file
+     * @return JSON object of file
      */
     public static String getJSONFileContent(String filePath) {
         if (FileOperation.isFileExists(filePath)) {
@@ -314,7 +325,7 @@ public class JSONContainerFactory {
      * General method of get json file content
      *
      * @param inputStream inputStream
-     * @return json object of file
+     * @return JSON object of file
      */
     public static String getJSONFileContent(InputStream inputStream) {
         return FileOperation.readFileToLinedString(inputStream);
@@ -331,7 +342,7 @@ public class JSONContainerFactory {
     /**
      * sort json test result object
      *
-     * @param results list of json test result object
+     * @param results list of JSON test result object
      * @return sorted list
      */
     private static List<JSONTestResult> sortListWithStartTime(LinkedList<JSONTestResult> results) {

@@ -10,7 +10,7 @@ import io.github.sleod.tas.core.json.ObjectMapperSingleton;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class ChromeUserPreference {
+public class BrowserUserPreference {
 
     public static Path getUserDataDir() {
         Path userDataDir = Paths.get(PropertyResolver.getBrowserProfileDir());
