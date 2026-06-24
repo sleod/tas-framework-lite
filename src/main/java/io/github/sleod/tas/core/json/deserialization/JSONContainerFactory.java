@@ -178,6 +178,7 @@ public class JSONContainerFactory {
     public static List<String> regenerateAllureResults(List<JSONTestResult> results) {
         String resultsDir = PropertyResolver.getAllureResultsDirectory();
         File dir = new File(resultsDir);
+        //create allure results folder
         if (!dir.exists()) {
             dir.mkdirs();
         }
@@ -185,6 +186,8 @@ public class JSONContainerFactory {
         results.forEach(result -> {
             String path = resultsDir + result.getUuid() + "-result.json";
             resultFilePaths.add(path);
+            //copy attachments to results folder and modify the source
+            result = resolveAttachments(result);
             try {
                 String serialized = mapper().writeValueAsString(result);
                 FileOperation.writeStringToFile(serialized, path);
@@ -193,6 +196,20 @@ public class JSONContainerFactory {
             }
         });
         return resultFilePaths;
+    }
+
+    public static JSONTestResult resolveAttachments(JSONTestResult result) {
+        result.getAttachments().forEach(JSONContainerFactory::resolveAttachmentFile);
+        result.getSteps().forEach(stepResult -> stepResult.getAttachments().forEach(JSONContainerFactory::resolveAttachmentFile));
+        return result;
+    }
+
+    public static void resolveAttachmentFile(JSONAttachment attachment) {
+        String resultsDir = PropertyResolver.getAllureResultsDirectory();
+        String path = resultsDir + "attachment-" + UUID.randomUUID() + "." + FileOperation.getFileNameExtension(attachment.getSource());
+        File targetFile = new File(path);
+        FileOperation.copyFileTo(new File(attachment.getSource()).toPath(), targetFile.toPath());
+        attachment.setSource(targetFile.getName());
     }
 
     public static JsonNode getAllureResultObject(Path path) {
@@ -215,26 +232,6 @@ public class JSONContainerFactory {
         File dir = new File(PropertyResolver.getAllureResultsDirectory());
         return FileLocator.findPaths(dir.toPath(), Collections.singletonList("*-result.json"), Collections.singletonList(""), dir.getPath());
     }
-
-//    /**
-//     * Find all existing allure results attachments in default allure results location
-//     *
-//     * @return list of result file path
-//     */
-//    public static List<String> getAllureResultsAttachments(String resultsDir) {
-//        File dir = new File(resultsDir);
-//        return FileLocator.findPaths(dir.toPath(), List.of("*-attachment.*", "**/*-attachment.*"), Collections.singletonList(""), dir.getPath());
-//    }
-//
-//    /**
-//     * Find all existing allure results attachments in default allure results location
-//     *
-//     * @return list of result file path
-//     */
-//    public static List<String> getAllureResults4Upload(String resultsDir) {
-//        File dir = new File(resultsDir);
-//        return FileLocator.findPaths(dir.toPath(), Collections.singletonList("*-result.json"), Collections.singletonList(""), dir.getPath());
-//    }
 
     /**
      * Find all existing allure results attachments in default allure results location

@@ -10,20 +10,30 @@ import io.github.sleod.tas.core.json.customDeserializer.CustomResultLabelDeseria
 import io.github.sleod.tas.core.json.customDeserializer.CustomResultLinkDeserializer;
 import io.github.sleod.tas.core.json.customDeserializer.CustomStepResultListDeserializer;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.io.File;
 import java.util.*;
 
 @Getter
 public class JSONTestResult extends JSONContainer {
+    @Setter
     private String name;
+    @Setter
     private String fullName;
+    @Setter
     private String description;
+    @Setter
     private String status;
+    @Setter
     private String uuid;
+    @Setter
     private long start;
+    @Setter
     private long stop;
+    @Setter
     private String stage;
+    @Setter
     private String historyId;
     private List<JSONResultLabel> labels = new LinkedList<>();
     private List<JSONResultLabel> parameters = new LinkedList<>();
@@ -45,42 +55,6 @@ public class JSONTestResult extends JSONContainer {
         this.start = testRunResult.getStart();
         this.stop = testRunResult.getStop();
         this.stage = "finished";
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
-
-    public void setStart(long start) {
-        this.start = start;
-    }
-
-    public void setStop(long stop) {
-        this.stop = stop;
-    }
-
-    public void setHistoryId(String historyId) {
-        this.historyId = historyId;
-    }
-
-    public void setStage(String stage) {
-        this.stage = stage;
     }
 
     @JsonDeserialize(using = CustomResultLabelDeserializer.class)

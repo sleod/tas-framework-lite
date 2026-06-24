@@ -1,10 +1,15 @@
 #### Version Stack
 ========================
 
-* Latest development version: `6.3.05-RELEASE` (branch `main`)
+* Latest development version: `6.3.06-RELEASE` (branch `main`)
 
 #### New Features and Changes
 ========================
+
+> :rocket: **Version 6.3.06-RELEASE**
+>
+> [OPTIMIZATION]
+> * resolve attachments source issue before generate allure results file
 
 > :rocket: **Version 6.3.05-RELEASE**
 >
