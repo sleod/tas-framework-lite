@@ -5,6 +5,12 @@
 
 #### New Features and Changes
 ========================
+
+> :rocket: **Version 6.3.08-RELEASE**
+>
+> [OPTIMIZATION]
+> * remove duplicate folder in rest package
+
 > :rocket: **Version 6.3.07-RELEASE**
 >
 > [OPTIMIZATION]
