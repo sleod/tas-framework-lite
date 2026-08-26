@@ -40,8 +40,7 @@ public class SystemLogger {
      */
     public static void fatal(Throwable ex) {
         LOGGER.fatal(ex.getMessage(), ex);
-        //exit system with exception in init phase
-        System.exit(1);
+        throw new RuntimeException("FATAL Error, Test Run Aborted!", ex);
     }
 
     /**

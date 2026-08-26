@@ -4,6 +4,7 @@ import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
+import com.microsoft.playwright.assertions.PlaywrightAssertions;
 import io.github.sleod.tas.common.utils.DateTimeUtils;
 import io.github.sleod.tas.configuration.PropertyResolver;
 import lombok.Getter;
@@ -16,6 +17,9 @@ import java.util.List;
 
 
 public class PlaywrightDriver {
+    static final String ARG_DISABLE_AUTOMATION_CONTROLLED = "--disable-blink-features=AutomationControlled";
+    static final String ARG_TEST_TYPE = "--test-type=webdriver";
+    static final String DEFAULT_ARG_ENABLE_AUTOMATION = "--enable-automation";
     @Getter
     private final BrowserContext context;
     @Setter
@@ -26,6 +30,32 @@ public class PlaywrightDriver {
     public PlaywrightDriver(Playwright playwright) {
         playwright.selectors().setTestIdAttribute(PropertyResolver.getTestIdAttribute());
         this.context = playwright.chromium().launchPersistentContext(BrowserUserPreference.getUserDataDir(), getBrowserLauchOptions());
+        //Set all wait times for Playwright
+        int driverWaitTimeout = PropertyResolver.getDriverWaitTimeout();
+        context.setDefaultTimeout(driverWaitTimeout);
+        context.setDefaultNavigationTimeout(driverWaitTimeout);
+        PlaywrightAssertions.setDefaultAssertionTimeout(driverWaitTimeout);
+
+        setUpDemoMode();
+    }
+
+    private void setUpDemoMode() {
+        if (PropertyResolver.isDemoModeEnabled()) {
+            context.addInitScript("""
+                    (() => {
+                        const flash = (el) => {
+                            if (!(el instanceof Element)) return;
+                            const original = el.style.outline;
+                            el.style.outline = '3px solid red';
+                            setTimeout(() => {
+                                el.style.outline = original;
+                            }, 500);
+                        };
+                        ['click', 'contextmenu', 'dblclick', 'focusin', 'change', 'input', 'submit']
+                        .forEach(type => window.addEventListener(type, e => flash(e.target), true));
+                    })();
+                    """);
+        }
     }
 
     private BrowserType.LaunchPersistentContextOptions getBrowserLauchOptions() {
@@ -41,12 +71,15 @@ public class PlaywrightDriver {
                 .setChromiumSandbox(false)
                 .setViewportSize(PropertyResolver.getBrowserScreenWidth(), PropertyResolver.getBrowserScreenHigh())
                 .setArgs(getArguments());
+        if (PropertyResolver.isHideAutomationBannerEnabled()) {
+            launchOptions.setIgnoreDefaultArgs(getIgnoredDefaultArguments());
+        }
         String chromePath = PropertyResolver.getBrowserBinPath();
         if (!chromePath.isEmpty()) {
             launchOptions.setExecutablePath(Paths.get(chromePath));
         }
         if (PropertyResolver.isGenerateVideoEnabled()) {
-            videoDirectory = "/target/generated-videos/" + DateTimeUtils.getNowMilli();
+            videoDirectory = PropertyResolver.getVideoLocation() + DateTimeUtils.getNowMilli();
             launchOptions.setRecordVideoDir(Paths.get(videoDirectory));
         }
         return launchOptions;
@@ -64,6 +97,12 @@ public class PlaywrightDriver {
         arguments.add("--disable-features=msEdgeOnRampFRE");
         arguments.add("--disable-features=EdgeFirstRunExperience");
         arguments.add("--no-first-run");
+        if (PropertyResolver.isHideAutomationBannerEnabled()) {
+            arguments.add(ARG_DISABLE_AUTOMATION_CONTROLLED);
+            //without "--enable-automation" chrome shows a warning bar for unsupported flags like "--no-sandbox".
+            //"--test-type" suppresses this bar the same way as "--enable-automation" did, but without the automation banner.
+            arguments.add(ARG_TEST_TYPE);
+        }
         return arguments;
     }
 
@@ -130,6 +169,26 @@ public class PlaywrightDriver {
     public void quit() {
         getPage().close();
         getContext().close();
+    }
+
+    public Page getCurrentTab() {
+        for (Page p : context.pages()) {
+            Boolean hasFocus = (Boolean) p.evaluate("() => document.hasFocus()");
+            if (Boolean.TRUE.equals(hasFocus)) {
+                return p;
+            }
+        }
+        return getPage();
+    }
+
+    /**
+     * Playwright starts chromium with "--enable-automation" by default which shows the automation
+     * info banner. The banner can only be removed by ignoring this default argument.
+     *
+     * @return list of playwright default arguments to be ignored on browser start
+     */
+    private static List<String> getIgnoredDefaultArguments() {
+        return List.of(DEFAULT_ARG_ENABLE_AUTOMATION);
     }
 
 }

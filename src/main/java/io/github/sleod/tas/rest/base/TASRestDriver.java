@@ -1,5 +1,6 @@
 package io.github.sleod.tas.rest.base;
 
+import io.github.sleod.tas.configuration.PropertyResolver;
 import io.github.sleod.tas.exception.ExceptionBase;
 import io.github.sleod.tas.exception.ExceptionErrorKeys;
 import jakarta.ws.rs.core.MediaType;
@@ -35,9 +36,8 @@ public class TASRestDriver extends SimpleRestDriver {
         secureParameter(host, "Host of Endpoint");
         secureParameter(user, "User for Basic Authorization");
         secureParameter(password, "Password for Basic Authorization");
-        this.host = host;
+        setHost(host);
         setBasicAuth(user, password);
-        mediaType = MediaType.APPLICATION_JSON_TYPE;
     }
 
     /**
@@ -47,8 +47,7 @@ public class TASRestDriver extends SimpleRestDriver {
      */
     public TASRestDriver(String host) {
         secureParameter(host, "Host of Endpoint");
-        this.host = host;
-        mediaType = MediaType.APPLICATION_JSON_TYPE;
+        setHost(host);
     }
 
     /**
@@ -62,7 +61,6 @@ public class TASRestDriver extends SimpleRestDriver {
         secureParameter(patToken, "Personal Access Token");
         this.host = host;
         setBearerToken(patToken);
-        mediaType = MediaType.APPLICATION_JSON_TYPE;
     }
 
     /**
@@ -304,4 +302,9 @@ public class TASRestDriver extends SimpleRestDriver {
         return host + path;
     }
 
+    public void setProxyWithConfig() {
+        setProxy(PropertyResolver.getProxyHost(), PropertyResolver.getProxyPort(),
+                PropertyResolver.getProxyUser(),PropertyResolver.getProxyPass(),
+                PropertyResolver.getProxyExcludedHosts());
+    }
 }

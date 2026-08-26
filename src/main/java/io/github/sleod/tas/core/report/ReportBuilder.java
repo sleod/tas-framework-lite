@@ -164,6 +164,9 @@ public class ReportBuilder {
         //if run folder exists
         String currReportDir = PropertyResolver.getAllureReportDirectory() + "run" + currentOrder;
         String command = "allure generate ";
+        if (PropertyResolver.getAllureVersion() > 2) {
+            command = "allure awesome ";
+        }
         if (FileOperation.isFileExists(currReportDir)) {
             command += "--clean ";
         }
@@ -262,38 +265,7 @@ public class ReportBuilder {
             }
             JsonNode config = null;
             String configName = "";
-
-            if (PropertyKey.JIRA_CONFIG.equals(propertyKey) && FileOperation.isFileExists(PropertyResolver.getJiraConfigFile())) {
-                //jira config
-                value = PropertyResolver.getJiraConfigFile();
-                config = JSONContainerFactory.getConfig(PropertyResolver.getJiraConfigFile());
-                configName = "JIRA Config";
-            } else if (PropertyKey.TFS_RUNNER_CONFIG.equals(propertyKey) && FileOperation.isFileExists(PropertyResolver.getTFSRunnerConfigFile())) {
-                //tfs config
-                value = PropertyResolver.getTFSRunnerConfigFile();
-                config = JSONContainerFactory.getConfig(PropertyResolver.getTFSRunnerConfigFile());
-                ((ObjectNode) config.get("tfsConfig")).put("pat", "****");
-                configName = "TFS Config";
-            } else if (PropertyKey.QC_CONFIG.equals(propertyKey) && FileOperation.isFileExists(PropertyResolver.getQCConfigFile())) {
-                //qc config
-                value = PropertyResolver.getQCConfigFile();
-                config = JSONContainerFactory.getConfig(PropertyResolver.getQCConfigFile());
-                ((ObjectNode) config).put("password", "****");
-                configName = "QC Config";
-            } else if (PropertyKey.REST_CONFIG.equals(propertyKey) && !PropertyResolver.getRestHost().isEmpty()) {
-                //rest config
-                value = PropertyResolver.getRestConfigFile();
-                config = JSONContainerFactory.getConfig(PropertyResolver.getRestConfigFile());
-                ((ObjectNode) config).put("password", "****");
-                ((ObjectNode) config).put("pat", "****");
-                configName = "REST Config";
-            } else if (PropertyKey.DB_CONFIG.equals(propertyKey) && !PropertyResolver.getDBHost().isEmpty()) {
-                //db config
-                value = PropertyResolver.getDBConfigFile();
-                config = JSONContainerFactory.getConfig(PropertyResolver.getDBConfigFile());
-                ((ObjectNode) config).put("password", "****");
-                configName = "DB Config";
-            } else if (PropertyKey.REPORT_SERVICE_RUNNER_CONFIG.equals(propertyKey) && FileOperation.isFileExists(PropertyResolver.getReportServiceRunnerConfigFile())) {
+            if (PropertyKey.REPORT_SERVICE_RUNNER_CONFIG.equals(propertyKey) && FileOperation.isFileExists(PropertyResolver.getReportServiceRunnerConfigFile())) {
                 //allure config
                 value = PropertyResolver.getReportServiceRunnerConfigFile();
                 config = JSONContainerFactory.getConfig(PropertyResolver.getReportServiceRunnerConfigFile()).get("allureServiceConfig");

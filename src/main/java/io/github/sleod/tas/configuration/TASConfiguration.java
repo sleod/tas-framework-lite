@@ -172,6 +172,16 @@ public class TASConfiguration {
     }
 
     /**
+     * set video location
+     *
+     * @param value like avi mpeg
+     */
+    public TASConfiguration setVideoLocation(String value) {
+        PropertyResolver.setProperty(VIDEO_LOCATION.key(), value);
+        return this;
+    }
+
+    /**
      * toggle if driver restart after every single test case execution
      *
      * @param value boolean, default true
@@ -485,6 +495,16 @@ public class TASConfiguration {
     }
 
     /**
+     * set in allure version major number like 2, 3 ...
+     *
+     * @param value major version number default 2
+     */
+    public TASConfiguration setAllureVersion(int value) {
+        PropertyResolver.setProperty(ALLURE_VERSION.key(), String.valueOf(value));
+        return this;
+    }
+
+    /**
      * set test environment for picking up test data automatically
      * attention: the given environment should have the folder with same name in resources test data folder
      *
@@ -586,6 +606,17 @@ public class TASConfiguration {
     }
 
     /**
+     * toggle if allow to use proxy which configured in driverConfig/proxyConfig.json
+     *
+     * @param value boolean, default false
+     */
+    public TASConfiguration setProxyEnabled(boolean value) {
+        PropertyResolver.setProperty(PROXY_ENABLED.key(), String.valueOf(value));
+        return this;
+    }
+
+
+    /**
      * set edit  application for use
      *
      * @param value like: "notepad", "notepad++"
@@ -614,4 +645,15 @@ public class TASConfiguration {
         PropertyResolver.setProperty(SIMPLE_STRING_PARAMETER_ALLOWED.key(), String.valueOf(value));
         return this;
     }
+
+    /**
+     * toggle if the automation info banner ("Chrome is being controlled by automated test software")
+     * should be hidden on browser start. Works for Playwright and Selenium / Selenide,
+     * only relevant for Chrome / Chromium in non headless mode.
+     */
+    public TASConfiguration setHideAutomationBannerEnabled(boolean value) {
+        PropertyResolver.setProperty(DRIVER_BROWSER_HIDE_AUTOMATION_BANNER.key(), String.valueOf(value));
+        return this;
+    }
+
 }

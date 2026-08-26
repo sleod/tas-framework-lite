@@ -9,11 +9,11 @@
   "testSetName": "tryWithAutomation",
   "versionControlEnabled": false,
   "testCaseRequiredFieldDefaultValues": {
-    "user-36": "PEDAS",//AppUnderTest
+    "user-36": "",//AppUnderTest
     "user-12": "TF Regression",//Klassifikation
     "user-33": "No",//RBT relevant
     "user-28": "1-Durchstich",//Testcharakter
-    "user-01": "P6173",//Projekt
+    "user-01": "Pxxx",//Projekt
     "user-34": "vollautomatisiert"//TA Grad
   }
 }

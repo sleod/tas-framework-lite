@@ -9,6 +9,7 @@ import io.github.sleod.tas.common.IOUtils.FileOperation;
 import io.github.sleod.tas.common.enumerations.PropertyKey;
 import io.github.sleod.tas.common.enumerations.TestType;
 import io.github.sleod.tas.common.logging.ScreenCapture;
+import io.github.sleod.tas.configuration.ConfigFileManager;
 import io.github.sleod.tas.configuration.PropertyResolver;
 import io.github.sleod.tas.core.json.container.JSONRunnerConfig;
 import io.github.sleod.tas.core.json.container.JSONTestCase;
@@ -23,6 +24,8 @@ import org.openqa.selenium.WebDriver;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static io.github.sleod.tas.common.logging.SystemLogger.*;
 import static io.github.sleod.tas.common.utils.ObjectWriterReader.WriteObject;
@@ -376,9 +379,9 @@ public class TestRunManager {
      */
     public static void retrieveResources() {
         retrieveDBConfig();
-        retrieveRestConfig();
         retrieveJiraConfig();
         retrieveQCConfig();
+        retrieveProxyConfig();
     }
 
 
@@ -400,26 +403,6 @@ public class TestRunManager {
         }
     }
 
-    private static void retrieveRestConfig() {
-        if (FileOperation.isFileExists(PropertyResolver.getRestConfigFile())) {
-            JsonNode restConfig = JSONContainerFactory.getConfig(PropertyResolver.getRestConfigFile());
-            PropertyResolver.setProperty(PropertyKey.REST_USER.key(), fetchConfigKey(restConfig, "user"));
-            PropertyResolver.setProperty(PropertyKey.REST_PASSWORD.key(), fetchConfigKey(restConfig, "password"));
-            PropertyResolver.setProperty(PropertyKey.REST_HOST.key(), fetchConfigKey(restConfig, "host"));
-            PropertyResolver.setProperty(PropertyKey.REST_PAT.key(), fetchConfigKey(restConfig, "pat"));
-            PropertyResolver.setProperty(PropertyKey.REST_PROXY_URL.key(), fetchConfigKey(restConfig, "proxyUrl"));
-            PropertyResolver.setProperty(PropertyKey.REST_PROXY_PORT.key(), fetchConfigKey(restConfig, "proxyPort"));
-            PropertyResolver.setProperty(PropertyKey.REST_PROXY_USER.key(), fetchConfigKey(restConfig, "proxyUser"));
-            PropertyResolver.setProperty(PropertyKey.REST_PROXY_PASS.key(), fetchConfigKey(restConfig, "proxyPass"));
-        } else {
-            info("REST Connection Config was not found in resource.");
-        }
-    }
-
-    private static String fetchConfigKey(JsonNode config, String key) {
-        return config.has(key) ? config.get(key).asText() : "";
-    }
-
     private static void retrieveJiraConfig() {
         if (PropertyResolver.isJIRASyncEnabled()) {
             if (FileOperation.isFileExists(PropertyResolver.getJiraConfigFile())) {
@@ -429,8 +412,6 @@ public class TestRunManager {
                     PropertyResolver.setProperty(PropertyKey.JIRA_PASSWORD.key(), jiraConfig.get("password").asText());
                     PropertyResolver.setProperty(PropertyKey.JIRA_HOST.key(), jiraConfig.get("host").asText());
                     PropertyResolver.setProperty(PropertyKey.JIRA_PAT.key(), jiraConfig.get("pat").asText());
-                    PropertyResolver.setProperty(PropertyKey.JIRA_PROXY_HOST.key(), fetchConfigKey(jiraConfig, "proxyHost"));
-                    PropertyResolver.setProperty(PropertyKey.JIRA_PROXY_PORT.key(), fetchConfigKey(jiraConfig, "proxyPort"));
                 } catch (NullPointerException exception) {
                     throw new ExceptionBase(ExceptionErrorKeys.CONFIG_ERROR, exception, PropertyResolver.getJiraConfigFile());
                 }
@@ -471,6 +452,32 @@ public class TestRunManager {
 
             }
         }
+    }
+
+    private static void retrieveProxyConfig() {
+        if (!FileOperation.isFileExists(PropertyResolver.getProxyConfig())) {
+            debug(PropertyResolver.getProxyConfig() + " file does not exist.");
+        } else {
+            JsonNode proxyConfig = ConfigFileManager.getProxyConfig();
+            if (!isValid(PropertyResolver.getProxyHost()) && isValid(proxyConfig.get("proxyHost")) && isValid(proxyConfig.get("proxyPort").asText())) {
+                PropertyResolver.setProperty(PropertyKey.PROXY_HOST.key(), proxyConfig.get("proxyHost").asText());
+                PropertyResolver.setProperty(PropertyKey.PROXY_PORT.key(), proxyConfig.get("proxyPort").asText());
+            }
+            if (!isValid(PropertyResolver.getProxyUser()) && isValid(proxyConfig.get("proxyUser"))) {
+                PropertyResolver.setProperty(PropertyKey.PROXY_USER.key(), proxyConfig.get("proxyUser").asText());
+            }
+            if (!isValid(PropertyResolver.getProxyPass()) && isValid(proxyConfig.get("proxyPass"))) {
+                PropertyResolver.setProperty(PropertyKey.PROXY_PASS.key(), proxyConfig.get("proxyPass").asText());
+            }
+            if (PropertyResolver.getProxyExcludedHosts().isEmpty() && proxyConfig.get("proxyExclude") != null
+                && !proxyConfig.get("proxyExclude").isEmpty()) {
+                String proxyExcludedHosts = StreamSupport.stream(proxyConfig.get("proxyExclude").spliterator(), false)
+                        .filter(JsonNode::isTextual).map(node -> node.asText().trim())
+                        .collect(Collectors.joining(","));
+                PropertyResolver.setProperty(PropertyKey.PROXY_EXCLUDED_HOSTS.key(), proxyExcludedHosts);
+            }
+        }
+
     }
 
     /**

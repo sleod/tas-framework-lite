@@ -37,8 +37,10 @@ public class JIRARestClient extends TASRestClient {
     private static final String XRAY_PATH = "rest/raven/latest/api/";
 
     public JIRARestClient() {
-        super(new TASRestDriver(PropertyResolver.getJiraProxyHost(), PropertyResolver.getJiraProxyPort(), "", ""));
-
+        super(new TASRestDriver());
+        if (PropertyResolver.isProxyEnabled()) {
+            getRestDriver().setProxyWithConfig();
+        }
         if (isValid(PropertyResolver.getJiraHost())) {
             getRestDriver().setHost(PropertyResolver.getJiraHost());
         } else throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "JIRA Host was not set!");
@@ -61,6 +63,9 @@ public class JIRARestClient extends TASRestClient {
      */
     public JIRARestClient(String host, String username, String password) {
         super(new TASRestDriver(host, username, password));
+        if (PropertyResolver.isProxyEnabled()) {
+            getRestDriver().setProxyWithConfig();
+        }
         this.user = username;
     }
 
@@ -71,6 +76,20 @@ public class JIRARestClient extends TASRestClient {
      */
     public JIRARestClient(String host, String patToken) {
         super(new TASRestDriver(host, patToken));
+        if (PropertyResolver.isProxyEnabled()) {
+            getRestDriver().setProxyWithConfig();
+        }
+    }
+
+    /**
+     * Create Jira Rest Client with PAT Token
+     *
+     * @param patToken PAT Token
+     */
+    public JIRARestClient(String host, String patToken, String proxyHost, int proxyPort, String proxyUser, String proxyPass) {
+        super(new TASRestDriver(proxyHost, proxyPort, proxyUser, proxyPass));
+        getRestDriver().setHost(host);
+        getRestDriver().setBearerToken(patToken);
     }
 
     /**
@@ -349,7 +368,7 @@ public class JIRARestClient extends TASRestClient {
             }
         }
         Assertions.assertTrue(isValid(exeKey), "Execution Key: " + exeKey + " is not valid!\n" +
-                "Please use 'Default' key in testExecutionIdMap for non Mobile Platform!");
+                                               "Please use 'Default' key in testExecutionIdMap for non Mobile Platform!");
         //add test case instance to execution
         addTestsToExecution(new ArrayList<>(testCaseIdAndResults.keySet()), exeKey);
         //get runs in execution
@@ -365,6 +384,7 @@ public class JIRARestClient extends TASRestClient {
         }
         return true;
     }
+
     public void resetRunStatus(JsonNode run) {
         info("Reset Run Status to 'TODO'.");
         if (run != null) {
@@ -374,7 +394,7 @@ public class JIRARestClient extends TASRestClient {
             getResponseNode(getRestDriver().put(path, payload.toString()), "Fail with reset status to run: " + runId);
         }
     }
-    
+
     /**
      * Update run status with run Result
      *
@@ -399,7 +419,7 @@ public class JIRARestClient extends TASRestClient {
         List<File> dataFiles = testRunResult.getAttachments();
         dataFiles.add(new File(testRunResult.getLogFilePath()));
         String comment = testRunResult.getDescription() + System.lineSeparator() + "Last Run: "
-                + DateTimeUtils.getISOTimestamp(testRunResult.getStart()) + " - " + DriverManager.getCurrentPlatform();
+                         + DateTimeUtils.getISOTimestamp(testRunResult.getStart()) + " - " + DriverManager.getCurrentPlatform();
         return updateRunStatus(runId, dataFiles, comment, testRunResult.getStatus());
     }
 

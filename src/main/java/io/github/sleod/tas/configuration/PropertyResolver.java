@@ -11,6 +11,7 @@ import java.awt.*;
 import java.io.File;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static io.github.sleod.tas.common.enumerations.PropertyKey.*;
 import static io.github.sleod.tas.common.logging.SystemLogger.*;
@@ -197,6 +198,7 @@ public class PropertyResolver {
 
     /**
      * set edge driver path property.
+     *
      * @param path the edge driver path
      */
     public static void setEdgeDriverPath(String path) {
@@ -451,6 +453,10 @@ public class PropertyResolver {
         return getProperty(GENERATE_VIDEO.key(), "false").equalsIgnoreCase("true");
     }
 
+    public static boolean isHideAutomationBannerEnabled() {
+        return getProperty(DRIVER_BROWSER_HIDE_AUTOMATION_BANNER.key(), "false").equalsIgnoreCase("true");
+    }
+
     public static String getProperty(String key) {
         return System.getProperties()
                 .containsKey(key) ? System.getProperty(key) : geCurrentProperties().getProperty(key);
@@ -458,14 +464,20 @@ public class PropertyResolver {
 
     private static String getProperty(String key, String defValue) {
         if (Objects.isNull(getProperty(key))) {
-            setProperty(key, defValue);
-            return defValue;
+            if (defValue != null) {
+                setProperty(key, defValue);
+            }
+            return defValue == null ? "" : defValue;
         }
         return getProperty(key) == null ? defValue : getProperty(key);
     }
 
     public static int getRetryOverSteps() {
         return Integer.parseInt(getProperty(RETRY_OVER_STEPS.key(), "1"));
+    }
+
+    public static int getAllureVersion() {
+        return Integer.parseInt(getProperty(ALLURE_VERSION.key(), "2"));
     }
 
     public static String getQCConfigFile() {
@@ -490,6 +502,10 @@ public class PropertyResolver {
 
     public static String getVideoFormat() {
         return getProperty(VIDEO_FORMAT.key(), "mp4");
+    }
+
+    public static String getVideoLocation() {
+        return getProperty(VIDEO_LOCATION.key(), "/target/generated-videos/");
     }
 
     public static String getTestIdAttribute() {
@@ -585,44 +601,49 @@ public class PropertyResolver {
     }
 
     public static String getJiraUser() {
-        return getProperty(JIRA_USER.key(), "");
+        return getProperty(JIRA_USER.key(), System.getenv("TAS_JIRA_USER"));
     }
 
     public static String getJiraPassword() {
-        return getProperty(JIRA_PASSWORD.key(), "");
+        return getProperty(JIRA_PASSWORD.key(), System.getenv("TAS_JIRA_PASS"));
     }
 
     public static String getJiraPAT() {
-        return getProperty(JIRA_PAT.key(), "");
+        return getProperty(JIRA_PAT.key(), System.getenv("TAS_JIRA_PAT"));
     }
 
     public static String getJiraHost() {
-        return getProperty(JIRA_HOST.key(), "");
+        return getProperty(JIRA_HOST.key(), System.getenv("TAS_JIRA_HOST"));
     }
 
-    public static String getJiraProxyHost() {
-        return getProperty(JIRA_PROXY_HOST.key(), "");
+    public static String getProxyConfig() {
+        return getDriverConfigLocation() + "proxyConfig.json";
     }
 
-    public static int getJiraProxyPort() {
-        String port = getProperty(JIRA_PROXY_PORT.key(), "");
+    public static String getProxyHost() {
+        return getProperty(PROXY_HOST.key(), System.getenv("TAS_PROXY_HOST"));
+    }
+
+    public static String getProxyUser() {
+        return getProperty(PROXY_USER.key(), System.getenv("TAS_PROXY_USER"));
+    }
+
+    public static String getProxyPass() {
+        return getProperty(PROXY_PASS.key(), System.getenv("TAS_PROXY_PASS"));
+    }
+
+    public static List<String> getProxyExcludedHosts() {
+        String value = getProperty(PROXY_EXCLUDED_HOSTS.key(), "");
+        return value.isEmpty() ? Collections.emptyList() : Stream.of(value.split(",")).map(String::trim).toList();
+    }
+
+    public static int getProxyPort() {
+        String port = getProperty(PROXY_PORT.key(), "");
         return port.isEmpty() ? 0 : Integer.parseInt(port);
     }
 
-    public static String getRestUser() {
-        return getProperty(REST_USER.key(), "");
-    }
-
-    public static String getRestPassword() {
-        return getProperty(REST_PASSWORD.key(), "");
-    }
-
-    public static String getRestPAT() {
-        return getProperty(REST_PAT.key(), "");
-    }
-
-    public static String getRestHost() {
-        return getProperty(REST_HOST.key(), "");
+    public static boolean isProxyEnabled() {
+        return getProperty(PROXY_ENABLED.key(), "false").equalsIgnoreCase("true");
     }
 
     public static String getDBHost() {

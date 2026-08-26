@@ -1,0 +1,7 @@
+{
+  "proxyHost": "",
+  "proxyPort": "",
+  "proxyUser": "",
+  "proxyPass": "",
+  "proxyExclude": ["localhost"]
+}

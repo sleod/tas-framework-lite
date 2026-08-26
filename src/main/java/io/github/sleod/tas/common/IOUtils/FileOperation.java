@@ -253,8 +253,9 @@ public class FileOperation {
             if (srcFile.startsWith("/")) {
                 srcFile = srcFile.substring(1);
             }
-            if (retrieveFileFromResourcesAsStream(srcFile) != null) {
-                Files.copy(retrieveFileFromResourcesAsStream(srcFile), absoluteTargetFile.toPath());
+            InputStream fileStream = retrieveFileFromResourcesAsStream(srcFile);
+            if (fileStream != null) {
+                Files.copy(fileStream, absoluteTargetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             } else {
                 throw new ExceptionBase(ExceptionErrorKeys.PATH_NOT_FOUND, srcFile);
             }

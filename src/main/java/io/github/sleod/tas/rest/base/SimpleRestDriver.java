@@ -12,6 +12,7 @@ import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.HttpUrlConnectorProvider;
 
 import java.net.Proxy;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,7 @@ import static io.github.sleod.tas.common.utils.StringTextUtils.isValid;
 public class SimpleRestDriver implements RestDriver {
 
     @Getter
-    private final Client client;
+    private Client client;
     @Getter
     @Setter
     protected MediaType mediaType = MediaType.APPLICATION_JSON_TYPE;
@@ -59,21 +60,11 @@ public class SimpleRestDriver implements RestDriver {
      * @param pass     proxy pass, empty string for no pass required
      */
     public SimpleRestDriver(String proxyURL, int port, String user, String pass) {
-        if(isValid(proxyURL) && isValid(port)) {
-            HttpUrlConnectorProvider connectorProvider = new HttpUrlConnectorProvider()
-                    .connectionFactory(new ProxyConnectionFactory(Proxy.Type.HTTP, proxyURL, port));
-            ClientConfig config = new ClientConfig().connectorProvider(connectorProvider);
-            if (isValid(user) && isValid(pass)) {
-                config.property(ClientProperties.PROXY_USERNAME, user).property(ClientProperties.PROXY_PASSWORD, pass);
-            }
-            client = ClientBuilder.newClient(config);
-        }else {
-            client = ClientBuilder.newClient();
-        }
+        setProxy(proxyURL, port, user, pass, Collections.emptyList());
     }
 
     /**
-     * Constructor driver with Proxy settings, if present. Otherwise, normal driver
+     * Constructor driver with Proxy settings if proxy is enabled and present. Otherwise, normal driver
      *
      * @param proxyURL  proxy url
      * @param proxyPort proxy port
@@ -81,7 +72,11 @@ public class SimpleRestDriver implements RestDriver {
      * @param proxyPass proxy pass, empty string for no pass required
      */
     public SimpleRestDriver(String proxyURL, int proxyPort, String proxyUser, String proxyPass, List<String> excludedHosts) {
-        if (isValid(proxyURL) && isValid(proxyPort)) {
+        setProxy(proxyURL, proxyPort, proxyUser, proxyPass, excludedHosts);
+    }
+
+    public void setProxy(String proxyURL, int proxyPort, String proxyUser, String proxyPass, List<String> excludedHosts) {
+        if (isValid(proxyURL) && isValid(proxyPort) && PropertyResolver.isProxyEnabled()) {
             ProxyConnectionFactory proxyConnectionFactory = new ProxyConnectionFactory(Proxy.Type.HTTP, proxyURL, proxyPort);
             if (!excludedHosts.isEmpty()) {
                 proxyConnectionFactory.setExcludedHosts(excludedHosts);
@@ -96,7 +91,6 @@ public class SimpleRestDriver implements RestDriver {
             client = ClientBuilder.newClient();
         }
     }
-
 
     /**
      * Set Basic Authentication
@@ -120,6 +114,7 @@ public class SimpleRestDriver implements RestDriver {
 
     /**
      * Get Request
+     *
      * @param url URL for GET request
      * @return Response from GET request
      */
@@ -131,7 +126,8 @@ public class SimpleRestDriver implements RestDriver {
 
     /**
      * Get Request with single Query Parameter "query"
-     * @param path URL for GET request
+     *
+     * @param path  URL for GET request
      * @param query Parameter Value for "query"
      * @return Response from GET request
      */
@@ -142,8 +138,9 @@ public class SimpleRestDriver implements RestDriver {
 
     /**
      * Get Request with single Query Parameter
-     * @param path URL for GET request
-     * @param key Parameter Key
+     *
+     * @param path  URL for GET request
+     * @param key   Parameter Key
      * @param value Parameter Value
      * @return Response from GET request
      */
@@ -155,7 +152,8 @@ public class SimpleRestDriver implements RestDriver {
 
     /**
      * Get Request with Query Parameters
-     * @param path URL for GET request
+     *
+     * @param path    URL for GET request
      * @param queries Map of Query Parameters
      * @return Response from GET request
      */
@@ -167,7 +165,8 @@ public class SimpleRestDriver implements RestDriver {
 
     /**
      * Post Request
-     * @param url URL for POST request
+     *
+     * @param url     URL for POST request
      * @param payload Payload for POST request
      * @return Response from POST request
      */
@@ -180,9 +179,10 @@ public class SimpleRestDriver implements RestDriver {
 
     /**
      * Post Request with Query Parameters
-     * @param url URL for POST request
+     *
+     * @param url     URL for POST request
      * @param payload Payload for POST request
-     * @param params Map of Query Parameters
+     * @param params  Map of Query Parameters
      * @return Response from POST request
      */
     public Response post(String url, String payload, Map<String, String> params) {
@@ -192,7 +192,8 @@ public class SimpleRestDriver implements RestDriver {
 
     /**
      * Put Request
-     * @param url URL for PUT request
+     *
+     * @param url     URL for PUT request
      * @param payload Payload for PUT request
      * @return Response from PUT request
      */
@@ -205,7 +206,8 @@ public class SimpleRestDriver implements RestDriver {
 
     /**
      * Patch Request
-     * @param url URL for PATCH request
+     *
+     * @param url     URL for PATCH request
      * @param payload Payload for PATCH request
      * @return Response from PATCH request
      */
@@ -218,6 +220,7 @@ public class SimpleRestDriver implements RestDriver {
 
     /**
      * Delete Request
+     *
      * @param url URL for DELETE request
      * @return Response from DELETE request
      */
@@ -237,6 +240,7 @@ public class SimpleRestDriver implements RestDriver {
 
     /**
      * Get Status Code from Response
+     *
      * @param response Response from REST call
      * @return Status Code from Response
      */
@@ -246,6 +250,7 @@ public class SimpleRestDriver implements RestDriver {
 
     /**
      * Get Invocation.Builder for REST call
+     *
      * @param url URL for REST call
      * @return Invocation.Builder for REST call
      */
@@ -255,6 +260,7 @@ public class SimpleRestDriver implements RestDriver {
 
     /**
      * Get Response Message as String
+     *
      * @param response Response from REST call
      * @return Response Message as String
      */
@@ -264,6 +270,7 @@ public class SimpleRestDriver implements RestDriver {
 
     /**
      * Set Headers
+     *
      * @param headers Map of Headers
      */
     public void setHeaders(Map<String, String> headers) {
@@ -272,7 +279,8 @@ public class SimpleRestDriver implements RestDriver {
 
     /**
      * Add single Header
-     * @param key Header Key
+     *
+     * @param key   Header Key
      * @param value Header Value
      */
     public void addHeader(String key, String value) {
@@ -281,6 +289,7 @@ public class SimpleRestDriver implements RestDriver {
 
     /**
      * Set Cookie Header
+     *
      * @param cookie Cookie as String
      */
     public void setCookie(String cookie) {
@@ -296,6 +305,7 @@ public class SimpleRestDriver implements RestDriver {
 
     /**
      * Set Query Parameters
+     *
      * @param params Map of Query Parameters
      */
     public void setParams(Map<String, String> params) {
@@ -304,7 +314,8 @@ public class SimpleRestDriver implements RestDriver {
 
     /**
      * Add single Query Parameter
-     * @param key Parameter Key
+     *
+     * @param key   Parameter Key
      * @param value Parameter Value
      */
     public void addParam(String key, String value) {
@@ -321,6 +332,7 @@ public class SimpleRestDriver implements RestDriver {
 
     /**
      * Get Cookies from Response as String
+     *
      * @param response Response from REST call
      * @return Cookies as String
      */
@@ -331,6 +343,7 @@ public class SimpleRestDriver implements RestDriver {
 
     /**
      * Build Invocation.Builder with Headers
+     *
      * @param webTarget WebTarget with Query Parameters
      * @return Invocation.Builder with Headers
      */
@@ -351,6 +364,7 @@ public class SimpleRestDriver implements RestDriver {
 
     /**
      * Build WebTarget with Query Parameters
+     *
      * @param webTarget initial WebTarget
      * @return WebTarget with Query Parameters
      */

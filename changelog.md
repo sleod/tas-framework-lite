@@ -1,10 +1,20 @@
 #### Version Stack
 ========================
 
-* Latest development version: `6.3.07-RELEASE` (branch `main`)
+* Latest development version: `6.3.09-RELEASE` (branch `main`)
 
 #### New Features and Changes
 ========================
+
+> :rocket: **Version 6.3.09-RELEASE**
+>
+> [FEATURE]
+> * enable allure 3 with setAllureVersion
+> 
+> [OPTIMIZATION]
+> * update dependencies
+> * enrich jira rest client
+> * improve proxy usage
 
 > :rocket: **Version 6.3.08-RELEASE**
 >
