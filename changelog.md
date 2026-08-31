@@ -1,10 +1,17 @@
 #### Version Stack
 ========================
 
-* Latest development version: `6.3.09-RELEASE` (branch `main`)
+* Latest development version: `6.3.10-RELEASE` (branch `main`)
 
 #### New Features and Changes
 ========================
+
+> :rocket: **Version 6.3.10-RELEASE**
+>
+> [OPTIMIZATION]
+> * info message opt.
+> * jira feedback opt.
+> * enable set JiraRestClient via TestRunManager
 
 > :rocket: **Version 6.3.09-RELEASE**
 >

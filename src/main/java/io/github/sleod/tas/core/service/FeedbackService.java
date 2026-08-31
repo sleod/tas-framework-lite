@@ -4,6 +4,7 @@ import io.github.sleod.tas.common.enumerations.TestType;
 import io.github.sleod.tas.configuration.PropertyResolver;
 import io.github.sleod.tas.core.component.DriverManager;
 import io.github.sleod.tas.core.component.TestCaseObject;
+import io.github.sleod.tas.core.component.TestRunManager;
 import io.github.sleod.tas.core.component.TestRunResult;
 import io.github.sleod.tas.core.json.container.JSONRunnerConfig;
 import io.github.sleod.tas.core.json.deserialization.JSONContainerFactory;
@@ -16,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.github.sleod.tas.common.abstraction.SingleTestObject.isSuccess;
 import static io.github.sleod.tas.common.logging.SystemLogger.info;
 import static io.github.sleod.tas.common.logging.SystemLogger.trace;
 
@@ -44,8 +46,9 @@ public class FeedbackService {
             }
         }
         JSONRunnerConfig jiraExecutionConfig = JSONContainerFactory.getRunnerConfig(PropertyResolver.getJiraExecutionConfigFile());
-        JIRARestClient restClient = new JIRARestClient(PropertyResolver.getJiraHost(), PropertyResolver.getJiraPAT());
-        restClient.updateRunStatusInExecution(jiraExecutionConfig, testRunResultMap);
+        JIRARestClient restClient = TestRunManager.getJiraRestClient();
+        boolean isOK = restClient.updateRunStatusInExecution(jiraExecutionConfig, testRunResultMap);
+        info("Update JIRA Execution Status is " + isSuccess(isOK));
         restClient.close();
     }
 

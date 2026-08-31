@@ -39,6 +39,7 @@ public class FileOperation {
 
     /**
      * Checks if the given file has an allowed file extension.
+     *
      * @param fileName the name of the file to check
      * @return true if the file has an allowed extension, false otherwise
      */
@@ -48,6 +49,7 @@ public class FileOperation {
 
     /**
      * Returns a comma-separated list of allowed file extensions.
+     *
      * @return a comma-separated list of allowed file extensions
      */
     public static String getAllowedFileExtension() {
@@ -216,7 +218,7 @@ public class FileOperation {
     public static void deleteFile(File file) {
         try {
             boolean isOK = Files.deleteIfExists(file.toPath());
-            info("try to delete File: " + file + " : " + isOK);
+            debug("try to delete File: " + file + " : " + isOK);
         } catch (IOException ex) {
             throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_GENERAL, ex, "Failed on deleting file: " + file.getPath());
         }
@@ -224,6 +226,7 @@ public class FileOperation {
 
     public static void deleteFolder(File folder) {
         if (folder != null && folder.exists()) {
+            info("Deleting folder: " + folder.getAbsolutePath());
             try (Stream<Path> paths = Files.walk(folder.toPath())) {
                 paths.sorted(Comparator.reverseOrder()).forEach(file -> FileOperation.deleteFile(file.toFile()));
             } catch (IOException ex) {

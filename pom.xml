@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.sleod</groupId>
     <artifactId>tas-framework-lite</artifactId>
-    <version>6.3.09-RELEASE</version>
+    <version>6.3.10-RELEASE</version>
     <packaging>jar</packaging>
     <name>tas-framework-lite</name>
     <description>A light-weight test automation framework</description>
@@ -166,6 +166,11 @@
         <dependency>
             <groupId>org.glassfish.jersey.inject</groupId>
             <artifactId>jersey-hk2</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-multipart</artifactId>
             <version>${jersey.version}</version>
         </dependency>
         <dependency>

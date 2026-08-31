@@ -3,11 +3,30 @@
   "password": "",
   "host": "",
   "pat": "",
-  "customFields": {
-    "execution": {
-      "tests": "customfield_10216"
+  "requiredFiles": {
+    "Test Execution": {
+      "responsible": {
+        "fieldName": "customfield_10216",
+        "fieldValue": {
+          "emailAddress": "xx.xx@company.com"
+        }
+      },
+      "environment": {
+        "fieldName": "customfield_11100",
+        "fieldValue": {
+          "value": "XXX123"
+        }
+      },
+      "fixVersions": {
+        "fieldName": "fixVersions",
+        "fieldValue": [
+          {
+            "name": "xxx yyy zzz"
+          }
+        ]
+      }
     },
-    "test": {
+    "Test": {
       "testType": "customfield_10201",
       "testSteps": "customfield_10205",
       "testSets": "customfield_10208",

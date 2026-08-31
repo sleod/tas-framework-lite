@@ -1,7 +1,9 @@
 {
   "runName": "Automated Test Run with ...",
   "testPlanId": "",
-  "testExecutionId": "TEST-95",
+  "testExecutionIdMap": {
+    "default": "TEXE-123"
+  },
   "projectKey": "TESTING",
   "fullRun": false,
   "failureRetest": false,

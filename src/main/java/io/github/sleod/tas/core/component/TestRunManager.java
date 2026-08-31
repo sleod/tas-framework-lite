@@ -18,6 +18,8 @@ import io.github.sleod.tas.exception.ExceptionBase;
 import io.github.sleod.tas.exception.ExceptionErrorKeys;
 import io.github.sleod.tas.rest.base.QUERY_OPTION;
 import io.github.sleod.tas.rest.connection.jira.JIRARestClient;
+import lombok.Getter;
+import lombok.Setter;
 import org.openqa.selenium.Cookie;
 import org.openqa.selenium.WebDriver;
 
@@ -36,7 +38,12 @@ import static io.github.sleod.tas.core.json.ObjectMapperSingleton.mapper;
 
 public class TestRunManager {
 
-    private static JSONRunnerConfig jiraExecutionConfig = null;
+    @Getter
+    private static JSONRunnerConfig jiraExecutionConfig;
+
+    @Setter
+    private static JIRARestClient jiraRestClient;
+
     private static final Map<String, PerformableTestCases> performerMap = new HashMap<>();
 
     public static PerformableTestCases getPerformer() {
@@ -98,6 +105,9 @@ public class TestRunManager {
 
     /**
      * init test cases with file paths of json filtered with meta notation
+     * with jira sync enable, the filter will take the setting in jiraExecutionConfig
+     * if execution map is not empty, the manager will query jira and get the test cases in the execution with given condition
+     * and prepare the selected ids as a list. The test case will be filtered with the list.
      *
      * @param filePaths   file paths
      * @param metaFilters meta filters
@@ -118,6 +128,7 @@ public class TestRunManager {
             } else {//check run config for selected ids to run
                 selectedIds = null;
             }
+            //not null and empty. null means skip the list for filter
             if (Objects.nonNull(selectedIds) && selectedIds.isEmpty()) {
                 throw new ExceptionBase(ExceptionErrorKeys.FAIL_ON_GET_TESTCASE_ID_FROM_TFS);
             }
@@ -180,7 +191,7 @@ public class TestRunManager {
             }
             //If ID is set, check if duplicate in case feedback enabled
             if ((PropertyResolver.isTFSSyncEnabled() || PropertyResolver.isJIRASyncEnabled())
-                    && !testCaseObject.getTestCaseId().isEmpty() && !testCaseObject.getTestCaseId().equals("-")) {
+                && !testCaseObject.getTestCaseId().isEmpty() && !testCaseObject.getTestCaseId().equals("-")) {
                 if (!testCaseIds.add(testCaseObject.getTestCaseId())) {
                     throw new ExceptionBase(ExceptionErrorKeys.DEFINED_MULTIPLE_TESTCASES, testCaseObject.getTestCaseId());
                 }
@@ -196,7 +207,7 @@ public class TestRunManager {
      * @return list of test case ids
      */
     public static List<String> getJiraTestCaseIdsInExecution(String executionKey, QUERY_OPTION query_option) {
-        return new JIRARestClient().getTestsInExecution(executionKey, query_option);
+        return getJiraRestClient().getTestsInExecution(executionKey, query_option);
     }
 
     /**
@@ -225,6 +236,13 @@ public class TestRunManager {
             default ->
                     throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Load Driver failed with unknown type: " + type);
         }
+    }
+
+    public static JIRARestClient getJiraRestClient() {
+        if (jiraRestClient == null) {
+            return jiraRestClient = new JIRARestClient();
+        }
+        return jiraRestClient;
     }
 
     /**
@@ -314,7 +332,7 @@ public class TestRunManager {
             ArrayList<TestCaseObject> singleList = new ArrayList<>(1);
             if (PropertyResolver.isTFSSyncEnabled() || PropertyResolver.isJIRASyncEnabled()) {
                 if (testCaseObject.getTestCaseId().isEmpty() && !testCaseObject.getTestType().equals(TestType.MOBILE_APP)
-                        || testCaseObject.getTestType().equals(TestType.MOBILE_APP) && testCaseObject.getTestCaseIdMap().isEmpty()) {
+                    || testCaseObject.getTestType().equals(TestType.MOBILE_APP) && testCaseObject.getTestCaseIdMap().isEmpty()) {
                     throw new ExceptionBase(ExceptionErrorKeys.TEST_CASE_ID_IS_REQUIRED, testCaseObject.getName());
                 } else if (testCaseObject.getTestCaseId().equals("-")) {
                     info(testCaseObject.getName() + " with testcase id '-' will not be executed!");
@@ -424,7 +442,7 @@ public class TestRunManager {
                 throw new ExceptionBase(ExceptionErrorKeys.CONFIG_FILE_NOT_FOUND, PropertyResolver.getJiraExecutionConfigFile());
             }
             if (jiraExecutionConfig.getTestExecutionIdMap().isEmpty()
-                    && (jiraExecutionConfig.isFullRun()
+                && (jiraExecutionConfig.isFullRun()
                     || jiraExecutionConfig.isFailureRetest())) {
                 throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "For full run or failure retest, the execution id must be provided.");
             }
@@ -487,7 +505,7 @@ public class TestRunManager {
     public static void restoreSessions() {
         WebDriver webDriver = DriverManager.getWebDriver();
         if (Objects.nonNull(FileLocator.findLocalResource("target/logs/cookies.data"))
-                && Objects.nonNull(FileLocator.findLocalResource("target/logs/currentURL.data"))) {
+            && Objects.nonNull(FileLocator.findLocalResource("target/logs/currentURL.data"))) {
             List<Cookie> cookies = (ArrayList<Cookie>) readObject(ArrayList.class, "target/logs/cookies.data");
             String currentURL = readObject(String.class, "target/logs/currentURL.data");
             if (currentURL != null && !currentURL.isEmpty()) {

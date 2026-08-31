@@ -22,7 +22,10 @@ import io.github.sleod.tas.rest.base.QUERY_OPTION;
 import io.github.sleod.tas.rest.base.TASRestClient;
 import io.github.sleod.tas.rest.base.TASRestDriver;
 import jakarta.ws.rs.core.Response;
+import lombok.Getter;
+import lombok.Setter;
 import org.junit.jupiter.api.Assertions;
+import org.openqa.selenium.json.Json;
 
 import java.io.File;
 import java.util.*;
@@ -32,9 +35,18 @@ import static io.github.sleod.tas.common.logging.SystemLogger.warn;
 import static io.github.sleod.tas.common.utils.StringTextUtils.isValid;
 
 public class JIRARestClient extends TASRestClient {
+
+    @Setter
+    @Getter
     private String user = "";
-    private static final String GENERAL_PATH = "rest/api/latest/";
-    private static final String XRAY_PATH = "rest/raven/latest/api/";
+
+    @Setter
+    @Getter
+    private static String GENERAL_PATH = "rest/api/latest/";
+
+    @Setter
+    @Getter
+    private static String XRAY_PATH = "rest/raven/latest/api/";
 
     public JIRARestClient() {
         super(new TASRestDriver());
@@ -47,26 +59,8 @@ public class JIRARestClient extends TASRestClient {
 
         if (isValid(PropertyResolver.getJiraPAT())) {
             getRestDriver().setBearerToken(PropertyResolver.getJiraPAT());
-        } else {
-            if (isValid(PropertyResolver.getJiraUser()) && isValid(PropertyResolver.getJiraPassword())) {
-                getRestDriver().setBasicAuth(PropertyResolver.getJiraUser(), PropertyResolver.getJiraPassword());
-            } else warn("JIRA PAT Token or User not well set!");
-        }
-    }
+        } else throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "JIRA PAT was not set!");
 
-    /**
-     * Constructor with basic authentication
-     *
-     * @param username username
-     * @param password password
-     * @param host     jiraUrl
-     */
-    public JIRARestClient(String host, String username, String password) {
-        super(new TASRestDriver(host, username, password));
-        if (PropertyResolver.isProxyEnabled()) {
-            getRestDriver().setProxyWithConfig();
-        }
-        this.user = username;
     }
 
     /**
@@ -124,6 +118,18 @@ public class JIRARestClient extends TASRestClient {
      */
     public JsonNode createTestExecution(String projectKey, String summary, String description) {
         return createIssue(buildIssue(projectKey, summary, description, "Test Execution"));
+    }
+
+    /**
+     * create test execution
+     *
+     * @param projectKey  project key
+     * @param summary     summary
+     * @param description description
+     * @return created issue
+     */
+    public JsonNode createTestCase(String projectKey, String summary, String description) {
+        return createIssue(buildIssue(projectKey, summary, description, "Test"));
     }
 
     /**
@@ -352,14 +358,16 @@ public class JIRARestClient extends TASRestClient {
         Map<String, String> exeKeyMap = jiraExecConfig.getTestExecutionIdMap();
         String exeKey = "";
         if (exeKeyMap.isEmpty()) {//create one execution for test runs
+            info("No Test Execution ID was provided. Try to create a new Test Execution.");
             JsonNode issue = createTestExecution(jiraExecConfig.getProjectKey(),
                     jiraExecConfig.getRunName() + " - " + DateTimeUtils.getFormattedLocalTimestamp(),
                     "Automated Test Execution with TAS Framework " + DateTimeUtils.getFormattedLocalTimestamp());
             exeKey = issue.get("key").asText();
+            Assertions.assertTrue(isValid(exeKey), "");
             WaitUtils.waitStep(1);
         } else {
-            if (isValid(exeKeyMap.get("Default"))) {
-                exeKey = exeKeyMap.get("Default");
+            if (isValid(exeKeyMap.get("default"))) {
+                exeKey = exeKeyMap.get("default");
             } else {
                 String plattform = DriverManager.getCurrentPlatform();
                 if (isValid(exeKeyMap.get(plattform))) {
@@ -454,44 +462,44 @@ public class JIRARestClient extends TASRestClient {
         return getResponseNode(getRestDriver().put(path, payload.toString()), "Fail with update status to run: " + runId);
     }
 
-    /**
-     * build Xray Test Object. Note that, the customer fields can be changed
-     *
-     * @param projectKey  project key
-     * @param summary     summary
-     * @param description description of test
-     * @param plans       plan key
-     * @return JSONObject as payload
-     */
-    private JsonNode buildXrayTest(String projectKey, String summary, String description, List<String> plans, List<String> testStepNames) {
-        ObjectMapper objectMapper = ObjectMapperSingleton.mapper();
-        ObjectNode project = objectMapper.createObjectNode().put("key", projectKey);
-        ObjectNode issueType = objectMapper.createObjectNode().put("name", "Test").put("id", "10400");
-        ObjectNode testType = objectMapper.createObjectNode().put("value", "Manual").put("id", "10200");
-        ArrayNode planList = objectMapper.createArrayNode();
-        plans.forEach(planList::add);
-        ArrayNode steps = objectMapper.createArrayNode();
-        for (int i = 0; i < testStepNames.size(); i++) {
-            ObjectNode step = objectMapper.createObjectNode().put("index", i + 1)
-                    .set("fields", objectMapper.createObjectNode().put("Action", testStepNames.get(i)));
-            steps.add(step);
-        }
-        JsonNode jiraConfig = JSONContainerFactory.getConfig(PropertyResolver.getJiraConfigFile());
-        JsonNode customFields = jiraConfig.get("customFields").get("test");
-        ObjectNode fields = objectMapper.createObjectNode()
-                .put("summary", summary)
-                .put("description", description)
-                .<ObjectNode>set("project", project)
-                .<ObjectNode>set("issuetype", issueType)
-                .<ObjectNode>set(customFields.get("testType").asText(), testType)
-                .<ObjectNode>set(customFields.get("testSteps").asText(), steps)
-                .set(customFields.get("testPlans").asText(), planList);
-        if (!user.isEmpty()) {
-            ObjectNode assignee = objectMapper.createObjectNode().put("name", user);
-            fields.set("assignee", assignee);
-        }
-        return objectMapper.createObjectNode().<ObjectNode>set("fields", fields);
-    }
+//    /**
+//     * build Xray Test Object. Note that, the customer fields can be changed
+//     *
+//     * @param projectKey  project key
+//     * @param summary     summary
+//     * @param description description of test
+//     * @param plans       plan key
+//     * @return JSONObject as payload
+//     */
+//    private JsonNode buildXrayTest(String projectKey, String summary, String description, List<String> plans, List<String> testStepNames) {
+//        ObjectMapper objectMapper = ObjectMapperSingleton.mapper();
+//        ObjectNode project = objectMapper.createObjectNode().put("key", projectKey);
+//        ObjectNode issueType = objectMapper.createObjectNode().put("name", "Test").put("id", "10400");
+//        ObjectNode testType = objectMapper.createObjectNode().put("value", "Manual").put("id", "10200");
+//        ArrayNode planList = objectMapper.createArrayNode();
+//        plans.forEach(planList::add);
+//        ArrayNode steps = objectMapper.createArrayNode();
+//        for (int i = 0; i < testStepNames.size(); i++) {
+//            ObjectNode step = objectMapper.createObjectNode().put("index", i + 1)
+//                    .set("fields", objectMapper.createObjectNode().put("Action", testStepNames.get(i)));
+//            steps.add(step);
+//        }
+//        JsonNode jiraConfig = JSONContainerFactory.getConfig(PropertyResolver.getJiraConfigFile());
+//        JsonNode customFields = jiraConfig.get("customFields").get("test");
+//        ObjectNode fields = objectMapper.createObjectNode()
+//                .put("summary", summary)
+//                .put("description", description)
+//                .<ObjectNode>set("project", project)
+//                .<ObjectNode>set("issuetype", issueType)
+//                .<ObjectNode>set(customFields.get("testType").asText(), testType)
+//                .<ObjectNode>set(customFields.get("testSteps").asText(), steps)
+//                .set(customFields.get("testPlans").asText(), planList);
+//        if (!user.isEmpty()) {
+//            ObjectNode assignee = objectMapper.createObjectNode().put("name", user);
+//            fields.set("assignee", assignee);
+//        }
+//        return objectMapper.createObjectNode().<ObjectNode>set("fields", fields);
+//    }
 
 
     /**
@@ -501,23 +509,33 @@ public class JIRARestClient extends TASRestClient {
      * @param projectKey  project key
      * @param summary     summary
      * @param description description of issue
-     * @param issieType   issue type
+     * @param issueType   issue type
      * @return JsonNode as payload
      */
-    private JsonNode buildIssue(String projectKey, String summary, String description, String issieType) {
+    private JsonNode buildIssue(String projectKey, String summary, String description, String issueType) {
         ObjectMapper objectMapper = ObjectMapperSingleton.mapper();
-        ObjectNode project = objectMapper.createObjectNode().put("key", projectKey);
-        ObjectNode issueType = objectMapper.createObjectNode().put("name", issieType);
-        ObjectNode fields = objectMapper.createObjectNode()
+        ObjectNode projectNode = objectMapper.createObjectNode().put("key", projectKey);
+        ObjectNode issueTypeNode = objectMapper.createObjectNode().put("name", issueType);
+        ObjectNode fieldsNode = objectMapper.createObjectNode()
                 .put("summary", summary)
                 .put("description", description)
-                .<ObjectNode>set("project", project)
-                .set("issuetype", issueType);
+                .<ObjectNode>set("project", projectNode)
+                .set("issuetype", issueTypeNode);
         if (!user.isEmpty()) {
             ObjectNode assignee = objectMapper.createObjectNode().put("name", user);
-            fields.set("assignee", assignee);
+            fieldsNode.set("assignee", assignee);
         }
-        return objectMapper.createObjectNode().<ObjectNode>set("fields", fields);
+        addRequiredFields(fieldsNode, issueType);
+        return objectMapper.createObjectNode().<ObjectNode>set("fields", fieldsNode);
+    }
+
+    private void addRequiredFields(ObjectNode fields, String issueType) {
+        JsonNode jiraConfig = JSONContainerFactory.getConfig(PropertyResolver.getJiraConfigFile());
+        JsonNode requiredFields = jiraConfig.get("requiredFields").get(issueType);
+        for (Map.Entry<String, JsonNode> entry : requiredFields.properties()) {
+            JsonNode fieldContent = entry.getValue();
+            fields.set(fieldContent.get("fieldName").asText(), fieldContent.get("fieldValue"));
+        }
     }
 
 }
