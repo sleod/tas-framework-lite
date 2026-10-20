@@ -60,11 +60,13 @@ public abstract class PerformableTestCases {
      */
     @BeforeAll
     public static void beforeTests() {
-        info("generating resource index file...");
-        try {
-            ResourceIndexGenerator.generateResourceIndex("src/main/resources/resource-index.json");
-        } catch (Exception e) {
-            fatal(e);
+        if (!PropertyResolver.isPackageMode()) {
+            info("generating resource index file...");
+            try {
+                ResourceIndexGenerator.generateResourceIndex("src/main/resources/resource-index.json");
+            } catch (Exception e) {
+                fatal(e);
+            }
         }
         info("Starting Test Run...");
         //static files for report and start count run number

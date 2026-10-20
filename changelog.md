@@ -1,10 +1,14 @@
 #### Version Stack
 ========================
 
-* Latest development version: `6.4.01-RELEASE` (branch `main`)
+* Latest development version: `6.4.02-RELEASE`
 
 #### New Features and Changes
 ========================
+
+> :rocket: **Version 6.4.02-RELEASE**
+> [BUG FIX]
+> * fix generate resource index issue under package mode
 
 > :rocket: **Version 6.4.01-RELEASE**
 >
