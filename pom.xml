@@ -334,16 +334,16 @@
     </build>
 
     <distributionManagement>
-<!--        <repository>-->
-<!--            <id>ossrh</id>-->
-<!--            <name>OSSRH Release Repository</name>-->
-<!--            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>-->
-<!--        </repository>-->
         <repository>
-            <id>localRepo</id>
-            <name>Local repository</name>
-            <url>file://${user.home}/.m2/repository</url>
+            <id>ossrh</id>
+            <name>OSSRH Release Repository</name>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
+<!--        <repository>-->
+<!--            <id>localRepo</id>-->
+<!--            <name>Local repository</name>-->
+<!--            <url>file://${user.home}/.m2/repository</url>-->
+<!--        </repository>-->
     </distributionManagement>
 
 </project>
