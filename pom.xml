@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.sleod</groupId>
     <artifactId>tas-framework-lite</artifactId>
-    <version>6.3.10-RELEASE</version>
+    <version>6.4.00-RELEASE</version>
     <packaging>jar</packaging>
     <name>tas-framework-lite</name>
     <description>A light-weight test automation framework</description>
@@ -43,11 +43,11 @@
         <aspectj.version>1.9.21</aspectj.version>
         <commons-exec.version>1.4.0</commons-exec.version>
         <commons-text.version>1.13.0</commons-text.version>
-        <junit.version>5.13.1</junit.version>
-        <junit-platform.version>1.13.1</junit-platform.version>
+        <junit.version>6.1.3</junit.version>
+        <junit-platform.version>6.1.3</junit-platform.version>
         <jersey.version>3.1.10</jersey.version>
         <jdom2.version>2.0.6.1</jdom2.version> <!-- inactive -->
-        <jackson.version>2.22.2</jackson.version>
+        <jackson.version>2.22.3</jackson.version>
         <log4j.version>2.26.1</log4j.version>
         <lombok.version>1.18.46</lombok.version>
         <ms.sqlserver.version>13.4.0.jre11</ms.sqlserver.version>
@@ -203,24 +203,6 @@
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
         </dependency>
-        <!-- Source: https://mvnrepository.com/artifact/net.sourceforge.tess4j/tess4j -->
-<!--        <dependency>-->
-<!--            <groupId>net.sourceforge.tess4j</groupId>-->
-<!--            <artifactId>tess4j</artifactId>-->
-<!--            <version>${tess4j.version}</version>-->
-<!--            <scope>compile</scope>-->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <groupId>ch.qos.logback</groupId>-->
-<!--                    <artifactId>logback-classic</artifactId>-->
-<!--                </exclusion>-->
-<!--                <exclusion>-->
-<!--                    <groupId>org.slf4j</groupId>-->
-<!--                    <artifactId>slf4j-api</artifactId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
-        <!-- https://mvnrepository.com/artifact/com.microsoft.sqlserver/mssql-jdbc -->
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
@@ -352,16 +334,16 @@
     </build>
 
     <distributionManagement>
-        <repository>
-            <id>ossrh</id>
-            <name>OSSRH Release Repository</name>
-            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
 <!--        <repository>-->
-<!--            <id>localRepo</id>-->
-<!--            <name>Local repository</name>-->
-<!--            <url>file://${user.home}/.m2/repository</url>-->
+<!--            <id>ossrh</id>-->
+<!--            <name>OSSRH Release Repository</name>-->
+<!--            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>-->
 <!--        </repository>-->
+        <repository>
+            <id>localRepo</id>
+            <name>Local repository</name>
+            <url>file://${user.home}/.m2/repository</url>
+        </repository>
     </distributionManagement>
 
 </project>

@@ -356,7 +356,7 @@ public class ExternAppController {
     }
 
     public static JsonNode getDownloadConfig() {
-        if (!FileOperation.isFileExists(PropertyResolver.getDriverDownloadConfigFile())) {
+        if (!FileOperation.isResourceFileExists(PropertyResolver.getDriverDownloadConfigFile())) {
             throw new ExceptionBase(CUSTOM_MESSAGE, "Download Config File not exist! -> " + PropertyResolver.getDriverDownloadConfigFile());
         }
         return JSONContainerFactory.getConfig(PropertyResolver.getDriverDownloadConfigFile());

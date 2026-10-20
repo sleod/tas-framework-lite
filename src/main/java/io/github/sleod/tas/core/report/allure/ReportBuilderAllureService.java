@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.sleod.tas.common.IOUtils.FileOperation;
 import io.github.sleod.tas.configuration.PropertyResolver;
-import io.github.sleod.tas.core.json.ObjectMapperSingleton;
+import io.github.sleod.tas.common.IOUtils.ObjectMapperSingleton;
 import io.github.sleod.tas.core.json.deserialization.JSONContainerFactory;
 import io.github.sleod.tas.rest.connection.allure.AllureRestClient;
 

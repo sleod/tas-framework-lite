@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.github.sleod.tas.common.IOUtils.FileLocator;
 import io.github.sleod.tas.common.IOUtils.FileOperation;
+import io.github.sleod.tas.common.IOUtils.ResourceUtils;
 import io.github.sleod.tas.configuration.PropertyResolver;
 import io.github.sleod.tas.core.json.container.*;
 import io.github.sleod.tas.exception.ExceptionBase;
@@ -19,7 +20,7 @@ import java.util.*;
 
 import static io.github.sleod.tas.common.logging.SystemLogger.debug;
 import static io.github.sleod.tas.common.logging.SystemLogger.info;
-import static io.github.sleod.tas.core.json.ObjectMapperSingleton.mapper;
+import static io.github.sleod.tas.common.IOUtils.ObjectMapperSingleton.mapper;
 
 public class JSONContainerFactory {
 
@@ -38,8 +39,12 @@ public class JSONContainerFactory {
      * @return JSONTestCase
      */
     public static JSONTestCase buildJSONTestCaseObject(String jsonFilePath) {
-        String path = FileLocator.findResource(jsonFilePath).toString();
-        String jsonString = FileOperation.readFileToLinedString(path);
+        String jsonString;
+        try {
+            jsonString = ResourceUtils.readResourceFileToString(jsonFilePath);
+        } catch (IOException ex) {
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, ex, "Failed to read test case file: " + jsonFilePath);
+        }
         return buildJSONObject(jsonString, JSONTestCase.class);
     }
 
@@ -79,7 +84,12 @@ public class JSONContainerFactory {
      * @return JSONPageConfig
      */
     public static JSONPageConfig readTestObjectConfig(String jsonFilePath) {
-        String jsonString = FileOperation.readFileToLinedString(FileLocator.findResource(jsonFilePath).toString());
+        String jsonString;
+        try {
+            jsonString = ResourceUtils.getResourceFileContent(jsonFilePath);
+        } catch (IOException ex) {
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, ex, "Failed to read test object config file: " + jsonFilePath);
+        }
         return buildJSONObject(jsonString, JSONPageConfig.class);
     }
 
@@ -101,19 +111,24 @@ public class JSONContainerFactory {
      * @return map of driver configs or preset driver config single
      */
     public static Map<String, JSONDriverConfig> getDriverConfigs(String folderPath, String configFileName) {
-        info("Try to find driver config in: " + folderPath);
-        File[] files = FileOperation.getResourceFolderFiles(folderPath);
+        info("Try to find driver config: " + configFileName + " in: " + folderPath);
+        List<String> paths = ResourceUtils.findResourcePaths(folderPath, configFileName);
         Map<String, JSONDriverConfig> configs = new LinkedHashMap<>();
-        for (File file : files) {
-            if (file.getName().endsWith(".json")) {
-                String jsonString = FileOperation.readFileToLinedString(file.getPath());
+        for (String filepath : paths) {
+            if (FileOperation.getFileNameExtension(filepath).equals("json")) {
+                String jsonString;
+                try {
+                    jsonString = ResourceUtils.readResourceFileToString(filepath);
+                } catch (IOException ex) {
+                    throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, ex, "Failed to read resource config file: " + filepath);
+                }
                 if (jsonString.contains(HUB_URL_KEY)) {
                     JSONDriverConfig driverConfig = buildJSONObject(jsonString, JSONDriverConfig.class);
-                    if (file.getName().equalsIgnoreCase(configFileName)) {
+                    if (FileOperation.getFileName(filepath).equals(configFileName)) {
                         info("Load given Driver Config: " + configFileName);
                         return Collections.singletonMap(configFileName, driverConfig);
                     } else {
-                        configs.put(file.getName(), driverConfig);
+                        configs.put(FileOperation.getFileName(filepath), driverConfig);
                     }
                 }
             }
@@ -128,7 +143,12 @@ public class JSONContainerFactory {
      * @return JSONDriverConfig
      */
     public static JSONRunnerConfig getRunnerConfig(String jsonFileName) {
-        String jsonString = FileOperation.readFileToLinedString(FileLocator.findResource(jsonFileName).toString());
+        String jsonString = null;
+        try {
+            jsonString = ResourceUtils.getResourceFileContent(jsonFileName);
+        } catch (IOException ex) {
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, ex, "Failed to read JSON runner config file: " + jsonFileName);
+        }
         return buildJSONObject(jsonString, JSONRunnerConfig.class);
     }
 
@@ -296,8 +316,12 @@ public class JSONContainerFactory {
      * @return JSON object of config file
      */
     public static JsonNode getConfig(String filePath) {
-        String path = FileLocator.findResource(filePath).toString();
-        String content = FileOperation.readFileToLinedString(path);
+        String content;
+        try {
+            content = ResourceUtils.getResourceFileContent(FileOperation.getFileName(filePath));
+        } catch (IOException ex) {
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, ex, "Failed to read config file: " + filePath);
+        }
         JsonNode fileData;
         try {
             fileData = mapper().readTree(content);
@@ -314,7 +338,7 @@ public class JSONContainerFactory {
      * @return JSON object of file
      */
     public static String getJSONFileContent(String filePath) {
-        if (FileOperation.isFileExists(filePath)) {
+        if (FileOperation.isResourceFileExists(filePath)) {
             return FileOperation.readFileToLinedString(filePath);
         } else {
             return "";
@@ -328,7 +352,7 @@ public class JSONContainerFactory {
      * @return JSON object of file
      */
     public static String getJSONFileContent(InputStream inputStream) {
-        return FileOperation.readFileToLinedString(inputStream);
+        return FileOperation.readFileStreamToLinedString(inputStream);
     }
 
     public static <T> T buildJSONObject(String jsonString, Class<T> myClass) {

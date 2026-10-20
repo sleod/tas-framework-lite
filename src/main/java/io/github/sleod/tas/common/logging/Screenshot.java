@@ -66,7 +66,7 @@ public class Screenshot {
         if (!folderPath.endsWith("/") && !folderPath.startsWith("//")) {
             folderPath += "/";
         }
-        String location = folderPath + "/" + testCaseName + "/";
+        String location = folderPath + "/" + testCaseName.replace(" ", "_") + "/";
         return writeImageToLocalFile(image, location, UUID.randomUUID().toString());
     }
 

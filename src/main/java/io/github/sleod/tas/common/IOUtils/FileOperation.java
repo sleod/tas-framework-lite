@@ -1,14 +1,9 @@
 package io.github.sleod.tas.common.IOUtils;
 
-import io.github.sleod.tas.core.assertion.Matchers;
 import io.github.sleod.tas.exception.ExceptionBase;
 import io.github.sleod.tas.exception.ExceptionErrorKeys;
-import org.apache.commons.io.FileUtils;
-import org.hamcrest.Matcher;
 import org.junit.jupiter.api.Assertions;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -93,7 +88,7 @@ public class FileOperation {
      */
     public static List<String> readFileToStringList(String filePath) {
         List<String> list;
-        if (isFileExists(filePath)) {
+        if (isResourceFileExists(filePath)) {
             try {
                 list = Files.readAllLines(getFile(filePath), StandardCharsets.UTF_8);
             } catch (IOException ex) {
@@ -109,7 +104,7 @@ public class FileOperation {
      * @param inputStream is input stream of file
      * @return String of file content with break
      */
-    public static String readFileToLinedString(InputStream inputStream) {
+    public static String readFileStreamToLinedString(InputStream inputStream) {
         StringBuilder sb = new StringBuilder();
         if (inputStream != null) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
@@ -136,78 +131,7 @@ public class FileOperation {
      * is empty
      */
     public static String getFileName(String filePath) {
-        File file = new File(filePath);
-        return file.getName();
-    }
-
-    /**
-     * @param root   root file
-     * @param suffix without '.' e.g. 'txt', 'story'
-     * @return list of files
-     */
-    public static List<File> listAllDeepFiles(File root, String suffix) {
-        if (root.exists() && root.isDirectory()) {
-            FilenameFilter filter = (file, name) -> name.toLowerCase().endsWith(".".concat(suffix.toLowerCase()));
-            return asList(Objects.requireNonNull(root.listFiles(filter)));
-        } else {
-            debug(root.getAbsolutePath() + " may not a directory or an empty one!");
-            return Collections.emptyList();
-        }
-    }
-
-    /**
-     * @param root    root file
-     * @param pattern regex patten for matcher like "TEST-(.*?)([.]xml)"
-     * @return list of files
-     */
-    public static List<File> listFilesWithRegex(File root, String pattern) {
-        if (root.exists() && root.isDirectory()) {
-            FilenameFilter filter = (file, name) -> {
-                Matcher<String> matcher = Matchers.matchPattern(pattern);
-                return matcher.matches(name.toLowerCase());
-            };
-            return asList(Objects.requireNonNull(root.listFiles(filter)));
-        } else {
-            debug(root.getAbsolutePath() + " may not a directory or an empty one!");
-            return Collections.emptyList();
-        }
-    }
-
-    /**
-     * rename file with given name
-     *
-     * @param old     file to rename
-     * @param newName new file name
-     * @return file after rename
-     */
-    public static File renameFile(File old, String newName) {
-        File newFile = new File(newName);
-        if (old.renameTo(newFile)) {
-            debug("Rename successful!");
-        } else {
-            debug("Rename unsuccessful!");
-        }
-        return newFile;
-    }
-
-    /**
-     * find file that contains the given string in a map of files
-     *
-     * @param value        wanted string
-     * @param mapOfStories map of files
-     * @return first file contains the wanted string
-     */
-    public static File getFirstMatchedFileWithText(String value, LinkedHashMap<String, File> mapOfStories) {
-        File file = null;
-        for (String key : mapOfStories.keySet()) {
-            File temp = mapOfStories.get(key);
-            String content = readFileToLinedString(temp.getPath());
-            if (content.contains(value)) {
-                file = temp;
-                break;
-            }
-        }
-        return file;
+        return new File(filePath).getName();
     }
 
     /**
@@ -235,38 +159,6 @@ public class FileOperation {
         } else info("Delete folder: " + folder + " does not exist!");
     }
 
-    /**
-     * retrieve file from resource folder
-     *
-     * @param srcFile    to be retrieved
-     * @param targetFile save to target
-     * @return file
-     */
-    public static File retrieveFileFromResources(String srcFile, File targetFile) {
-        File absoluteTargetFile = targetFile.getAbsoluteFile(); // this was needed to ensure both copy and other file operations use same interpretation of the path
-        if (!absoluteTargetFile.exists()) {
-            if (absoluteTargetFile.getParentFile().mkdirs()) {
-                debug("Make dirs successful!");
-            } else {
-                debug("Make dirs unsuccessful!");
-            }
-        }
-        try {
-            Files.deleteIfExists(targetFile.toPath());
-            if (srcFile.startsWith("/")) {
-                srcFile = srcFile.substring(1);
-            }
-            InputStream fileStream = retrieveFileFromResourcesAsStream(srcFile);
-            if (fileStream != null) {
-                Files.copy(fileStream, absoluteTargetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            } else {
-                throw new ExceptionBase(ExceptionErrorKeys.PATH_NOT_FOUND, srcFile);
-            }
-        } catch (IOException ex) {
-            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_READING, ex, srcFile);
-        }
-        return absoluteTargetFile;
-    }
 
     /**
      * retrieve file as stream from resource folder
@@ -283,31 +175,6 @@ public class FileOperation {
     }
 
     /**
-     * get last modified file in directory with suffix
-     *
-     * @param dirPath path of directory
-     * @return file
-     */
-    public static File getLatestFileFromDir(String dirPath, String suffix) {
-        if (dirPath != null) {
-            File dir = new File(dirPath);
-            List<File> allFiles = listAllDeepFiles(dir, suffix);
-            if (allFiles == null || allFiles.size() == 0) {
-                return null;
-            }
-            File lastModifiedFile = allFiles.get(0);
-            for (File file : allFiles) {
-                if (lastModifiedFile.lastModified() < file.lastModified()) {
-                    lastModifiedFile = file;
-                }
-            }
-            return lastModifiedFile;
-        } else {
-            return null;
-        }
-    }
-
-    /**
      * stream mediaString base64 encoded content to file
      *
      * @param mediaString to be written
@@ -317,23 +184,6 @@ public class FileOperation {
         try (FileOutputStream stream = new FileOutputStream(target)) {
             stream.write(Base64.getDecoder().decode(mediaString));
         } catch (Exception ex) {
-            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_WRITING, ex, target);
-        }
-    }
-
-    /**
-     * write byte array of content to file in utf-8
-     *
-     * @param bytes  to be written
-     * @param target to local file
-     */
-    public static void writeBytesToFile(byte[] bytes, File target) {
-        try {
-            if (!target.getParentFile().exists()) {
-                Assertions.assertTrue(target.getParentFile().mkdirs(), "Failed on make Folder for File: " + target.getAbsolutePath());
-            }
-            Files.write(target.toPath(), bytes);
-        } catch (IOException ex) {
             throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_WRITING, ex, target);
         }
     }
@@ -401,21 +251,6 @@ public class FileOperation {
     }
 
     /**
-     * delete folder
-     *
-     * @param pathDir Folder to delete
-     */
-    public static void deleteFolder(String pathDir) {
-
-        File file = new File(pathDir);
-        try {
-            FileUtils.deleteDirectory(file);
-        } catch (IOException ex) {
-            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_GENERAL, ex, "removing folder " + pathDir);
-        }
-    }
-
-    /**
      * list all files in resource folder
      *
      * @param folder folder name
@@ -426,16 +261,6 @@ public class FileOperation {
         URL url = loader.getResource(folder);
         String path = Objects.requireNonNull(url).getPath();
         return new File(path).listFiles();
-    }
-
-    /**
-     * get file path from resource folder
-     *
-     * @param relativePath relative path to file
-     * @return file path
-     */
-    public static String getFilePathFromResource(String relativePath) {
-        return FileLocator.findResource(relativePath).toString();
     }
 
     /**
@@ -460,16 +285,6 @@ public class FileOperation {
         } else {
             return "";
         }
-    }
-
-    /**
-     * check if string matches to UUID pattern
-     *
-     * @param uuid uuid
-     * @return if string match to uuid regex
-     */
-    public static boolean isUUID(String uuid) {
-        return uuid.matches("^" + UUID_REGEX + "$");
     }
 
     /**
@@ -524,21 +339,21 @@ public class FileOperation {
      * @param filePath relative or full path of file
      * @return true be found
      */
-    public static boolean isFileExists(String filePath) {
-        return isValid(filePath) && (new File(filePath).exists() || FileLocator.isResourceFileExists(filePath));
+    public static boolean isResourceFileExists(String filePath) {
+        return isValid(filePath) && ResourceUtils.isResourceFileExists(FileOperation.getFileName(filePath));
     }
 
     /**
-     * get the file with filePath, which be secured using {@link #isFileExists(String filePath)}
+     * get the file with filePath, which be secured using {@link #isResourceFileExists(String filePath)}
      *
      * @param filePath filePath
      * @return the file
      */
     public static Path getFile(String filePath) {
-        if (!new File(filePath).exists()) {
-            return FileLocator.findResource(filePath);
+        if (isResourceFileExists(filePath)) {
+            return Path.of(ResourceUtils.getFilePathWithName(FileOperation.getFileName(filePath)));
         } else {
-            return new File(filePath).toPath();
+            throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "File does not exist in resource folder or classpath: " + filePath);
         }
     }
 
@@ -554,20 +369,6 @@ public class FileOperation {
             } else {
                 debug("Make dirs unsuccessful!");
             }
-        }
-    }
-
-    /**
-     * Reads an image file.
-     *
-     * @param srcFile the source file
-     * @return the buffered image
-     */
-    public static BufferedImage readImageFile(File srcFile) {
-        try {
-            return ImageIO.read(srcFile);
-        } catch (IOException ex) {
-            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_GENERAL, ex, "Failed on reading image file: " + srcFile.getPath());
         }
     }
 }

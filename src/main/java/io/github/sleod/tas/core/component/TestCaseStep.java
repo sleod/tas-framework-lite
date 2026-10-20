@@ -11,7 +11,7 @@ import io.github.sleod.tas.common.enumerations.TestType;
 import io.github.sleod.tas.common.logging.ScreenCapture;
 import io.github.sleod.tas.configuration.PropertyResolver;
 import io.github.sleod.tas.core.annotations.*;
-import io.github.sleod.tas.core.json.ObjectMapperSingleton;
+import io.github.sleod.tas.common.IOUtils.ObjectMapperSingleton;
 import io.github.sleod.tas.core.json.container.JSONTestCaseStep;
 import io.github.sleod.tas.core.json.container.JsonTestCaseMetaData;
 import io.github.sleod.tas.exception.ExceptionBase;

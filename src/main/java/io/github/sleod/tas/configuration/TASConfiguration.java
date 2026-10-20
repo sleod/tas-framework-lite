@@ -325,16 +325,6 @@ public class TASConfiguration {
     }
 
     /**
-     * toggle if rebase allure report from history
-     *
-     * @param value boolean, default false
-     */
-    public TASConfiguration setRebaseAllureReportEnabled(boolean value) {
-        PropertyResolver.setProperty(ALLURE_REPORT_REBASE.key(), String.valueOf(value));
-        return this;
-    }
-
-    /**
      * set config file for allure report online server
      *
      * @param value like default: "reportServiceRunnerConfig.json"
@@ -615,6 +605,15 @@ public class TASConfiguration {
         return this;
     }
 
+    /**
+     * toggle if allow to use package mode
+     *
+     * @param value boolean, default false
+     */
+    public TASConfiguration setPackageModeEnabled(boolean value) {
+        PropertyResolver.setProperty(PACKAGE_MODE.key(), String.valueOf(value));
+        return this;
+    }
 
     /**
      * set edit  application for use

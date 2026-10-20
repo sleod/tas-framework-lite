@@ -1,4 +1,4 @@
-package io.github.sleod.tas.core.json;
+package io.github.sleod.tas.common.IOUtils;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -8,7 +8,7 @@ import io.github.sleod.tas.common.enumerations.TestStatus;
 import io.github.sleod.tas.configuration.PropertyResolver;
 import io.github.sleod.tas.core.component.TestCaseStep;
 import io.github.sleod.tas.core.component.TestStepResult;
-import io.github.sleod.tas.core.json.ObjectMapperSingleton;
+import io.github.sleod.tas.common.IOUtils.ObjectMapperSingleton;
 import io.github.sleod.tas.core.json.customDeserializer.CustomAttachmentListDeserializer;
 import io.github.sleod.tas.core.json.customDeserializer.CustomResultLabelDeserializer;
 import io.github.sleod.tas.core.media.ImageHandler;

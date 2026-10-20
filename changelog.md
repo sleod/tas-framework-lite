@@ -1,10 +1,24 @@
 #### Version Stack
 ========================
 
-* Latest development version: `6.3.10-RELEASE` (branch `main`)
+* Latest development version: `6.4.00-RELEASE` (branch `main`)
 
 #### New Features and Changes
 ========================
+
+> :rocket: **Version 6.4.00-RELEASE**
+>
+> [OPTIMIZATION]
+> * change load resource file with input stream
+> * scan resources file and generate property file
+> * package property file into jar
+> * jira client: enable create issue with required fields
+> * change resource file location with getResourceAsStream only
+> * add new utility to scan resources file and generate property file
+> * enable scan resources file on runtime for local run
+> * enable toggle report generation
+> * enable toggle package mode and normal mode (package mode: readonly resources file in jar, normal mode: read resources file in local folder)
+> * normalize all file paths related to report
 
 > :rocket: **Version 6.3.10-RELEASE**
 >

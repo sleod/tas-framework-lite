@@ -9,7 +9,7 @@ import io.github.sleod.tas.core.component.TestCaseObject;
 import io.github.sleod.tas.core.component.TestCaseStep;
 import io.github.sleod.tas.core.component.TestRunResult;
 import io.github.sleod.tas.core.component.TestStepResult;
-import io.github.sleod.tas.core.json.ObjectMapperSingleton;
+import io.github.sleod.tas.common.IOUtils.ObjectMapperSingleton;
 import io.github.sleod.tas.core.json.container.JSONTestCase;
 import io.github.sleod.tas.core.json.deserialization.JSONContainerFactory;
 import io.github.sleod.tas.exception.ExceptionBase;

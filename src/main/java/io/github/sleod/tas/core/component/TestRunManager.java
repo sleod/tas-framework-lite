@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.github.sleod.tas.common.IOUtils.FileLocator;
-import io.github.sleod.tas.common.IOUtils.FileOperation;
+import io.github.sleod.tas.common.IOUtils.ResourceUtils;
 import io.github.sleod.tas.common.enumerations.PropertyKey;
 import io.github.sleod.tas.common.enumerations.TestType;
 import io.github.sleod.tas.common.logging.ScreenCapture;
@@ -33,8 +33,7 @@ import static io.github.sleod.tas.common.logging.SystemLogger.*;
 import static io.github.sleod.tas.common.utils.ObjectWriterReader.WriteObject;
 import static io.github.sleod.tas.common.utils.ObjectWriterReader.readObject;
 import static io.github.sleod.tas.common.utils.StringTextUtils.isValid;
-import static io.github.sleod.tas.configuration.PropertyResolver.getTestCaseLocation;
-import static io.github.sleod.tas.core.json.ObjectMapperSingleton.mapper;
+import static io.github.sleod.tas.common.IOUtils.ObjectMapperSingleton.mapper;
 
 public class TestRunManager {
 
@@ -95,11 +94,8 @@ public class TestRunManager {
      * @return file paths of test cases
      */
     public static List<String> findAllFilePathOfTestCaseFile(List<String> includeFilePatterns, List<String> excludeFilePatterns) {
-        List<String> paths = FileLocator.findPaths(FileLocator.findResource(getTestCaseLocation()),
-                includeFilePatterns,
-                excludeFilePatterns,
-                getTestCaseLocation());
-        debug("Paths found: " + Arrays.toString(paths.toArray()));
+        List<String> paths = ResourceUtils.findResourcePaths(includeFilePatterns, excludeFilePatterns);
+        debug("Paths found: " + String.join(System.lineSeparator() + "-> ", paths));
         return paths;
     }
 
@@ -404,7 +400,7 @@ public class TestRunManager {
 
 
     private static void retrieveDBConfig() {
-        if (FileOperation.isFileExists(PropertyResolver.getDBConfigFile())) {
+        if (ResourceUtils.isResourceFileExists(PropertyResolver.getDBConfigFile())) {
             JsonNode dbConfig = JSONContainerFactory.getConfig(PropertyResolver.getDBConfigFile());
             try {
                 PropertyResolver.setProperty(PropertyKey.DB_USER.key(), dbConfig.get("user").asText());
@@ -423,7 +419,7 @@ public class TestRunManager {
 
     private static void retrieveJiraConfig() {
         if (PropertyResolver.isJIRASyncEnabled()) {
-            if (FileOperation.isFileExists(PropertyResolver.getJiraConfigFile())) {
+            if (ResourceUtils.isResourceFileExists(PropertyResolver.getJiraConfigFile())) {
                 try {
                     JsonNode jiraConfig = JSONContainerFactory.getConfig(PropertyResolver.getJiraConfigFile());
                     PropertyResolver.setProperty(PropertyKey.JIRA_USER.key(), jiraConfig.get("user").asText());
@@ -436,7 +432,7 @@ public class TestRunManager {
             } else {
                 throw new ExceptionBase(ExceptionErrorKeys.CONFIG_FILE_NOT_FOUND, PropertyResolver.getJiraConfigFile());
             }
-            if (FileOperation.isFileExists(PropertyResolver.getJiraExecutionConfigFile())) {
+            if (ResourceUtils.isResourceFileExists(PropertyResolver.getJiraExecutionConfigFile())) {
                 jiraExecutionConfig = JSONContainerFactory.getRunnerConfig(PropertyResolver.getJiraExecutionConfigFile());
             } else {
                 throw new ExceptionBase(ExceptionErrorKeys.CONFIG_FILE_NOT_FOUND, PropertyResolver.getJiraExecutionConfigFile());
@@ -451,7 +447,7 @@ public class TestRunManager {
 
     private static void retrieveQCConfig() {
         if (PropertyResolver.isSyncToQCEnabled()) {
-            if (!FileOperation.isFileExists(PropertyResolver.getQCConfigFile())) {
+            if (!ResourceUtils.isResourceFileExists(PropertyResolver.getQCConfigFile())) {
                 throw new ExceptionBase(ExceptionErrorKeys.CONFIG_FILE_NOT_FOUND, PropertyResolver.getQCConfigFile());
             } else {
                 JsonNode qcConfig = JSONContainerFactory.getConfig(PropertyResolver.getQCConfigFile());
@@ -473,7 +469,7 @@ public class TestRunManager {
     }
 
     private static void retrieveProxyConfig() {
-        if (!FileOperation.isFileExists(PropertyResolver.getProxyConfig())) {
+        if (!ResourceUtils.isResourceFileExists(PropertyResolver.getProxyConfig())) {
             debug(PropertyResolver.getProxyConfig() + " file does not exist.");
         } else {
             JsonNode proxyConfig = ConfigFileManager.getProxyConfig();
@@ -576,16 +572,12 @@ public class TestRunManager {
      * the file named with "xxxx-test-data-global.json" will be loaded automatically
      */
     public static void loadGlobalTestData() {
-        if (FileLocator.isResourceFileExists(PropertyResolver.getTestDataLocation())) {
-            Path path = FileLocator.findResource(PropertyResolver.getTestDataLocation());
-            List<Path> paths1 = FileLocator.listRegularFilesRecursiveMatchedToName(path.toString(), 5, "testdata-global");
-            List<Path> paths2 = FileLocator.listRegularFilesRecursiveMatchedToName(path.toString(), 5, "testData-global");
-            List<Path> globalTestDataPaths = new ArrayList<>(paths1);
-            globalTestDataPaths.addAll(paths2);
-            if (globalTestDataPaths.size() > 1) {
-                throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_GLOBAL_FILE_SHOULD_BE_UNIQUE, Strings.join("|", paths1.toArray()));
-            } else if (globalTestDataPaths.size() == 1) {
-                TestDataContainer.loadGlobalTestData(globalTestDataPaths.getFirst());
+        if (ResourceUtils.isResourceFileExists(PropertyResolver.getTestDataLocation())) {
+            List<String> testDataPaths = ResourceUtils.listFilePathsOfName(PropertyResolver.getTestDataLocation(), "testdata-global.json");
+            if (testDataPaths.size() > 1) {
+                throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_GLOBAL_FILE_SHOULD_BE_UNIQUE, Strings.join("|", testDataPaths.toArray()));
+            } else if (testDataPaths.size() == 1) {
+                TestDataContainer.loadGlobalTestData(testDataPaths.getFirst());
             } else {
                 info("No global test data file detected!");
             }

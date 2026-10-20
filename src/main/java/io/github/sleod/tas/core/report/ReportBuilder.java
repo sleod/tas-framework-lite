@@ -11,7 +11,7 @@ import io.github.sleod.tas.common.utils.DateTimeUtils;
 import io.github.sleod.tas.configuration.PropertyResolver;
 import io.github.sleod.tas.core.component.*;
 import io.github.sleod.tas.core.controller.ExternAppController;
-import io.github.sleod.tas.core.json.ObjectMapperSingleton;
+import io.github.sleod.tas.common.IOUtils.ObjectMapperSingleton;
 import io.github.sleod.tas.core.json.container.JSONDriverConfig;
 import io.github.sleod.tas.core.json.container.JSONStepResult;
 import io.github.sleod.tas.core.json.container.JSONTestResult;
@@ -32,7 +32,7 @@ import java.util.*;
 import static io.github.sleod.tas.common.logging.SystemLogger.debug;
 import static io.github.sleod.tas.common.logging.SystemLogger.info;
 import static io.github.sleod.tas.common.utils.StringTextUtils.isValid;
-import static io.github.sleod.tas.core.json.ObjectMapperSingleton.mapper;
+import static io.github.sleod.tas.common.IOUtils.ObjectMapperSingleton.mapper;
 import static io.github.sleod.tas.core.json.deserialization.JSONContainerFactory.*;
 
 public class ReportBuilder {
@@ -167,7 +167,7 @@ public class ReportBuilder {
         if (PropertyResolver.getAllureVersion() > 2) {
             command = "allure awesome ";
         }
-        if (FileOperation.isFileExists(currReportDir)) {
+        if (FileOperation.isResourceFileExists(currReportDir)) {
             command += "--clean ";
         }
         if (PropertyResolver.isGenerateSingleFileReport()) {
@@ -177,9 +177,6 @@ public class ReportBuilder {
         ExternAppController.executeCommand(command);
         //move results to current run folder
         ReportBuilder.archiveResults();
-        if (PropertyResolver.isRebaseAllureReportEnabled()) {
-            rebaseExistingAllureResults();
-        }
     }
 
     public static void archiveResults() {
@@ -217,7 +214,12 @@ public class ReportBuilder {
         currentOrder = buildOrder;
     }
 
+    /**
+     * generate reports after all test cases finished
+     * do not generate report in package mode
+     */
     public void generateReports() {
+        if (PropertyResolver.isPackageMode()) return;
         if (PropertyResolver.isGenerateAllureReport()) {
             generateFrameworkConfig();
             generateAllureHTMLReport();
@@ -265,12 +267,12 @@ public class ReportBuilder {
             }
             JsonNode config = null;
             String configName = "";
-            if (PropertyKey.REPORT_SERVICE_RUNNER_CONFIG.equals(propertyKey) && FileOperation.isFileExists(PropertyResolver.getReportServiceRunnerConfigFile())) {
+            if (PropertyKey.REPORT_SERVICE_RUNNER_CONFIG.equals(propertyKey) && FileOperation.isResourceFileExists(PropertyResolver.getReportServiceRunnerConfigFile())) {
                 //allure config
                 value = PropertyResolver.getReportServiceRunnerConfigFile();
                 config = JSONContainerFactory.getConfig(PropertyResolver.getReportServiceRunnerConfigFile()).get("allureServiceConfig");
                 configName = "ALLURE Report Service Config";
-            } else if (PropertyKey.DRIVER_DOWNLOAD_CONFIG.equals(propertyKey) && FileOperation.isFileExists(PropertyResolver.getDriverDownloadConfigFile())) {
+            } else if (PropertyKey.DRIVER_DOWNLOAD_CONFIG.equals(propertyKey) && FileOperation.isResourceFileExists(PropertyResolver.getDriverDownloadConfigFile())) {
                 //driver download config
                 value = PropertyResolver.getDriverDownloadConfigFile();
                 config = JSONContainerFactory.getConfig(PropertyResolver.getDriverDownloadConfigFile());
@@ -305,39 +307,6 @@ public class ReportBuilder {
 
     public static void addUsedConfigs(String filePath) {
         getUsedDriverConfigs().add(filePath);
-    }
-
-    /**
-     * rebase existing allure result because of diff on History id
-     */
-    private void rebaseExistingAllureResults() {
-        String historyContent = getHistoryContent();
-        List<JsonNode> rebasedAllureResults = new LinkedList<>();
-        ObjectMapper mapper = ObjectMapperSingleton.mapper();
-        String tempPath = "";
-        try {
-            for (String filePath : getAllureResults()) {
-                tempPath = filePath;
-                JsonNode result = mapper.readTree(FileOperation.readFileToLinedString(filePath));
-                String historyId = result.get("historyId").asText();
-                String rebaseHisId = buildHistoryId(result.get("labels").get(0).get("value").asText() + "." + result.get("name").asText());
-                if (!rebaseHisId.equals(historyId)) {
-                    historyContent = historyContent.replace(historyId, rebaseHisId);
-                    ((ObjectNode) result).put("historyId", rebaseHisId);
-                }
-                rebasedAllureResults.add(result);
-            }
-
-            if (!historyContent.isEmpty()) {
-                String filePath = PropertyResolver.getAllureResultsDirectory() + "history/history.json";
-                FileOperation.writeStringToFile(historyContent, filePath);
-            }
-            for (JsonNode result : rebasedAllureResults) {
-                FileOperation.writeStringToFile(result.toString(), PropertyResolver.getAllureResultsDirectory() + result.get("uuid").asText() + "-result.json");
-            }
-        } catch (IOException ex) {
-            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_READING, ex, tempPath);
-        }
     }
 
     /**

@@ -2,7 +2,7 @@ package io.github.sleod.tas.rest.base;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.github.sleod.tas.core.json.ObjectMapperSingleton;
+import io.github.sleod.tas.common.IOUtils.ObjectMapperSingleton;
 import io.github.sleod.tas.exception.ExceptionBase;
 import io.github.sleod.tas.exception.ExceptionErrorKeys;
 import jakarta.ws.rs.core.Response;

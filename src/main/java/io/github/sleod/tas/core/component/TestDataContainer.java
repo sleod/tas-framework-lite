@@ -6,22 +6,25 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.github.sleod.tas.common.IOUtils.FileLocator;
 import io.github.sleod.tas.common.IOUtils.FileOperation;
+import io.github.sleod.tas.common.IOUtils.ResourceUtils;
 import io.github.sleod.tas.common.enumerations.FileFormat;
 import io.github.sleod.tas.common.utils.DBConnector;
 import io.github.sleod.tas.common.utils.StringTextUtils;
 import io.github.sleod.tas.configuration.PropertyResolver;
-import io.github.sleod.tas.core.json.ObjectMapperSingleton;
+import io.github.sleod.tas.common.IOUtils.ObjectMapperSingleton;
 import io.github.sleod.tas.exception.ExceptionBase;
 import io.github.sleod.tas.exception.ExceptionErrorKeys;
 import io.github.sleod.tas.exception.TestDataEmptyException;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static io.github.sleod.tas.common.logging.SystemLogger.debug;
 import static io.github.sleod.tas.common.logging.SystemLogger.info;
 
 public class TestDataContainer {
@@ -37,8 +40,16 @@ public class TestDataContainer {
 
     public TestDataContainer(String testDataRef, String additional) {
         if (StringTextUtils.isValid(testDataRef)) {
-            loadTestData(testDataRef);
-            loadAdditionalTestData(additional);
+            try {
+                loadTestData(testDataRef);
+            } catch (IOException ex) {
+                throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_LOAD_FAILED, ex, "Error while loading test data from reference: ", testDataRef);
+            }
+            try {
+                loadAdditionalTestData(additional);
+            } catch (IOException ex) {
+                throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_LOAD_FAILED, ex, "Error while loading additional test data from reference: ", additional);
+            }
         } else {
             throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_FOR_TEST_OBJECT_NOT_DEFINED);
         }
@@ -46,7 +57,11 @@ public class TestDataContainer {
 
     public TestDataContainer(List<Map<String, Object>> dataContent, String additional) {
         this.dataContent = dataContent;
-        loadAdditionalTestData(additional);
+        try {
+            loadAdditionalTestData(additional);
+        } catch (IOException ex) {
+            throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_LOAD_FAILED, ex, "Error while loading additional test data from reference: ", additional);
+        }
     }
 
     public Object getPageObject(String key) {
@@ -91,7 +106,7 @@ public class TestDataContainer {
         });
     }
 
-    private void loadAdditionalTestData(String fileRef) {
+    private void loadAdditionalTestData(String fileRef) throws IOException {
         if (StringTextUtils.isValid(fileRef)) {
             String addTestDataRef = fileRef.toLowerCase();
             if (!addTestDataRef.startsWith("file:") || !addTestDataRef.endsWith(".json")) {
@@ -155,7 +170,7 @@ public class TestDataContainer {
     }
 
     private boolean checkDataContentContainsKey(String key) {
-        if( dataContent == null || dataContent.isEmpty()) {
+        if (dataContent == null || dataContent.isEmpty()) {
             throw new TestDataEmptyException("Data content is empty or not initialized.", "TestDataContainer -> dataContent");
         }
         return dataContent.getFirst().containsKey(key);
@@ -197,49 +212,39 @@ public class TestDataContainer {
         }
     }
 
-    private void loadTestData(String testDataRef) {
+    private void loadTestData(String testDataRef) throws IOException {
         String[] token = testDataRef.split(":");
         if ("File".equals(token[0])) {
             String filePath;
-            if (token[1].replace("\\", "/").contains("/")) {
-                filePath = FileLocator.findResource(token[1]).toString();
-            } else {
-                String testDataLocation = FileLocator.findResource(PropertyResolver.getTestDataLocation()).toString();
-                List<Path> filePaths = FileLocator.listRegularFilesRecursiveMatchedToName(testDataLocation, 5, token[1]);
-                if (filePaths.size() > 1) {
-                    testDataLocation = FileLocator.findResource(PropertyResolver.getTestDataFolder()).toString();
-                    filePath = FileLocator.findExactFile(testDataLocation, 5, token[1]).toString();
-                } else {
-                    filePath = filePaths.getFirst().toString();
-                }
-            }
-            info("Load test data file: " + filePath);
-            loadWithFile(filePath);
+            String fileName = new File(token[1].replace("\\", "/")).getName();
+            String testDataFilePath = ResourceUtils.getFilePathWithName(fileName);
+            info("Load test data file: " + testDataFilePath);
+            loadWithFile(testDataFilePath);
         } else {
             throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_REFERENCE_NO_MATCH, testDataRef);
         }
     }
 
-    private void loadWithFile(String testDataRef) {
+    private void loadWithFile(String filepath) throws IOException {
+        //get file extension to determine the file format
         Pattern pattern = Pattern.compile("\\.(\\w+)$");
-        Matcher matcher = pattern.matcher(testDataRef);
+        Matcher matcher = pattern.matcher(filepath);
         if (matcher.find()) {
             String suffix = matcher.group(1);
             FileFormat fileFormat = FileFormat.valueOf(suffix.toUpperCase());
             switch (fileFormat) {
-                case EXCEL, EXCELX -> loadExcelContent(testDataRef);
-                case CSV -> loadCSVContent(testDataRef);
-                case SQL -> loadDBContent(testDataRef);
-                case JSON -> loadJSONContent(testDataRef);
-                default ->
-                        throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_REFERENCE_FORMAT_UNSUPPORTED, testDataRef);
+                case EXCEL, EXCELX -> loadExcelContent(filepath);
+                case CSV -> loadCSVContent(filepath);
+                case SQL -> loadDBContentWithSQL(filepath);
+                case JSON -> loadJSONContent(filepath);
+                default -> throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_REFERENCE_FORMAT_UNSUPPORTED, filepath);
             }
         }
     }
 
-    public static void loadGlobalTestData(Path path) {
+    public static void loadGlobalTestData(String path) {
         info("Load Global Test Data: " + path);
-        String content = FileOperation.readFileToLinedString(path.toString());
+        String content = FileOperation.readFileToLinedString(path);
         try {
             globalTestData = mapper.readTree(content);
         } catch (JsonProcessingException ex) {
@@ -250,10 +255,10 @@ public class TestDataContainer {
     /**
      * load CSV content and regarding comment sign like #, //, "/* .. \*\/
      *
-     * @param testDataRef testData Reference
+     * @param filepath testData file path
      */
-    private void loadCSVContent(String testDataRef) {
-        List<String> content = FileOperation.readFileToStringList(testDataRef);
+    private void loadCSVContent(String filepath) throws IOException {
+        List<String> content = ResourceUtils.readResourceFileToLinedString(filepath);
         if (!content.isEmpty()) {
             if (dataContent == null) {
                 dataContent = new LinkedList<>();
@@ -293,39 +298,38 @@ public class TestDataContainer {
         }
     }
 
-    private void loadDBContent(String testDataRef) {
-        String sql = FileOperation.readFileToLinedString(testDataRef);
+    private void loadDBContentWithSQL(String filepath) throws IOException {
+        String sql = ResourceUtils.readResourceFileToString(filepath);
         dataContent = DBConnector.connectAndExecute(sql);
         setRepeat(dataContent.size() > 1);
     }
 
     //todo: define excel content loader
-    private void loadExcelContent(String testDataRef) {
-        String content = FileOperation.readFileToLinedString(testDataRef);
+    private void loadExcelContent(String filepath) {
+        debug("Load Excel content: " + filepath);
     }
 
-    private void loadJSONContent(String testDataRef) {
-        String content = FileOperation.readFileToLinedString(testDataRef);
-        ObjectNode data;
+    private void loadJSONContent(String filepath) throws IOException {
+        debug("Load Json content: " + filepath);
+        String content = ResourceUtils.readResourceFileToString(filepath);
+        ObjectNode jsonNodes;
         try {
-            data = (ObjectNode) mapper.readTree(content);
-            Iterator<Map.Entry<String, JsonNode>> fields = data.fields();
+            jsonNodes = (ObjectNode) mapper.readTree(content);
             if (additionalData && jsonData != null) {
                 ObjectNode workingNode = jsonData.deepCopy();
-                while (fields.hasNext()) {
-                    Map.Entry<String, JsonNode> field = fields.next();
+                for (Map.Entry<String, JsonNode> field : jsonNodes.properties()) {
                     String key = field.getKey();
                     JsonNode fieldValue = field.getValue();
-                    if (!workingNode.has(field.getKey())) {
+                    if (!workingNode.has(key)) {
                         workingNode.set(key, fieldValue);
                     }
                 }
                 jsonData = workingNode;
             } else {
-                jsonData = data;
+                jsonData = jsonNodes;
             }
         } catch (JsonProcessingException ex) {
-            throw new ExceptionBase(ExceptionErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, testDataRef);
+            throw new ExceptionBase(ExceptionErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, filepath);
         }
     }
 }

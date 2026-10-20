@@ -1,11 +1,11 @@
 package io.github.sleod.tas.common.utils;
 
-import io.github.sleod.tas.common.IOUtils.FileLocator;
-import io.github.sleod.tas.common.IOUtils.FileOperation;
+import io.github.sleod.tas.common.IOUtils.ResourceUtils;
 import io.github.sleod.tas.configuration.PropertyResolver;
 import io.github.sleod.tas.exception.ExceptionBase;
 import io.github.sleod.tas.exception.ExceptionErrorKeys;
 
+import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,13 +30,18 @@ public class DBConnector {
      */
     public static String getSQLStatement(String sqlContentOrFilename) {
         String sqlStatement = sqlContentOrFilename;
-        if (sqlContentOrFilename.endsWith(".sql")) {//read sql file
-            String location = FileLocator.findResource(PropertyResolver.getTestDataLocation()).toString();
-            sqlStatement = FileOperation.readFileToLinedString(FileLocator.findExactFile(location, 5, sqlContentOrFilename).toString());
+        if (sqlContentOrFilename.toLowerCase().endsWith(".sql")) {//read sql file
+            String content = null;
+            try {
+                content = ResourceUtils.getResourceFileContent(sqlContentOrFilename);
+            } catch (IOException e) {
+                throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Error while reading: " + sqlContentOrFilename);
+            }
+            sqlStatement = content;
             if (sqlStatement.isEmpty()) {
                 throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Given .sql File can not be found in test data! SQL: " + sqlContentOrFilename);
             }
-        } else if (!sqlContentOrFilename.toLowerCase().startsWith("select")) {//
+        } else if (!sqlContentOrFilename.toLowerCase().startsWith("select") || !sqlContentOrFilename.toLowerCase().contains("select")) {
             throw new ExceptionBase(ExceptionErrorKeys.CUSTOM_MESSAGE, "Given Context is neither .sql file nor Select Statement");
         }
         return sqlStatement;
@@ -56,6 +61,7 @@ public class DBConnector {
 
     /**
      * Normalize Value in Result Set into String. (null -> 'null')
+     *
      * @param dbData DB Result Set
      * @return normalized result set in string map
      */
@@ -65,7 +71,8 @@ public class DBConnector {
 
     /**
      * Normalize Value in Result Set into String. (null -> given String)
-     * @param dbData DB Result Set
+     *
+     * @param dbData      DB Result Set
      * @param replaceNull string for replace null
      * @return normalized result set in string map
      */
@@ -79,7 +86,8 @@ public class DBConnector {
 
     /**
      * Formate DB Date into given format
-     * @param date Date from DB
+     *
+     * @param date      Date from DB
      * @param srcFormat Date format in DB
      * @param tarFormat Date formate to be converted
      * @return formatted date
@@ -94,7 +102,8 @@ public class DBConnector {
 
     /**
      * Fetch Data in DB Result Set with key into mapped string map, in case key : values in 1 : 1 relationship
-     * @param key for mapping
+     *
+     * @param key    for mapping
      * @param dbData db result set
      * @return mapped string map
      */
@@ -108,7 +117,8 @@ public class DBConnector {
 
     /**
      * Fetch Data in DB Result Set with keys into mapped string map, in case keys (group) : values in 1 : 1 relationship
-     * @param keys key group for mapping
+     *
+     * @param keys   key group for mapping
      * @param dbData db result set
      * @return mapped string map
      */
@@ -124,7 +134,8 @@ public class DBConnector {
 
     /**
      * Fetch Data in DB Result Set with keys into mapped string map, in case keys (group) : values in 1 : n relationship
-     * @param key for mapping
+     *
+     * @param key    for mapping
      * @param dbData db result set
      * @return mapped string map
      */
@@ -145,7 +156,8 @@ public class DBConnector {
 
     /**
      * Convert DB Keys in lowercase / uppercase
-     * @param dataMap DB Result Set
+     *
+     * @param dataMap       DB Result Set
      * @param isToLowercase flag for convert
      * @return converted map
      */
@@ -209,7 +221,7 @@ public class DBConnector {
                 case "mssql" -> {
                     Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
                     // Set up the connection with the DB
-                    url = "jdbc:sqlserver://" + host + ":" + port + ";databaseName=" + dbName +";encrypt=true;trustServerCertificate=true;";
+                    url = "jdbc:sqlserver://" + host + ":" + port + ";databaseName=" + dbName + ";encrypt=true;trustServerCertificate=true;";
                 }
             }
             if (!url.isEmpty()) {

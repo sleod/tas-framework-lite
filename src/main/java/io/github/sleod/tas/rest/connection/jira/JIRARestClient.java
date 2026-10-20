@@ -13,7 +13,7 @@ import io.github.sleod.tas.common.utils.WaitUtils;
 import io.github.sleod.tas.configuration.PropertyResolver;
 import io.github.sleod.tas.core.component.DriverManager;
 import io.github.sleod.tas.core.component.TestRunResult;
-import io.github.sleod.tas.core.json.ObjectMapperSingleton;
+import io.github.sleod.tas.common.IOUtils.ObjectMapperSingleton;
 import io.github.sleod.tas.core.json.container.JSONRunnerConfig;
 import io.github.sleod.tas.core.json.deserialization.JSONContainerFactory;
 import io.github.sleod.tas.exception.ExceptionBase;
@@ -25,13 +25,11 @@ import jakarta.ws.rs.core.Response;
 import lombok.Getter;
 import lombok.Setter;
 import org.junit.jupiter.api.Assertions;
-import org.openqa.selenium.json.Json;
 
 import java.io.File;
 import java.util.*;
 
 import static io.github.sleod.tas.common.logging.SystemLogger.info;
-import static io.github.sleod.tas.common.logging.SystemLogger.warn;
 import static io.github.sleod.tas.common.utils.StringTextUtils.isValid;
 
 public class JIRARestClient extends TASRestClient {

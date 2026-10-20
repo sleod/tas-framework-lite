@@ -95,14 +95,14 @@ public class ConfigFileManager {
 
 
     private static JsonNode getConfigFile(String fileName) {
-        if (!FileOperation.isFileExists(fileName)) {
+        if (!FileOperation.isResourceFileExists(fileName)) {
             throw new ExceptionBase(ExceptionErrorKeys.CONFIG_FILE_NOT_FOUND, fileName);
         }
         return JSONContainerFactory.getConfig(fileName);
     }
 
     private static JSONRunnerConfig getExecutionConfigFile(String fileName) {
-        if (!FileOperation.isFileExists(fileName)) {
+        if (!FileOperation.isResourceFileExists(fileName)) {
             throw new ExceptionBase(ExceptionErrorKeys.CONFIG_FILE_NOT_FOUND, fileName);
         }
         return JSONContainerFactory.getRunnerConfig(fileName);

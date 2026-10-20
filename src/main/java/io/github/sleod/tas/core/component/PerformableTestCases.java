@@ -1,6 +1,7 @@
 package io.github.sleod.tas.core.component;
 
 import com.codeborne.selenide.Configuration;
+import io.github.sleod.tas.common.IOUtils.ResourceIndexGenerator;
 import io.github.sleod.tas.configuration.PropertyResolver;
 import io.github.sleod.tas.configuration.TASConfiguration;
 import io.github.sleod.tas.core.report.ReportBuilder;
@@ -20,7 +21,6 @@ import static io.github.sleod.tas.common.logging.SystemLogger.info;
 import static io.github.sleod.tas.common.utils.StringTextUtils.isValid;
 import static io.github.sleod.tas.configuration.PropertyResolver.*;
 import static io.github.sleod.tas.core.component.TestRunManager.*;
-import static java.util.Arrays.asList;
 
 /**
  * Abstract class for performable test cases.
@@ -29,7 +29,7 @@ public abstract class PerformableTestCases {
 
     /**
      * -- GETTER --
-     *  List of test case objects.
+     * List of test case objects.
      */
     @Getter
     private List<TestCaseObject> testCaseObjects = Collections.emptyList();
@@ -56,10 +56,16 @@ public abstract class PerformableTestCases {
     }
 
     /**
-     * standard BeforeClass that will be used by jUnit framework
+     * standard BeforeClass that will be used by JUnit framework
      */
     @BeforeAll
     public static void beforeTests() {
+        info("generating resource index file...");
+        try {
+            ResourceIndexGenerator.generateResourceIndex("src/main/resources/resource-index.json");
+        } catch (Exception e) {
+            fatal(e);
+        }
         info("Starting Test Run...");
         //static files for report and start count run number
         ReportBuilder.generateExecutorJSON();
@@ -68,6 +74,7 @@ public abstract class PerformableTestCases {
 
     /**
      * Get the stream of single test cases.
+     *
      * @return stream of single test cases
      */
     public Stream<DynamicContainer> getSingleTestCases() {
@@ -79,6 +86,7 @@ public abstract class PerformableTestCases {
 
     /**
      * Get the stream of series test cases.
+     *
      * @return stream of series test cases
      */
     public Stream<DynamicContainer> getSeriesTestCases() {
@@ -96,6 +104,7 @@ public abstract class PerformableTestCases {
 
     /**
      * Get the test case ready for execution.
+     *
      * @param testCaseObject the test case object
      * @return the dynamic container for the test case
      */
@@ -108,6 +117,7 @@ public abstract class PerformableTestCases {
 
     /**
      * Get the stream of test cases for execution.
+     *
      * @return stream of test cases
      */
     @TestFactory
@@ -124,7 +134,7 @@ public abstract class PerformableTestCases {
         info("Ending Test Run...");
         //finish afterTest for last test case
         TestStepMonitor.afterAllSteps();
-        //generate allure html report locally, only wenn not parallel execution
+        //generate allure HTML report locally, only wenn not parallel execution
         if (!PropertyResolver.isExecutionRemoteParallelEnabled()) {
             info("Generate local Allure and XML Report.");
             new ReportBuilder().generateReports();
@@ -143,6 +153,7 @@ public abstract class PerformableTestCases {
 
     /**
      * Get the TAS configuration.
+     *
      * @return the TAS configuration
      */
     public TASConfiguration getTASConfiguration() {
@@ -158,7 +169,7 @@ public abstract class PerformableTestCases {
      * @return the patterns of test case files to include
      */
     protected List<String> includeFilePatterns() {
-        return asList("*" + getTestCaseFileExtension(), "**/*" + getTestCaseFileExtension());
+        return List.of(PropertyResolver.getTestCaseLocation() + "**/*" + getTestCaseFileExtension());
     }
 
     /**

@@ -1,6 +1,6 @@
 package io.github.sleod.tas.configuration;
 
-import io.github.sleod.tas.common.IOUtils.FileLocator;
+import io.github.sleod.tas.common.IOUtils.ResourceUtils;
 import io.github.sleod.tas.common.enumerations.DownloadStrategy;
 import io.github.sleod.tas.common.enumerations.WebDriverName;
 import io.github.sleod.tas.exception.ExceptionBase;
@@ -441,10 +441,6 @@ public class PropertyResolver {
         return getProperty(RUN_QC_SYNC.key(), "false").equalsIgnoreCase("true");
     }
 
-    public static boolean isRebaseAllureReportEnabled() {
-        return getProperty(ALLURE_REPORT_REBASE.key(), "false").equalsIgnoreCase("true");
-    }
-
     public static boolean isRetryOnErrorEnabled() {
         return getProperty(RETRY_MODE_ENABLED.key(), "false").equalsIgnoreCase("true");
     }
@@ -454,7 +450,7 @@ public class PropertyResolver {
     }
 
     public static boolean isHideAutomationBannerEnabled() {
-        return getProperty(DRIVER_BROWSER_HIDE_AUTOMATION_BANNER.key(), "false").equalsIgnoreCase("true");
+        return getProperty(DRIVER_BROWSER_HIDE_AUTOMATION_BANNER.key(), "true").equalsIgnoreCase("true");
     }
 
     public static String getProperty(String key) {
@@ -548,7 +544,7 @@ public class PropertyResolver {
 
     public static String getTestDataFolder() {
         String folder = PropertyResolver.getTestDataLocation() + PropertyResolver.getTestEnvironment();
-        if (FileLocator.findLocalResource(folder) == null) {
+        if (!ResourceUtils.resourceFolderExists(folder)) {
             folder = PropertyResolver.getTestDataLocation();
         }
         return folder;
@@ -644,6 +640,10 @@ public class PropertyResolver {
 
     public static boolean isProxyEnabled() {
         return getProperty(PROXY_ENABLED.key(), "false").equalsIgnoreCase("true");
+    }
+
+    public static boolean isPackageMode() {
+        return getProperty(PACKAGE_MODE.key(), "false").equalsIgnoreCase("true");
     }
 
     public static String getDBHost() {

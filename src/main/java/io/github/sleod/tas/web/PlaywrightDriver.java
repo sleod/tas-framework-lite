@@ -68,7 +68,6 @@ public class PlaywrightDriver {
                 .setLocale("de-CH")
                 .setAcceptDownloads(true)
                 .setIgnoreHTTPSErrors(true)
-                .setChromiumSandbox(false)
                 .setViewportSize(PropertyResolver.getBrowserScreenWidth(), PropertyResolver.getBrowserScreenHigh())
                 .setArgs(getArguments());
         if (PropertyResolver.isHideAutomationBannerEnabled()) {

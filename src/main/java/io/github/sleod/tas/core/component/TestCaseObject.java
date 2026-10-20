@@ -51,16 +51,24 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
     private final TestDataContainer testDataContainer;
     private final JSONTestCase testCase;
     private final TestRunResult testRunResult = new TestRunResult();
-    @Setter private String testCaseId;
-    @Setter private Map<String, String> testCaseIdMap;
-    @Setter private String seriesNumber;
+    @Setter
+    private String testCaseId;
+    @Setter
+    private Map<String, String> testCaseIdMap;
+    @Setter
+    private String seriesNumber;
     private final String description;
-    @Setter private String name;
-    @Setter private String filePath;
+    @Setter
+    private String name;
+    @Setter
+    private String filePath;
     private final TestType testType;
-    @Setter private String suiteName;
-    @Setter private ReportBuilder reportBuilder;
-    @Setter private JsonTestCaseMetaData jsonTestCaseMetaData;
+    @Setter
+    private String suiteName;
+    @Setter
+    private ReportBuilder reportBuilder;
+    @Setter
+    private JsonTestCaseMetaData jsonTestCaseMetaData;
     private final String originalName;
 
     /**
@@ -237,19 +245,21 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
                 DriverManager.stopRecordingScreen(testRunResult);
             }
         } catch (Throwable throwable) {
-            info("Feedback failed: "+ throwable.getMessage());
+            info("Feedback failed: " + throwable.getMessage());
             debug("Feedback failed: " + throwable.getMessage() + System.lineSeparator() + Arrays.toString(throwable.getStackTrace()));
         }
-        info("Generate Allure Result: " + getName());
-        //generate allure results files for this test case
-        List<String> filePaths = getReportBuilder().generateAllureResults(this);
-        try {
-            if (PropertyResolver.isAllureReportServiceEnabled()) {
-                info("Upload Allure Results to Server.");
-                new ReportBuilderAllureService().uploadAllureResults(filePaths);
+        if (PropertyResolver.isGenerateAllureReport()) {
+            info("Generate Allure Result: " + getName());
+            //generate allure results files for this test case
+            List<String> filePaths = getReportBuilder().generateAllureResults(this);
+            try {
+                if (PropertyResolver.isAllureReportServiceEnabled()) {
+                    info("Upload Allure Results to Server.");
+                    new ReportBuilderAllureService().uploadAllureResults(filePaths);
+                }
+            } catch (Throwable throwable) {
+                debug("Allure Report Upload failed: " + throwable.getMessage() + System.lineSeparator() + Arrays.toString(throwable.getStackTrace()));
             }
-        } catch (Throwable throwable) {
-            debug("Allure Report Upload failed: " + throwable.getMessage() + System.lineSeparator() + Arrays.toString(throwable.getStackTrace()));
         }
         boolean previewSetting = PropertyResolver.isKeepBrowserOnErrorEnabled();
         boolean isKeepBrowser = previewSetting && testRunResult.getStatus().equals(TestStatus.FAIL);
@@ -298,6 +308,7 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
 
     /**
      * prepare and get display name
+     *
      * @return name to display
      */
     public String prepareAndGetDisplayName() {
@@ -308,6 +319,7 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
 
     /**
      * Check if there are conditions defined for the test case.
+     *
      * @return true if conditions are present, false otherwise
      */
     public boolean hasCondition() {
@@ -316,6 +328,7 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
 
     /**
      * Check if random line usage is enabled.
+     *
      * @return true if random line usage is enabled, false otherwise
      */
     public boolean isUseRandomLine() {
@@ -324,6 +337,7 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
 
     /**
      * Get the variant index for the test case.
+     *
      * @return the variant index
      */
     public List<Integer> getVariantIndex() {
@@ -332,6 +346,7 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
 
     /**
      * Get the variant limit for the test case.
+     *
      * @return the variant limit
      */
     public int getVariantLimit() {
@@ -340,6 +355,7 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
 
     /**
      * Get the report builder instance.
+     *
      * @return the report builder
      */
     private ReportBuilder getReportBuilder() {
@@ -402,6 +418,7 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
 
     /**
      * Check if there is a non-headless method present.
+     *
      * @return true if a non-headless method is present, false otherwise
      */
     private boolean checkNonHeadlessMethod() {
@@ -430,6 +447,7 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
 
     /**
      * Initialize JSON test case metadata.
+     *
      * @param testCase
      */
     private void initJsonTestCaseMetaData(JSONTestCase testCase) {

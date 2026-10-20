@@ -9,7 +9,7 @@
     <Appenders>
         <RollingFile name="RollingFile" fileName="${basePath}/${date:yyyy-MM-dd}/all.trace.log"
                      filePattern="${basePath}/$${date:yyyy-MM-dd}/all.trace-%d{yyyy-MM-dd}-%i.log"
-                     ignoreExceptions="false">
+                     ignoreExceptions="true">
             <PatternLayout
                     pattern="%highlight{%d{ISO8601} [%t] %-6level: %msg%n%throwable}{FATAL=Magenta, ERROR=Bright red, WARN=Yellow, INFO=Green, STEP_INFO=Blue, DEBUG=Cyan, TRACE=Normal}"/>
             <Policies>

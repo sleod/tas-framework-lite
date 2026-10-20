@@ -7,7 +7,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,7 +18,6 @@ import java.util.stream.Stream;
 import static io.github.sleod.tas.common.logging.SystemLogger.debug;
 import static io.github.sleod.tas.common.logging.SystemLogger.info;
 import static io.github.sleod.tas.common.utils.StringTextUtils.chop;
-import static java.lang.Integer.MAX_VALUE;
 
 public class FileLocator {
 
@@ -56,8 +54,8 @@ public class FileLocator {
      */
     public static List<Path> listRegularFilesRecursive(String sDir, int maxDeep) {
         List<Path> paths;
-        try {
-            paths = Files.find(Paths.get(sDir), maxDeep, (p, bfa) -> bfa.isRegularFile()).collect(Collectors.toList());
+        try (Stream<Path> stream = Files.find(Paths.get(sDir), maxDeep, (p, bfa) -> bfa.isRegularFile())) {
+            paths = stream.collect(Collectors.toList());
         } catch (IOException ex) {
             throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_READING, ex, sDir);
         }
@@ -74,9 +72,9 @@ public class FileLocator {
      */
     public static List<Path> listRegularFilesRecursiveMatchedToName(String sDir, int maxDeep, String name) {
         List<Path> paths;
-        try {
-            paths = Files.find(Paths.get(sDir), maxDeep, (p, bfa) ->
-                            bfa.isRegularFile() && p.getFileName().toString().matches(".*" + name + ".*")).toList();
+        try (Stream<Path> stream = Files.find(Paths.get(sDir), maxDeep, (p, bfa) ->
+                bfa.isRegularFile() && p.getFileName().toString().matches(".*" + name + ".*"))) {
+            paths = stream.toList();
         } catch (IOException ex) {
             throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_READING, ex, sDir + "/" + name);
         }
@@ -96,8 +94,9 @@ public class FileLocator {
      */
     public static Path findExactFile(String sDir, int maxDeep, String name) {
         Optional<Path> paths;
-        try {
-            paths = Files.find(Paths.get(sDir), maxDeep, (p, bfa) -> bfa.isRegularFile() && p.getFileName().toString().matches(name)).findFirst();
+        try (Stream<Path> stream = Files.find(Paths.get(sDir), maxDeep, (p, bfa) ->
+                bfa.isRegularFile() && p.getFileName().toString().matches(name))) {
+            paths = stream.findFirst();
         } catch (IOException ex) {
             throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_READING, ex, sDir + "/" + name);
         }
@@ -107,34 +106,18 @@ public class FileLocator {
         return paths.get();
     }
 
-
     /**
      * walk through folder and get files only
      *
      * @param path folder path
      * @return list of path of files only
-     * @throws IOException ex
      */
-    public static List<Path> walkThrough(Path path) throws IOException {
-        return walkThrough(path, MAX_VALUE);
-    }
-
-    /**
-     * walk through folder and get files only
-     *
-     * @param path folder path
-     * @return list of path of files only
-     * @throws IOException ex
-     */
-    public static List<Path> walkThrough(Path path, int maxDepth) throws IOException {
-        List<Path> paths = new LinkedList<>();
-        Stream<Path> walk = Files.walk(path, maxDepth);
-        for (Iterator<Path> it = walk.iterator(); it.hasNext(); ) {
-            Path filePath = it.next();
-            if (!Files.isDirectory(filePath)) {
-                paths.add(filePath);
-                info("Found File: " + filePath);
-            }
+    public static List<Path> walkThrough(Path path) {
+        List<Path> paths;
+        try (Stream<Path> walk = Files.walk(path)) {
+            paths = walk.filter(Files::isRegularFile).peek(file -> info("Found File: " + file)).toList();
+        } catch (IOException ex) {
+            throw new ExceptionBase(ExceptionErrorKeys.IOEXCEPTION_BY_READING, ex, path);
         }
         return paths;
     }
@@ -187,22 +170,8 @@ public class FileLocator {
     }
 
     /**
-     * find resource with relative path also in case the files in a jar file
-     *
-     * @param relativePath path of file don't need "/" at beginning
-     * @return path of target
-     */
-    public static InputStream loadResource(String relativePath) {
-        String location;
-        //clean up first '/'
-        if (relativePath.startsWith("/")) {
-            relativePath = relativePath.substring(1);
-        }
-        return FileOperation.retrieveFileFromResourcesAsStream(relativePath);
-    }
-
-    /**
      * Get the project base directory.
+     *
      * @return the project base directory
      */
     public static String getProjectBaseDir() {
@@ -211,8 +180,9 @@ public class FileLocator {
 
     /**
      * Prefix the given paths with the specified prefix.
+     *
      * @param prefixWith the prefix to add
-     * @param paths the list of paths to modify
+     * @param paths      the list of paths to modify
      * @return the modified list of paths
      */
     protected static List<String> prefix(final String prefixWith, List<String> paths) {
@@ -226,6 +196,7 @@ public class FileLocator {
 
     /**
      * Normalise the given list of paths by replacing backslashes with forward slashes.
+     *
      * @param paths the list of paths to normalise
      * @return the normalised list of paths
      */
@@ -237,6 +208,7 @@ public class FileLocator {
 
     /**
      * Sort the given list of strings.
+     *
      * @param input the list of strings to sort
      * @return the sorted list of strings
      */

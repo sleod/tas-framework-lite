@@ -11,7 +11,7 @@ import java.util.ResourceBundle;
  */
 public class MessageResolver {
 
-    private static final Locale locale = new Locale("en", "DE");
+    private static final Locale locale = Locale.forLanguageTag("en-DE");
     private static final ResourceBundle resourceBundle = ResourceBundle.getBundle("messages", locale);
 
     /**
