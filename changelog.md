@@ -1,12 +1,12 @@
 #### Version Stack
 ========================
 
-* Latest development version: `6.4.00-RELEASE` (branch `main`)
+* Latest development version: `6.4.01-RELEASE` (branch `main`)
 
 #### New Features and Changes
 ========================
 
-> :rocket: **Version 6.4.00-RELEASE**
+> :rocket: **Version 6.4.01-RELEASE**
 >
 > [OPTIMIZATION]
 > * change load resource file with input stream
