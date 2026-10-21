@@ -22,12 +22,14 @@
                     pattern="%highlight{%d{ISO8601} [%t] %-6level: %msg%n%throwable}{FATAL=Magenta, ERROR=Bright red, WARN=Yellow, INFO=Green, STEP_INFO=Blue, DEBUG=Cyan, TRACE=Normal}"
                     disableAnsi="false"/>
         </Console>
+        <Memory name="TestLogs"/>
     </Appenders>
 
     <Loggers>
         <Root level="all">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="RollingFile"/>
+            <AppenderRef ref="TestLogs"/>
         </Root>
     </Loggers>
 </Configuration>
