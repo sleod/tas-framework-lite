@@ -1,17 +1,20 @@
 #### Version Stack
 ========================
 
-* Latest development version: `6.4.03-RELEASE`
+* Latest development version: `6.4.04-RELEASE`
 
 #### New Features and Changes
 ========================
+
+> :rocket: **Version 6.4.04-RELEASE**
+> [FEATURE]
+> * add cache log into SystemLogger for package mode
 
 > :rocket: **Version 6.4.03-RELEASE**
 > [FEATURE]
 > * add memory appender to log4j2.xml for log4j2
 > * enable to get log4j2 log content from memory appender
 > * after get log content, clear the memory appender to avoid memory leak
-
 
 > :rocket: **Version 6.4.02-RELEASE**
 > [BUG FIX]
