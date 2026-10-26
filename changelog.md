@@ -1,10 +1,14 @@
 #### Version Stack
 ========================
 
-* Latest development version: `6.4.04-RELEASE`
+* Latest development version: `6.4.05-RELEASE`
 
 #### New Features and Changes
 ========================
+
+> :rocket: **Version 6.4.05-RELEASE**
+> [FEATURE]
+> * cache error log into SystemLogger for package mode
 
 > :rocket: **Version 6.4.04-RELEASE**
 > [FEATURE]

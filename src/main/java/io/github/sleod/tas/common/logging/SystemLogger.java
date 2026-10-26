@@ -7,6 +7,9 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 /**
  * Logger class of System using log4j2
  */
@@ -156,5 +159,17 @@ public class SystemLogger {
         String logs = buffer.toString();
         buffer.setLength(0);
         return logs;
+    }
+
+    public static void cacheError(Throwable throwable) {
+        if (PropertyResolver.isPackageMode()) {
+            // Format the error message with timestamp and thread name
+            String message = getSimpleCustomInfo("CACHED_ERROR", throwable.getMessage());
+            // Append the stack trace to the message
+            String stackTrace = Arrays.stream(throwable.getStackTrace())
+                    .map(element -> System.lineSeparator() + "\tat " + element.toString())
+                    .collect(Collectors.joining());
+            buffer.append(message).append(stackTrace).append(System.lineSeparator());
+        }
     }
 }

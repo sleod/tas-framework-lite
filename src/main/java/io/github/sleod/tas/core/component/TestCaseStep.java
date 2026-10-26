@@ -28,8 +28,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.*;
 
-import static io.github.sleod.tas.common.logging.SystemLogger.logStepInfo;
-import static io.github.sleod.tas.common.logging.SystemLogger.warn;
+import static io.github.sleod.tas.common.logging.SystemLogger.*;
 import static io.github.sleod.tas.common.utils.StringTextUtils.isValid;
 
 public class TestCaseStep implements Executable {
@@ -187,6 +186,7 @@ public class TestCaseStep implements Executable {
                 }
                 testStepResult.setActual("Exception: " + issue.getMessage());
                 testStepResult.setTestFailure(new TestFailure(issue));
+                cacheError(throwable);
                 noRun = isStopOnError() || isSkipOnError();
                 TestStepMonitor.setIsStop(noRun);
             }
