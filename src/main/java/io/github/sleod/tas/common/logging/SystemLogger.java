@@ -35,7 +35,6 @@ public class SystemLogger {
         String info = getSimpleCustomInfo("STEP_INFO", text);
         stepInfo(text);
         TestStepMonitor.getCurrentStep().getTestStepResult().logInfo(info);
-        cacheLogs(text);
     }
 
     /**

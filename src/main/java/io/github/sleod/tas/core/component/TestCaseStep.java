@@ -174,8 +174,8 @@ public class TestCaseStep implements Executable {
                 }
             } catch (Throwable throwable) {
                 Throwable issue = throwable;
-                if (issue instanceof InvocationTargetException) {
-                    issue = ((InvocationTargetException) issue).getTargetException();
+                if (throwable instanceof InvocationTargetException invocationTargetException) {
+                    issue = invocationTargetException.getTargetException();
                 } else if (issue instanceof TestDataEmptyException) {
                     setSkipOnError(true);
                 }
@@ -186,7 +186,7 @@ public class TestCaseStep implements Executable {
                 }
                 testStepResult.setActual("Exception: " + issue.getMessage());
                 testStepResult.setTestFailure(new TestFailure(issue));
-                cacheError(throwable);
+                cacheError(issue);
                 noRun = isStopOnError() || isSkipOnError();
                 TestStepMonitor.setIsStop(noRun);
             }

@@ -67,11 +67,11 @@ public abstract class PerformableTestCases {
             } catch (Exception e) {
                 fatal(e);
             }
+            //static files for report and start count run number
+            ReportBuilder.generateExecutorJSON();
+            ReportBuilder.generateEnvironmentProperties();
         }
         info("Starting Test Run...");
-        //static files for report and start count run number
-        ReportBuilder.generateExecutorJSON();
-        ReportBuilder.generateEnvironmentProperties();
     }
 
     /**

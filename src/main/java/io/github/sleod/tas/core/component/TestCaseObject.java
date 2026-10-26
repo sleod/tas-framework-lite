@@ -248,7 +248,7 @@ public class TestCaseObject implements Comparable<TestCaseObject> {
             info("Feedback failed: " + throwable.getMessage());
             debug("Feedback failed: " + throwable.getMessage() + System.lineSeparator() + Arrays.toString(throwable.getStackTrace()));
         }
-        if (PropertyResolver.isGenerateAllureReport()) {
+        if (PropertyResolver.isGenerateAllureReport() && !PropertyResolver.isPackageMode()) {
             info("Generate Allure Result: " + getName());
             //generate allure results files for this test case
             List<String> filePaths = getReportBuilder().generateAllureResults(this);

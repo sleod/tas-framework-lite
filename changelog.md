@@ -1,10 +1,16 @@
 #### Version Stack
 ========================
 
-* Latest development version: `6.4.05-RELEASE`
+* Latest development version: `6.4.06-RELEASE`
 
 #### New Features and Changes
 ========================
+
+> :rocket: **Version 6.4.06-RELEASE**
+> [BUG FIX]
+> * fix log step info double issue in package mode
+> * fix generate allure result in package mode
+> * fix cache throwable issue in package mode
 
 > :rocket: **Version 6.4.05-RELEASE**
 > [FEATURE]
