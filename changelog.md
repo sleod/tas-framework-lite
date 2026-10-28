@@ -1,10 +1,14 @@
 #### Version Stack
 ========================
 
-* Latest development version: `6.4.06-RELEASE`
+* Latest development version: `6.4.07-RELEASE`
 
 #### New Features and Changes
 ========================
+
+> :rocket: **Version 6.4.07-RELEASE**
+> [BUG FIX]
+> * fix load global test data file
 
 > :rocket: **Version 6.4.06-RELEASE**
 > [BUG FIX]

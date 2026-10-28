@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -105,22 +106,24 @@ public final class ResourceUtils {
     }
 
     /**
-     * Lists file paths of a given name within a specified folder.
+     * Lists file paths of a given file name pattern within a specified folder.
      *
      * @param inFolder the folder to search within
-     * @param fileName the name of the file to search for
+     * @param fileNamePattern the pattern of the file name to search for
      * @return List of matching file paths
      */
-    public static List<String> listFilePathsOfName(String inFolder, String fileName) {
+    public static List<String> listFilePathsOfName(String inFolder, String fileNamePattern, boolean caseSensitive) {
         if (inFolder == null || inFolder.isBlank()) {
             throw new IllegalArgumentException("Folder path cannot be null or empty");
         }
-        if (fileName == null || fileName.isBlank()) {
-            throw new IllegalArgumentException("File name cannot be null or empty");
+        if (fileNamePattern == null || fileNamePattern.isBlank()) {
+            throw new IllegalArgumentException("File name pattern cannot be null or empty");
         }
-        return FILE_INDEX.keySet().stream().filter(name -> name.toLowerCase().contains(fileName.toLowerCase()))
-                .map(name -> FILE_INDEX.get(name).stream().filter(path -> path.contains("/" + inFolder + "/"))
-                        .toList()).flatMap(List::stream).toList();
+        Pattern namePattern = caseSensitive ? Pattern.compile(Pattern.quote(fileNamePattern)) : Pattern.compile(Pattern.quote(fileNamePattern), Pattern.CASE_INSENSITIVE);
+        return FILE_INDEX.entrySet().stream().filter(entry -> namePattern.matcher(
+                        caseSensitive ? entry.getKey() : entry.getKey().toLowerCase(Locale.GERMAN)).find())
+                .flatMap(entry -> entry.getValue().stream())
+                .filter(path -> path.contains("/" + inFolder + "/")).toList();
     }
 
     public static String getFilePathWithName(String fileName) {
