@@ -573,7 +573,7 @@ public class TestRunManager {
      * but only one global test data file is allowed in the resource folder. If multiple files found, the exception will be thrown.
      */
     public static void loadGlobalTestData() {
-        if (ResourceUtils.isResourceFileExists(PropertyResolver.getTestDataLocation())) {
+        if (ResourceUtils.resourceFolderExists(PropertyResolver.getTestDataLocation())) {
             List<String> testDataPaths = ResourceUtils.listFilePathsOfName(PropertyResolver.getTestDataLocation(), ".*testData-global\\.json$", false);
             if (testDataPaths.size() > 1) {
                 throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_GLOBAL_FILE_SHOULD_BE_UNIQUE, Strings.join("|", testDataPaths.toArray()));
@@ -582,6 +582,8 @@ public class TestRunManager {
             } else {
                 info("No global test data file detected!");
             }
+        } else {
+            info("No test data location in resources found!");
         }
     }
 
