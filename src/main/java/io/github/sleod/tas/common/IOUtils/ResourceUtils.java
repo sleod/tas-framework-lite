@@ -108,7 +108,7 @@ public final class ResourceUtils {
     /**
      * Lists file paths of a given file name pattern within a specified folder.
      *
-     * @param inFolder the folder to search within
+     * @param inFolder        the folder to search within
      * @param fileNamePattern the pattern of the file name to search for
      * @return List of matching file paths
      */
@@ -119,11 +119,16 @@ public final class ResourceUtils {
         if (fileNamePattern == null || fileNamePattern.isBlank()) {
             throw new IllegalArgumentException("File name pattern cannot be null or empty");
         }
-        Pattern namePattern = caseSensitive ? Pattern.compile(Pattern.quote(fileNamePattern)) : Pattern.compile(Pattern.quote(fileNamePattern), Pattern.CASE_INSENSITIVE);
-        return FILE_INDEX.entrySet().stream().filter(entry -> namePattern.matcher(
-                        caseSensitive ? entry.getKey() : entry.getKey().toLowerCase(Locale.GERMAN)).find())
+        Pattern namePattern = Pattern.compile(fileNamePattern, caseSensitive ? 0 : Pattern.CASE_INSENSITIVE);
+        inFolder = inFolder.replace('\\', '/').replaceFirst("^/+", "").replaceFirst("/+$", "");
+        Pattern folderPattern = Pattern.compile("(?:^|/)" + inFolder + "(?:/|$)");
+        return FILE_INDEX.entrySet().stream()
+                .filter(entry -> {
+                    String fileName = entry.getKey();
+                    return namePattern.matcher(fileName).matches();})
                 .flatMap(entry -> entry.getValue().stream())
-                .filter(path -> path.contains("/" + inFolder + "/")).toList();
+                .filter(path -> folderPattern.matcher(path).find())
+                .toList();
     }
 
     public static String getFilePathWithName(String fileName) {

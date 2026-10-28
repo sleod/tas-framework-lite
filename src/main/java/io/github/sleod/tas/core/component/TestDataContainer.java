@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.github.sleod.tas.common.IOUtils.FileOperation;
 import io.github.sleod.tas.common.IOUtils.ResourceUtils;
 import io.github.sleod.tas.common.enumerations.FileFormat;
 import io.github.sleod.tas.common.utils.DBConnector;
@@ -19,7 +18,6 @@ import io.github.sleod.tas.exception.TestDataEmptyException;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -244,7 +242,12 @@ public class TestDataContainer {
 
     public static void loadGlobalTestData(String path) {
         info("Load Global Test Data: " + path);
-        String content = FileOperation.readFileToLinedString(path);
+        String content;
+        try {
+            content = ResourceUtils.readResourceFileToString(path);
+        } catch (IOException ex) {
+            throw new ExceptionBase(ExceptionErrorKeys.EXCEPTION_BY_DESERIALIZATION, ex, path);
+        }
         try {
             globalTestData = mapper.readTree(content);
         } catch (JsonProcessingException ex) {
@@ -271,7 +274,7 @@ public class TestDataContainer {
     }
 
     private void parseCSVNonComment(List<String> lines) {
-        String[] columns = lines.get(0).split(";");
+        String[] columns = lines.getFirst().split(";");
         boolean commentBlockClosed = true;
         for (int rowNumber = 1; rowNumber < lines.size(); rowNumber++) {
             Map<String, Object> rowContent = new HashMap<>(columns.length);

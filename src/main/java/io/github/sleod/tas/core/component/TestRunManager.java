@@ -574,7 +574,8 @@ public class TestRunManager {
      */
     public static void loadGlobalTestData() {
         if (ResourceUtils.resourceFolderExists(PropertyResolver.getTestDataLocation())) {
-            List<String> testDataPaths = ResourceUtils.listFilePathsOfName(PropertyResolver.getTestDataLocation(), ".*testData-global\\.json$", false);
+            List<String> testDataPaths = ResourceUtils
+                    .listFilePathsOfName(PropertyResolver.getTestDataLocation(), ".*testData-global\\.json$", false);
             if (testDataPaths.size() > 1) {
                 throw new ExceptionBase(ExceptionErrorKeys.TEST_DATA_GLOBAL_FILE_SHOULD_BE_UNIQUE, Strings.join("|", testDataPaths.toArray()));
             } else if (testDataPaths.size() == 1) {
