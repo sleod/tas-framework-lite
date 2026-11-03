@@ -54,13 +54,13 @@ public final class ResourceUtils {
     }
 
     /**
-     * Checks if a resource file exists in the index.
-     *
+     * Checks if a resource file with extension exists in the index.
+     * like this: "config.json" or "config.yaml" or "config.xml"
      * @param filename the name of the resource file
      * @return true if the resource file exists, false otherwise
      */
     public static boolean isResourceFileExists(String filename) {
-        return FILE_INDEX.containsKey(filename);
+        return FILE_INDEX.containsKey(FileOperation.getFileName(filename));
     }
 
     public static boolean resourceFolderExists(String folderPath) {

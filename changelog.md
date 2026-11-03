@@ -1,10 +1,14 @@
 #### Version Stack
 ========================
 
-* Latest development version: `6.4.07-RELEASE`
+* Latest development version: `6.4.08-RELEASE`
 
 #### New Features and Changes
 ========================
+
+> :rocket: **Version 6.4.08-RELEASE**
+> [BUG FIX]
+> * fix check existence of resource file with path
 
 > :rocket: **Version 6.4.07-RELEASE**
 > [BUG FIX]
